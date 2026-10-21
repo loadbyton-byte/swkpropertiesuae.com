@@ -8,7 +8,7 @@ python3 build.py        # needs Python 3.12+, no dependencies
 
 ## Deploy
 1. Copy the existing image folders from the live host into `static/images/` (`brand/`, `hero/`, `gallery/`, `properties/`, `developers/`, `blog/`, `about/`) and run the build. The repo does not contain the images.
-2. Upload the contents of `public/` to the web root (it includes `.htaccess`, which 301-redirects the old `.html` and `?id=` / `?slug=` URLs, forces HTTPS + www and sets security headers; Apache only).
+2. Deploy `public/` to Vercel (`vercel.json` handles redirects, headers and clean URLs) or, on Apache, upload `public/` (its `.htaccess` does the same).
 3. Submit `https://www.swkpropertiesuae.com/sitemap.xml` in Google Search Console.
 
 ## What changed vs. the old site
