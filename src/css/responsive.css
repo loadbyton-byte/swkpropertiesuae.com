@@ -1,0 +1,454 @@
+/* ==========================================================================
+   SWK Properties — Page-specific responsive layouts & utilities
+   ========================================================================== */
+
+/* .hide-mobile used `display: initial` at desktop widths, which knocked the
+   hero "Status" field out of its flex-column layout (label sat beside the
+   select). Scope the override to the field and restore its real display. */
+.hide-mobile { display: none; }
+@media (min-width: 1024px) { .hide-mobile { display: initial; } }
+.search-field.hide-mobile { display: none; }
+@media (min-width: 1024px) { .search-field.hide-mobile { display: flex; } }
+
+.hide-desktop { display: initial; }
+@media (min-width: 1024px) { .hide-desktop { display: none; } }
+
+/* ---- Properties listing page ---- */
+
+.properties-layout {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+}
+
+/* ---- Property details page ---- */
+
+/* Bento-style grid: an asymmetric size rhythm (repeating every 6 tiles via
+   grid-auto-flow:dense, so it still packs cleanly whether a listing has 2
+   photos or 16) rather than a uniform grid of same-size thumbnails. Each
+   tile reveals a caption on hover and opens the shared lightbox on click. */
+.pd-bento-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 160px;
+  grid-auto-flow: dense;
+  gap: var(--space-3);
+}
+
+.pd-bento-gallery__item:nth-child(6n+1) { grid-column: span 2; grid-row: span 2; }
+.pd-bento-gallery__item:nth-child(6n+4) { grid-row: span 2; }
+.pd-bento-gallery__item:nth-child(6n+6) { grid-column: span 2; }
+
+@media (max-width: 767px) {
+  .pd-bento-gallery { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 120px; }
+  .pd-bento-gallery__item:nth-child(6n+4) { grid-row: span 1; }
+  .pd-bento-gallery__item:nth-child(6n+6) { grid-column: span 1; }
+}
+
+.pd-bento-gallery__item {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  padding: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pd-bento-gallery__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-luxury);
+}
+
+.pd-bento-gallery__item:hover img,
+.pd-bento-gallery__item:focus-visible img {
+  transform: scale(1.06);
+}
+
+.pd-bento-gallery__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-4);
+  background: linear-gradient(to top, rgba(7, 9, 13, 0.85) 0%, rgba(7, 9, 13, 0.15) 55%, transparent 100%);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-luxury);
+}
+
+.pd-bento-gallery__item:hover .pd-bento-gallery__overlay,
+.pd-bento-gallery__item:focus-visible .pd-bento-gallery__overlay {
+  opacity: 1;
+}
+
+.pd-bento-gallery__caption {
+  color: var(--white);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.pd-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .pd-layout { grid-template-columns: 1.7fr 1fr; }
+}
+
+.pd-facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  margin-block: var(--space-6);
+}
+
+@media (min-width: 560px) { .pd-facts { grid-template-columns: repeat(4, 1fr); } }
+
+.pd-facts .fact .label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em; color: var(--slate-500); }
+.pd-facts .fact .value { font-family: var(--font-display); font-size: var(--fs-lg); margin-top: 4px; }
+
+.pd-sidebar {
+  position: sticky;
+  top: calc(var(--header-h-scrolled) + var(--space-5));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pd-agent-card {
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.pd-agent-card img { width: 84px; height: 84px; border-radius: var(--radius-full); margin-inline: auto; object-fit: cover; }
+
+.amenity-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+@media (min-width: 560px) { .amenity-list { grid-template-columns: repeat(3, 1fr); } }
+
+.amenity-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+}
+
+/* ---- Contact page ---- */
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 960px) {
+  .contact-layout { grid-template-columns: 1fr 1fr; }
+}
+
+.contact-info-card {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.map-embed {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.map-embed iframe { width: 100%; height: 100%; border: 0; }
+
+/* ---- Services page ---- */
+
+.services-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 700px) { .services-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .services-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ---- Mobile: swipeable 2-row card grid ----
+   Below the breakpoint where these sections normally go 2-up, arrange
+   cards (How We Help and the About page's consultant cards) into an
+   explicit 2-row grid and let the container scroll horizontally instead
+   of stacking everything into one long column — two full rows (4 cards)
+   stay visible at once, and a finger swipe reveals any more. */
+@media (max-width: 699px) {
+  .services-grid,
+  .testimonials-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, 1fr);
+    grid-auto-columns: calc((100% - var(--space-5)) / 2);
+    gap: var(--space-5);
+    overflow-x: auto;
+    /* Setting only overflow-x leaves overflow-y computed as "auto" too
+       (per spec, since it isn't "visible" on both axes), which was enough
+       of a rounding-error's worth of vertical overflow to add its own
+       scrollbar inside the section — pin it down explicitly. */
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .services-grid::-webkit-scrollbar,
+  .testimonials-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .services-grid > *,
+  .testimonials-grid > * {
+    scroll-snap-align: start;
+  }
+
+  /* The blog teaser only ever has 3 cards, so a 2-row grid would split
+     unevenly (2 stacked in one column, a lone 3rd in the next) — a single
+     scrollable row showing 2 cards with the 3rd a swipe away reads much
+     more clearly. */
+  .blog-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - var(--space-5)) / 2);
+    gap: var(--space-5);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .blog-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .blog-grid > * {
+    scroll-snap-align: start;
+  }
+
+  .blog-card .badge {
+    padding: 3px 8px;
+    font-size: 0.625rem;
+  }
+
+  .blog-card__body h3 {
+    font-size: var(--fs-sm);
+  }
+
+  /* Cards show just the image, category and heading — the excerpt only
+     appears once the reader actually opens the full article. */
+  .blog-card__body p {
+    display: none;
+  }
+}
+
+/* ---- Mobile: smaller "How We Help" cards ---- */
+@media (max-width: 699px) {
+  .service-card--themed {
+    padding: var(--space-4);
+    min-height: 0;
+  }
+
+  .service-card--themed .service-card__body {
+    gap: var(--space-4);
+  }
+
+  .service-card--themed .service-card__body h3 {
+    font-size: var(--fs-md);
+  }
+
+  .service-card--themed .service-card__decor {
+    width: 90px;
+    height: 90px;
+    right: -12px;
+    bottom: -12px;
+  }
+}
+
+/* ---- Mobile: smaller hero CTA + search box ---- */
+@media (max-width: 640px) {
+  .hero__ctas .btn-slide-arrow {
+    padding: 6px;
+    font-size: var(--fs-sm);
+  }
+
+  .hero__ctas .btn-slide-arrow__fill {
+    width: 34px;
+  }
+
+  .hero__ctas .btn-slide-arrow__icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hero__ctas .btn-slide-arrow__text {
+    padding-inline: var(--space-4);
+  }
+
+  .hero__search-wrap .search-bar {
+    padding: var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .hero__search-wrap .search-field select,
+  .hero__search-wrap .search-field input {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .hero__search-wrap .search-field label {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ---- Mobile: smaller, rounder "Featured listings" card ---- */
+@media (max-width: 699px) {
+  .property-card--feature {
+    aspect-ratio: 1 / 1;
+  }
+
+  .property-card__feature-link {
+    border-radius: var(--radius-lg);
+  }
+
+  .property-card__feature-content {
+    padding: var(--space-3);
+  }
+
+  .property-card__feature-title,
+  .property-card__feature-price {
+    font-size: var(--fs-sm);
+  }
+}
+
+/* ---- Mobile: tighter footer ---- */
+@media (max-width: 767px) {
+  .footer-card {
+    padding-block: var(--space-5);
+  }
+
+  .footer-grid {
+    gap: var(--space-5);
+  }
+
+  .footer-col ul {
+    gap: var(--space-2);
+  }
+}
+
+/* ---- Mobile: tighter, smaller-type mortgage calculator ---- */
+@media (max-width: 699px) {
+  .calc-card {
+    padding: var(--space-4);
+  }
+
+  .calc-card__title {
+    font-size: var(--fs-lg);
+    margin-bottom: var(--space-4);
+  }
+
+  .calc-field {
+    margin-bottom: var(--space-3);
+  }
+
+  .calc-field label,
+  .calc-field__label {
+    font-size: 0.6875rem;
+  }
+
+  .calc-input {
+    padding: var(--space-2);
+    font-size: var(--fs-sm);
+  }
+
+  .calc-field-row {
+    gap: var(--space-2);
+  }
+
+  .calc-toggle__btn {
+    padding: 0 var(--space-2);
+    font-size: 0.6875rem;
+  }
+
+  .calc-pill {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--fs-xs);
+  }
+
+  .btn-calc {
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--fs-xs);
+  }
+
+  .calc-donut-row {
+    gap: var(--space-4);
+  }
+
+  .calc-donut {
+    width: 120px;
+    height: 120px;
+  }
+
+  .calc-donut__amount {
+    max-width: 62px;
+    font-size: 0.75rem;
+  }
+
+  .calc-legend {
+    min-width: 0;
+    gap: var(--space-2);
+  }
+
+  .calc-legend li {
+    font-size: var(--fs-xs);
+  }
+
+  .mortgage-layout {
+    gap: var(--space-5);
+  }
+}
+
+/* ---- Blog post ---- */
+
+.prose {
+  max-width: 72ch;
+  margin-inline: auto;
+}
+
+.prose h2 { margin-top: var(--space-8); margin-bottom: var(--space-4); }
+.prose p { margin-bottom: var(--space-5); }
+.prose img { border-radius: var(--radius-md); margin-block: var(--space-6); }
+
+/* ---- Mortgage page ---- */
+
+.mortgage-layout {
+  display: grid;
+  gap: var(--space-8);
+}
+
+/* ---- Print ---- */
+
+@media print {
+  .site-brand, .dock-wrap, .dock-mobile, .whatsapp-float, .hero__scroll-cue, .hero__gl, .scroll-progress { display: none !important; }
+}

@@ -1,0 +1,50 @@
+[
+ {
+  "id": "downtown-dubai",
+  "name": "Downtown Dubai",
+  "image": "assets/images/communities/downtown-dubai.jpg",
+  "blurb": "Home to Burj Khalifa and Dubai Mall — the city's most iconic address."
+ },
+ {
+  "id": "dubai-marina",
+  "name": "Dubai Marina",
+  "image": "assets/images/communities/dubai-marina.jpg",
+  "blurb": "Waterfront towers, yacht life, and one of Dubai's liveliest promenades."
+ },
+ {
+  "id": "palm-jumeirah",
+  "name": "Palm Jumeirah",
+  "image": "assets/images/communities/palm-jumeirah.jpg",
+  "blurb": "The world-famous man-made island of beachfront villas and resorts."
+ },
+ {
+  "id": "business-bay",
+  "name": "Business Bay",
+  "image": "assets/images/communities/business-bay.jpg",
+  "blurb": "Dubai's dynamic business hub on the canal, minutes from Downtown."
+ },
+ {
+  "id": "dubai-hills-estate",
+  "name": "Dubai Hills Estate",
+  "image": "assets/images/communities/dubai-hills-estate.jpg",
+  "blurb": "Master-planned green community around an 18-hole championship golf course."
+ },
+ {
+  "id": "jvc",
+  "name": "Jumeirah Village Circle",
+  "image": "assets/images/communities/jvc.jpg",
+  "blurb": "Family-friendly, high-yield community at the centre of New Dubai."
+ },
+ {
+  "id": "dubai-creek-harbour",
+  "name": "Dubai Creek Harbour",
+  "image": "assets/images/communities/dubai-creek-harbour.jpg",
+  "blurb": "Waterfront masterplan facing the Ras Al Khor wildlife sanctuary."
+ },
+ {
+  "id": "sheikh-zayed-road",
+  "name": "Sheikh Zayed Road",
+  "image": "assets/images/communities/sheikh-zayed-road.jpg",
+  "blurb": "Dubai's iconic business spine, lined with landmark towers and swift metro access to every district."
+ }
+]

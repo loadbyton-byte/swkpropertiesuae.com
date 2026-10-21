@@ -1,0 +1,32 @@
+[
+ {
+  "id": "buying-selling",
+  "title": "Buying & Selling",
+  "description": "End-to-end guidance across Dubai's off-plan and secondary market, from shortlisting to Oqood/Title Deed transfer."
+ },
+ {
+  "id": "investment-advisory",
+  "title": "Investment Advisory",
+  "description": "Data-led ROI and capital-appreciation analysis to help you choose the right community, developer, and payment plan."
+ },
+ {
+  "id": "property-management",
+  "title": "Property Management",
+  "description": "Tenant sourcing, rent collection, maintenance, and Ejari renewals — a fully managed, hands-off rental experience."
+ },
+ {
+  "id": "mortgage-assistance",
+  "title": "Mortgage Assistance",
+  "description": "Bank-agnostic mortgage structuring for residents and non-residents, with rates compared across our lending partners."
+ },
+ {
+  "id": "legal-documentation",
+  "title": "Legal & Documentation",
+  "description": "DLD registration, SPA review, POA setup, and Golden Visa eligibility handled by our in-house legal partners."
+ },
+ {
+  "id": "interior-fitout",
+  "title": "Interior & Fit-out",
+  "description": "Turnkey design and fit-out for handover-ready units — furnishing packages built for rental-ready returns."
+ }
+]
