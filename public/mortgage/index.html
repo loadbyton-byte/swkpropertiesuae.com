@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mortgage Calculator &amp; Buying Costs | SWK Properties</title>
+<meta name="description" content="Estimate your UAE mortgage and one-off buying costs instantly, then get a personalised rate comparison from SWK Properties&#x27; lending partners.">
+<link rel="canonical" href="https://www.swkpropertiesuae.com/mortgage/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SWK Properties">
+<meta property="og:title" content="Mortgage Calculator &amp; Buying Costs | SWK Properties">
+<meta property="og:description" content="Estimate your UAE mortgage and one-off buying costs instantly, then get a personalised rate comparison from SWK Properties&#x27; lending partners.">
+<meta property="og:url" content="https://www.swkpropertiesuae.com/mortgage/">
+<meta property="og:image" content="https://www.swkpropertiesuae.com/assets/images/hero/dubai-skyline-hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/images/brand/favicon.png">
+<link rel="stylesheet" href="/assets/css/style.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Can foreigners buy property in Dubai?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Non-UAE nationals can buy freehold property with full ownership rights in designated freehold areas. Your consultant will confirm that a specific project is in a freehold zone before you reserve."}}, {"@type": "Question", "name": "What are the total costs of buying a property?", "acceptedAnswer": {"@type": "Answer", "text": "Beyond the price, budget for the 4% Dubai Land Department (DLD) transfer fee, a DLD administration fee (AED 4,000 for properties of AED 500,000 and above; AED 2,000 below), agency commission (commonly 2%), and for mortgaged purchases a 0.25% mortgage registration fee plus bank arrangement and valuation fees. We provide a full cost breakdown before you commit."}}, {"@type": "Question", "name": "How do off-plan payment plans work?", "acceptedAnswer": {"@type": "Answer", "text": "Most developers offer staged plans such as 60/40 or 70/30 (percentage due during construction versus on handover), and some offer post-handover plans that extend payments after completion. Each listing page shows the specific plan."}}, {"@type": "Question", "name": "Does buying property qualify me for a Golden Visa?", "acceptedAnswer": {"@type": "Answer", "text": "A property investment of AED 2 million or more can qualify you for a 10-year renewable Golden Visa, subject to current immigration rules. Conditions have changed over time, so we check eligibility for your specific purchase before you buy."}}, {"@type": "Question", "name": "What financing is available to overseas buyers?", "acceptedAnswer": {"@type": "Answer", "text": "Non-residents can typically borrow up to about 50% of the property value, while UAE residents can typically borrow up to about 80% on a first property, subject to bank policy. We compare several banks for you."}}, {"@type": "Question", "name": "What ongoing costs should I expect as an owner?", "acceptedAnswer": {"@type": "Answer", "text": "Annual service charges (billed per square foot for community and building maintenance) and, if you let the property, a property management fee, typically a percentage of annual rent. Note that the 5% municipality housing fee on rented homes is normally paid by the tenant through their DEWA bill."}}, {"@type": "Question", "name": "How is the estimated yield on your listings calculated?", "acceptedAnswer": {"@type": "Answer", "text": "Where we show a yield, it is an estimated gross figure: annual rent for comparable units in the same building or community divided by the purchase price. It is not net of service charges, fees or vacancy. We show yields only for ready properties, where rents can be benchmarked. Our advisors can prepare a tailored net projection."}}, {"@type": "Question", "name": "Can SWK Properties manage my property after I buy it?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Our property management team handles tenant sourcing, Ejari registration, rent collection, maintenance coordination and renewals."}}]}</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap site-header__inner">
+<a class="brand" href="/" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo.png" alt="SWK Properties" height="44" class="brand__logo"></a>
+<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">Menu</span><span class="nav-toggle__bars" aria-hidden="true"></span></button>
+<nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="/">Home</a></li><li><a href="/properties/">Properties</a></li><li><a href="/about/">About</a></li><li><a href="/services/">Services</a></li><li><a href="/mortgage/" aria-current="page">Mortgage</a></li><li><a href="/blog/">Blog</a></li><li><a href="/contact/">Contact</a></li></ul></nav>
+</div></header>
+<main id="main">
+<section class="page-hero"><div class="wrap"><h1>Mortgage calculator</h1><p class="lead">Get an instant estimate of your monthly payment, then let our lending partners look for the best rate available to you.</p></div></section>
+<section class="section"><div class="wrap"><form class="calc" id="calc" aria-labelledby="calc-h" novalidate>
+<h3 id="calc-h">Mortgage calculator</h3>
+<div class="calc__grid">
+<div class="field"><label for="c-price">Property value (AED)</label><input id="c-price" type="number" inputmode="numeric" min="200000" max="50000000" step="50000" value="2500000"></div>
+<div class="field"><label for="c-buyer">Buyer status</label><select id="c-buyer"><option value="resident" selected>UAE resident (first property)</option><option value="non-resident">Non-resident</option></select></div>
+<div class="field"><label for="c-down">Down payment (%)</label><input id="c-down" type="number" inputmode="decimal" min="20" max="100" step="1" value="25"><small id="c-down-hint">Minimum 20% for UAE residents on a first property.</small></div>
+<div class="field"><label for="c-term">Loan term (years)</label><select id="c-term"><option>15</option><option>20</option><option selected>25</option></select></div>
+<div class="field"><label for="c-rate">Annual interest rate (%)</label><input id="c-rate" type="number" inputmode="decimal" min="1" max="12" step="0.1" value="4.5"></div>
+</div>
+<div class="calc__out" role="status" aria-live="polite">
+<p class="calc__monthly"><span>Estimated monthly mortgage payment</span><strong id="o-monthly">–</strong></p>
+<dl class="calc__rows">
+<div><dt>Down payment</dt><dd id="o-down">–</dd></div><div><dt>Loan amount</dt><dd id="o-loan">–</dd></div>
+<div><dt>Total interest</dt><dd id="o-interest">–</dd></div><div><dt>Total repaid to the bank</dt><dd id="o-repay">–</dd></div>
+<div><dt>Total cost incl. down payment</dt><dd id="o-total">–</dd></div><div><dt>Mortgage ends</dt><dd id="o-end">–</dd></div>
+</dl>
+<h4>Estimated one-off buying costs</h4>
+<dl class="calc__rows">
+<div><dt>DLD transfer fee (4%)</dt><dd id="o-dld">–</dd></div><div><dt>DLD admin fee</dt><dd id="o-admin">–</dd></div>
+<div><dt>Agency commission (2%)</dt><dd id="o-agency">–</dd></div><div><dt>Mortgage registration (0.25% of loan)</dt><dd id="o-reg">–</dd></div>
+</dl>
+<p class="calc__note" id="o-note"></p>
+<p class="calc__note">Illustrative only. Excludes service charges, insurance, bank arrangement fees and valuation fees. Final terms depend on your bank and profile.</p>
+</div></form></div></section>
+<section class="section section--tint"><div class="wrap"><p class="eyebrow">Getting approved</p><h2>What you'll need for a UAE mortgage</h2>
+<ol class="grid grid--vals steps"><li class="val"><span class="val__n">01</span><h3>Pre-Approval</h3><p>Passport, six months of bank statements and proof of income. Typically takes 5–10 working days.</p></li><li class="val"><span class="val__n">02</span><h3>Property Valuation</h3><p>The bank commissions an independent valuation once you&#x27;ve signed a reservation form.</p></li><li class="val"><span class="val__n">03</span><h3>Final Offer</h3><p>A formal offer letter outlines rate, tenure and conditions for your signature.</p></li><li class="val"><span class="val__n">04</span><h3>Mortgage Registration</h3><p>A 0.25% registration fee is paid to DLD and the mortgage is registered against the title deed.</p></li></ol></div></section>
+<section class="section"><div class="wrap narrow"><p class="eyebrow">Questions</p><h2>Mortgage &amp; buying costs FAQ</h2><details class="faq"><summary>Can foreigners buy property in Dubai?</summary><p>Yes. Non-UAE nationals can buy freehold property with full ownership rights in designated freehold areas. Your consultant will confirm that a specific project is in a freehold zone before you reserve.</p></details><details class="faq"><summary>What are the total costs of buying a property?</summary><p>Beyond the price, budget for the 4% Dubai Land Department (DLD) transfer fee, a DLD administration fee (AED 4,000 for properties of AED 500,000 and above; AED 2,000 below), agency commission (commonly 2%), and for mortgaged purchases a 0.25% mortgage registration fee plus bank arrangement and valuation fees. We provide a full cost breakdown before you commit.</p></details><details class="faq"><summary>How do off-plan payment plans work?</summary><p>Most developers offer staged plans such as 60/40 or 70/30 (percentage due during construction versus on handover), and some offer post-handover plans that extend payments after completion. Each listing page shows the specific plan.</p></details><details class="faq"><summary>Does buying property qualify me for a Golden Visa?</summary><p>A property investment of AED 2 million or more can qualify you for a 10-year renewable Golden Visa, subject to current immigration rules. Conditions have changed over time, so we check eligibility for your specific purchase before you buy.</p></details><details class="faq"><summary>What financing is available to overseas buyers?</summary><p>Non-residents can typically borrow up to about 50% of the property value, while UAE residents can typically borrow up to about 80% on a first property, subject to bank policy. We compare several banks for you.</p></details><details class="faq"><summary>What ongoing costs should I expect as an owner?</summary><p>Annual service charges (billed per square foot for community and building maintenance) and, if you let the property, a property management fee, typically a percentage of annual rent. Note that the 5% municipality housing fee on rented homes is normally paid by the tenant through their DEWA bill.</p></details><details class="faq"><summary>How is the estimated yield on your listings calculated?</summary><p>Where we show a yield, it is an estimated gross figure: annual rent for comparable units in the same building or community divided by the purchase price. It is not net of service charges, fees or vacancy. We show yields only for ready properties, where rents can be benchmarked. Our advisors can prepare a tailored net projection.</p></details><details class="faq"><summary>Can SWK Properties manage my property after I buy it?</summary><p>Yes. Our property management team handles tenant sourcing, Ejari registration, rent collection, maintenance coordination and renewals.</p></details></div></section>
+<section class="cta"><div class="wrap cta__inner"><div><h2>Want a personalised rate comparison?</h2><p>Share your details and a consultant will compare lenders for you.</p></div>
+<div class="cta__btns"><a class="btn btn--gold" href="/contact/">Book a Consultation</a>
+<a class="btn btn--ghost" href="https://wa.me/971564330448?text=Hello%2C%20I%27d%20like%20to%20speak%20to%20a%20consultant%20about%20buying%20property%20in%20the%20UAE." target="_blank" rel="noopener">Chat on WhatsApp</a></div></div></section>
+</main>
+<footer class="site-footer"><div class="wrap">
+<div class="footer-grid">
+<div><img src="/assets/images/brand/swk-logo.png" alt="SWK Properties" height="44" class="brand__logo brand__logo--footer" loading="lazy">
+<p>A Dubai real estate agency helping investors and homeowners buy, sell and manage property with confidence.</p>
+<p class="social"><a href="https://www.instagram.com/swk.properties/" rel="noopener" target="_blank">Instagram</a> · <a href="https://www.linkedin.com/company/swk-properties-llc" rel="noopener" target="_blank">LinkedIn</a></p></div>
+<div><h2 class="footer-h">Explore</h2><ul><li><a href="/properties/">Properties</a></li><li><a href="/about/">About Us</a></li><li><a href="/services/">Services</a></li><li><a href="/mortgage/">Mortgage Calculator</a></li><li><a href="/blog/">Journal</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+<div><h2 class="footer-h">Communities</h2><ul><li><a href="/properties/?community=Dubai Land">Dubai Land</a></li><li><a href="/properties/?community=Waterfront">Waterfront</a></li><li><a href="/properties/?community=Sheikh Zayed Road">Sheikh Zayed Road</a></li><li><a href="/properties/?community=Dubai South">Dubai South</a></li><li><a href="/properties/?community=Dubai Hills Estate">Dubai Hills Estate</a></li></ul></div>
+<div><h2 class="footer-h">Stay updated</h2><p>Market insights and new launches, monthly.</p><form class="newsletter" data-form="newsletter" data-endpoint="" novalidate>
+<label for="nl-email">Email address</label>
+<div class="newsletter__row"><input id="nl-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+<button class="btn btn--gold" type="submit">Join</button></div>
+<label class="check"><input type="checkbox" name="consent" required> <span>I agree to receive market updates and accept the <a href="/privacy/">Privacy Policy</a>.</span></label>
+<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+<p class="form-status" role="status" aria-live="polite" hidden></p>
+</form></div>
+</div>
+<address class="footer-contact"><a href="tel:+971564330448">+971 56 433 0448</a> · <a href="mailto:info@swkpropertiesuae.com">info@swkpropertiesuae.com</a> · Al Saqr Business Tower, Sheikh Zayed Road, Dubai, UAE</address>
+<p class="footer-legal">© 2016–2026 SWK Properties. All rights reserved. RERA ORN 51517. <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Use</a></p>
+</div></footer>
+<a class="wa-float" href="https://wa.me/971564330448?text=Hello%20SWK%20Properties%2C%20I%27d%20like%20to%20know%20more%20about%20your%20listings." target="_blank" rel="noopener" aria-label="Chat with SWK Properties on WhatsApp">
+<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 5 5.1-1.3A10 10 0 1 0 12 2zm5.2 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.2-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1 1 2 1.3 2.3 1.4.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg></a>
+<script src="/assets/js/main.js" defer></script>
+</body>
+</html>
