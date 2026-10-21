@@ -1,0 +1,309 @@
+/* ==========================================================================
+   SWK Properties — Reset & Base
+   ========================================================================== */
+
+/* Self-hosted rather than linked from Fontshare's CDN — their CSS-generation
+   API rate-limits/blocks some networks (seen from an automated test
+   sandbox), so the actual woff2 files are vendored here to avoid depending
+   on that endpoint staying reachable. */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('../assets/fonts/clash-display/clash-display-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('../assets/fonts/clash-display/clash-display-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('../assets/fonts/clash-display/clash-display-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('../assets/fonts/clash-display/clash-display-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* General Sans — same self-hosting reason as Clash Display above. Stands
+   in for "Mori" (PP Mori): that's a paid Pangram Pangram font, General
+   Sans is the closest free release from the same foundry/design language. */
+@font-face {
+  font-family: 'General Sans';
+  src: url('../assets/fonts/general-sans/general-sans-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('../assets/fonts/general-sans/general-sans-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('../assets/fonts/general-sans/general-sans-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('../assets/fonts/general-sans/general-sans-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  cursor: url('../assets/images/brand/swk-cursor.png') 14 14, auto;
+}
+
+/* Links/buttons get their own explicit cursor rule since the browser's
+   built-in pointer cursor for clickable elements isn't inherited from
+   body — it's a direct value on the element itself, so it would otherwise
+   win over the body-level custom cursor above. !important because the
+   later button-reset rule below also sets cursor: pointer at equal
+   specificity and would otherwise win by source order. */
+a, button, [role='button'] {
+  cursor: url('../assets/images/brand/swk-cursor.png') 14 14, pointer !important;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+img { height: auto; }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+h1 { font-size: clamp(2.5rem, 4vw + 1rem, var(--fs-5xl)); }
+h2 { font-size: clamp(1.9rem, 2.4vw + 1rem, var(--fs-3xl)); }
+h3 { font-size: clamp(1.4rem, 1.4vw + 1rem, var(--fs-xl)); }
+h4 { font-size: var(--fs-md); font-weight: 600; }
+
+p { color: var(--color-text-muted); }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+ul, ol { list-style: none; }
+
+/* ---- Accessibility ---- */
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  z-index: 1000;
+  background: var(--color-accent);
+  color: var(--navy-950);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-sm);
+  transition: top var(--duration-fast) var(--ease-luxury);
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+/* ---- Layout utilities ---- */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--space-5);
+}
+
+@media (min-width: 768px) {
+  .container { padding-inline: var(--space-6); }
+}
+
+.section {
+  position: relative;
+  padding-block: var(--space-9);
+}
+
+/* Faint SWK logo watermark behind every content section (the homepage
+   hero and interior page-hero banners use their own separate classes, so
+   they're excluded automatically rather than by an override here). */
+.section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('../assets/images/brand/swk-logo.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: min(380px, 55%);
+  opacity: 0.035;
+}
+
+.section > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .section { padding-block: var(--space-7); }
+}
+
+.section-header {
+  max-width: 640px;
+  margin-bottom: var(--space-7);
+}
+
+.section-header.center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent-hover);
+  margin-bottom: var(--space-3);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: var(--color-accent);
+}
+
+.text-muted { color: var(--color-text-muted); }
+
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.visually-hidden-loading {
+  opacity: 0;
+}
+
+/* ---- Scroll reveal (paired with js/scroll-reveal.js) ---- */
+
+/* Gated on .js (set by an inline script in <head>) so content is never left
+   invisible if scripts fail to load. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--duration-slow) var(--ease-luxury),
+              transform var(--duration-slow) var(--ease-luxury);
+}
+
+.js [data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---- Lazy image fade-in ---- */
+
+.js img[loading='lazy'] {
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-luxury);
+}
+
+.js img[loading='lazy'].is-loaded,
+.js img[loading='lazy'].is-broken {
+  opacity: 1;
+}
+
+/* An image that fails to load (missing file, offline) shows a quiet branded
+   tile instead of the browser's broken-image icon. */
+img.is-broken {
+  object-fit: contain;
+  background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+  color: transparent;
+}

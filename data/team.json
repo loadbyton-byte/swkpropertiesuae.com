@@ -1,0 +1,20 @@
+[
+ {
+  "name": "Mohd Shahid Khan",
+  "role": "Office Admin & IT Executive, India",
+  "photo": "assets/images/team/mohd-shahid-khan.jpg",
+  "bio": "Ensures smooth day-to-day office operations while managing the company's IT systems and digital infrastructure. Coordinates administrative processes, streamlines workflows, and provides reliable technical support to keep the business running efficiently."
+ },
+ {
+  "name": "Mohammad Haseeb",
+  "role": "Sales Manager, Pakistan",
+  "photo": "assets/images/team/haseeb.jpg",
+  "bio": "Leads the sales team with a focus on client satisfaction, business growth, and successful property transactions. Develops sales strategies, mentors the team, and ensures every client receives professional guidance."
+ },
+ {
+  "name": "Issaadi Chahrazed",
+  "role": "Off-Plan Property Consultant, Algeria",
+  "photo": "assets/images/team/issaadi-chahrazed.jpg",
+  "bio": "Specializes in Dubai's off-plan properties, helping clients identify high-potential investment opportunities. Provides expert advice on new launches, payment plans, and market trends to help buyers make confident decisions."
+ }
+]

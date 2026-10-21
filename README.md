@@ -1,33 +1,47 @@
-# swkpropertiesuae.com
+# SWK Properties UAE — static site
 
-Static site for SWK Properties. Content lives in `data/`, templates in `build.py`, and the generated site is written to `public/` (committed, so it can be uploaded as-is).
+Dark navy + ember theme, cinematic WebGL hero, dock navigation, fan gallery, glow listing cards.
+No runtime dependencies. Output is plain static files in `public/`.
 
+## Build
+
+```bash
+python3 build.py          # Python 3.9+, stdlib only
 ```
-python3 build.py        # needs Python 3.12+, no dependencies
+
+Reads `data/*.json`, `src/css`, `src/js`, `src/vendor`, `src/root`. Writes `public/` (27 pages, clean directory URLs, sitemap, robots, assets with a content-hash version).
+
+Edit content in `data/` (properties, communities, services, team, blog, faq, site), then rebuild and commit `public/`.
+
+## Preview and test
+
+```bash
+node tools/dev-server.js 8765      # serves public/, draws SVG placeholders for missing /assets/images/*
+PLAYWRIGHT_PATH=/opt/node22/lib/node_modules/playwright node tools/qa.js
 ```
+
+`tools/qa.js` checks every page (console errors, SEO tags, links, alt text, overflow, axe), the hero scroll scrub, dock, slider, fan, lightbox, filters, calculator maths, forms, a 320–1920px layout sweep, reduced motion, `?nowebgl` and no-JS. Optional: `AXE_PATH` (axe-core file), `SHOTS` (screenshot dir).
+
+## 3D hero
+
+Three.js r160 is vendored (`src/vendor/three.module.min.js`) and loaded only when WebGL works and the visitor has no reduced-motion, save-data or low-memory flag. Otherwise the hero falls back to the photo. Add `?nowebgl` to force the fallback.
+
+The Dubai dusk skyline is procedural (`src/js/hero-scene.js`). Scrolling the hero flies the camera down the boulevard; chapter captions follow scroll progress.
 
 ## Deploy
-1. Copy the existing image folders from the live host into `static/images/` (`brand/`, `hero/`, `gallery/`, `properties/`, `developers/`, `blog/`, `about/`) and run the build. The repo does not contain the images.
-2. Deploy `public/` to Vercel (`vercel.json` handles redirects, headers and clean URLs) or, on Apache, upload `public/` (its `.htaccess` does the same).
-3. Submit `https://www.swkpropertiesuae.com/sitemap.xml` in Google Search Console.
 
-## What changed vs. the old site
-- One real page per property and article (clean URLs, canonical, Open Graph with absolute image URLs, JSON-LD), `robots.txt`, `sitemap.xml`, branded `404.html`.
-- Community cards, filter options, counts and "N properties found" are generated from `data/properties.json`, so they cannot drift from the real inventory. Filters work identically on the home and listings pages.
-- Off-plan "ROI" figures (40–50%) removed. Only ready properties show an **estimated gross yield**, labelled as such.
-- Unverifiable stats removed ("100+ homes sold", "100% client satisfaction"); the IT-admin "expert" and the mismatched team list replaced with the About-page consultants.
-- Mortgage calculator: enforces the 20% / 50% minimum deposit, correct "total repaid", separate one-off cost estimates, clamps only on blur.
-- FAQ corrections (housing fee is normally paid by the tenant; yield method described accurately).
-- Privacy Policy and Terms pages, consent checkboxes on forms, no dead `#` links, no Facebook link, current copyright range, no build tag.
-- Split-text headings removed (duplicated H1 text / missing spaces); decorative gallery has empty alt text; one H1 per page.
-- Google Maps JS key removed (keyless embed).
+Upload `public/` to any static host. `vercel.json` sets the output directory, redirects and headers; `public/.htaccess` covers Apache (HTTPS/www redirect, old URL 301s, caching).
 
-## Needs your input before launch
-- **`data/site.json` → `formEndpoint`**: the forms need a backend. Until one is set (e.g. a Formspree/Basin URL), submitting opens the visitor's email app instead of pretending to send. Never shows a false "received" message.
-- **`brn`, `tradeLicense`** in `site.json` and **`permit`** per listing in `properties.json`: Dubai property advertising generally requires permit and broker numbers. They render automatically once filled in.
-- **Properties**: only the 9 listings that were visible in the old page are included (it claimed 14). Add the rest to `properties.json`. `type` is `Residential` where the old site didn't say; detail pages for those listings show only what the old site published (no floor plans, areas or amenities).
-- **River Cove Residences** is in Abu Dhabi, so the site is now positioned as Dubai *and* Abu Dhabi. Remove the listing if that's unintended.
-- **Office hours** (`Sun–Thu, Sat`) were kept as published; confirm they're correct.
-- **Fees in the FAQ/calculator** (DLD admin fee AED 4,000 / 2,000, 4% transfer, 0.25% registration) should be checked against current DLD rules.
-- **Privacy/Terms** are standard templates, have them reviewed by counsel.
-- Blog posts were expanded with general, hedged content; have a consultant review them and update dates when edited.
+Images and fonts are not in the repo. They live on the production host under `/assets/images/` and load from Google Fonts. Copy the images over when deploying somewhere new.
+
+## Needs your input
+
+- `data/site.json` `formEndpoint` is empty. Until set, forms open the visitor's mail app and never claim a message was received.
+- `brn` and `tradeLicense` are empty. Fill them in for the footer and legal pages.
+- FAQ fee wording (for example the "AED 4,200" DLD admin fee and housing-fee text) is kept from the original site. Verify it before relying on it.
+- Privacy and Terms are templates. Have them reviewed.
+
+## Notes
+
+- Mobile dock sits at the bottom of the screen so touch targets stay large.
+- An earlier audit counted "14 listings" as a bug. That was real pagination (9 per page). It also said split-text headings lacked accessible text; the original already used sr-only text with `aria-hidden` letters.
