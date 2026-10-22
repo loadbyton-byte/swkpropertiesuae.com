@@ -50,6 +50,8 @@
 
     var video = SWK.$('.hero__video', hero);
     var captions = SWK.$$('.hero__caption', hero);
+    var ads = SWK.$$('[data-ad]', hero);
+    var adRanges = [[0.10, 0.42], [0.26, 0.58], [0.44, 0.78], [0.62, 0.92], [0.78, 1.05]];
     var ranges = [[0.26, 0.52], [0.52, 0.78], [0.78, 1.2]];
     var progress = 0, target = 0, ready = false, failed = false, raf = 0;
     var mobile = window.matchMedia('(max-width: 767px)').matches;
@@ -70,6 +72,13 @@
         el.style.setProperty('--o', o.toFixed(3));
         el.style.setProperty('--y', ((0.5 - t) * 46).toFixed(1) + 'px');
         el.style.setProperty('--s', (0.96 + t * 0.07).toFixed(3));
+      });
+      ads.forEach(function (el, i) {
+        var rg = adRanges[i] || [2, 3];
+        var o = SWK.clamp((progress - rg[0]) / 0.06, 0, 1) * SWK.clamp((rg[1] - progress) / 0.06, 0, 1);
+        var t = SWK.clamp((progress - rg[0]) / (rg[1] - rg[0]), 0, 1);
+        el.style.setProperty('--o', o.toFixed(3));
+        el.style.setProperty('--y', ((0.5 - t) * 60).toFixed(1) + 'px');
       });
       target = progress;
       if (ready && !raf) raf = requestAnimationFrame(seek);
@@ -109,16 +118,6 @@
     video.addEventListener('error', function () { clearTimeout(timer); flat(); });
     video.src = mobile ? video.getAttribute('data-video-mobile') : video.getAttribute('data-video-desktop');
     video.load();
-
-    // Pointer parallax: the footage tilts a few degrees with the cursor.
-    if (SWK.fine) {
-      hero.addEventListener('pointermove', function (ev) {
-        var r = hero.getBoundingClientRect();
-        var nx = ((ev.clientX - r.left) / r.width - 0.5) * 2, ny = ((ev.clientY - r.top) / r.height - 0.5) * 2;
-        hero.style.setProperty('--tx', (nx * 14).toFixed(1) + 'px');
-        hero.style.setProperty('--ty', (ny * 10).toFixed(1) + 'px');
-      });
-    }
 
     // Tilt the glass search panel toward the pointer.
     var bar = SWK.$('.search-bar', hero);
