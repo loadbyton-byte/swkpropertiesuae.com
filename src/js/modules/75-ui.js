@@ -276,6 +276,33 @@
     var t0 = Date.now();
     if (consent || !banner) scheduleLeadPopup();
 
+    // ---- Journal topic filter
+    var chips = SWK.$$('[data-blog-filter]');
+    if (chips.length) {
+      var items = SWK.$$('[data-category]');
+      var counter = SWK.$('[data-blog-count]');
+      chips.forEach(function (c) {
+        c.addEventListener('click', function () {
+          var v = c.getAttribute('data-blog-filter'), shown = 0;
+          chips.forEach(function (o) { var on = o === c; o.classList.toggle('is-active', on); o.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+          items.forEach(function (it) { var ok = v === 'all' || it.getAttribute('data-category') === v; it.hidden = !ok; if (ok) shown++; });
+          if (counter) counter.textContent = shown + (shown === 1 ? ' article' : ' articles');
+        });
+      });
+    }
+
+    // ---- Office open / closed (Dubai time)
+    SWK.$$('[data-open-status]').forEach(function (el) {
+      try {
+        var parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dubai', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
+        var o = {}; parts.forEach(function (x) { o[x.type] = x.value; });
+        var mins = parseInt(o.hour, 10) * 60 + parseInt(o.minute, 10), day = o.weekday;
+        var open = (['Sun', 'Mon', 'Tue', 'Wed', 'Thu'].indexOf(day) > -1 && mins >= 540 && mins < 1140) || (day === 'Sat' && mins >= 600 && mins < 960);
+        el.textContent = open ? 'Open now' : 'Closed now';
+        el.classList.toggle('is-open', open);
+      } catch (err) { el.textContent = ''; }
+    });
+
     // ---- Back to top
     var top = SWK.$('[data-back-top]');
     if (top) {
