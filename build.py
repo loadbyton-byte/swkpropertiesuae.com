@@ -47,8 +47,8 @@ BUDGETS = [
     ("6000000-10000000", "AED 6M - 10M"),
     ("10000000", "AED 10M+"),
 ]
-FEATURE_THEMES = ["352 72% 42%", "40 64% 40%", "157 64% 24%", "22 55% 38%", "170 48% 22%"]
-SERVICE_THEMES = ["352 70% 46%", "157 62% 30%", "40 66% 42%", "22 56% 40%", "170 46% 30%", "215 10% 42%"]
+FEATURE_THEMES = ["215 62% 22%", "30 50% 32%", "205 48% 25%", "24 44% 29%", "222 52% 27%"]
+SERVICE_THEMES = ["215 52% 32%", "32 56% 42%", "205 46% 34%", "24 46% 38%", "222 44% 36%", "215 12% 42%"]
 PAGE_HERO_IMG = "hero/dubai-skyline-hero.jpg"
 
 
@@ -149,7 +149,7 @@ def cascade(text):
             chars.append(f'<span class="cascade-text__char" style="transition-delay: {i * 25}ms;">{e(ch)}</span>')
             i += 1
         out.append(f'<span class="cascade-text__word">{"".join(chars)}</span>')
-    style = "--cascade-shadow-y: 1.28em; --cascade-duration: 250ms; --cascade-color: var(--white); --cascade-hover-color: var(--ember-400);"
+    style = "--cascade-shadow-y: 1.28em; --cascade-duration: 250ms; --cascade-color: var(--color-text); --cascade-hover-color: var(--color-accent);"
     return (f'<span class="sr-only">{e(text)}</span><span aria-hidden="true">{" ".join(out)}</span>', style)
 
 
@@ -233,6 +233,18 @@ FONT_PRELOADS = "".join(
     for f in ("instrument-serif/instrument-serif-400", "general-sans/general-sans-400", "general-sans/general-sans-600"))
 
 
+NAV = [("/", "Home"), ("/properties/", "Properties"), ("/about/", "About"), ("/services/", "Services"), ("/mortgage/", "Mortgage"), ("/blog/", "Journal"), ("/contact/", "Contact")]
+
+
+def site_header(path):
+    links = "".join(
+        f'<a href="{h}"{" aria-current=\"page\"" if (h == path or (h != "/" and path.startswith(h))) else ""}>{l}</a>' for h, l in NAV)
+    return (f'<header class="site-header" data-site-header><div class="site-header__inner container">'
+            f'<a href="/" class="site-brand" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-dark.png" alt="SWK Properties" class="brand-logo" width="338" height="275" decoding="async" fetchpriority="high"></a>'
+            f'<nav class="site-nav" aria-label="Primary">{links}</nav>'
+            f'<a href="/contact/" class="btn btn-primary btn-sm site-header__cta">Book a consultation</a></div></header>')
+
+
 def dock(path):
     items = []
     for href, label, d in DOCK:
@@ -246,7 +258,7 @@ def dock(path):
 
 
 PRELOADER = """<div class="preloader" role="status" aria-live="polite">
-<img src="/assets/images/brand/swk-logo-white.png" alt="" class="preloader__logo" width="338" height="275" fetchpriority="high">
+<img src="/assets/images/brand/swk-logo-dark.png" alt="" class="preloader__logo" width="338" height="275" fetchpriority="high">
 <div class="preloader__spinner" aria-hidden="true"></div><span class="preloader__text">Loading...</span></div>
 <script>
 (function () {
@@ -264,6 +276,29 @@ ICON_PHONE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke
 ICON_MAIL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>'
 ICON_PIN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>'
 ICON_CLOCK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+
+
+ICON_SHIELD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>'
+ICON_CHART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'
+ICON_HEADSET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="14" width="4" height="6" rx="1.5"/><rect x="17.5" y="14" width="4" height="6" rx="1.5"/><path d="M20 20c0 1.5-1.5 2-4 2h-2"/></svg>'
+ICON_HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/></svg>'
+VALUE_ITEMS = [(ICON_SHIELD, "Radical Transparency", "Every fee, commission and clause disclosed upfront."),
+               (ICON_CHART, "Data Over Hype", "ROI projections built on transaction data."),
+               (ICON_HEADSET, "One Point of Contact", "The consultant who takes your first call sees it through."),
+               (ICON_HEART, "Long-Term Relationships", "Most new business comes from repeat clients and referrals.")]
+VALUES = ('<section class="value-strip" aria-labelledby="values-title"><h2 id="values-title" class="sr-only">Why SWK Properties</h2><div class="container value-strip__grid">' + "".join(
+    f'<div class="value-item" data-reveal data-reveal-delay="{i * 70}"><span class="value-item__icon">{ic}</span><h3>{t}</h3><p>{d}</p></div>' for i, (ic, t, d) in enumerate(VALUE_ITEMS)) + "</div></section>")
+
+
+STATS = [("10", "+", "Years in Dubai"), ("100", "+", "Homes Sold"), ("40", "+", "Consultants"), ("100", "%", "Client Satisfaction")]
+STORY = ('<section class="section container story ambient-glow-host">' + GLOW + '<div class="story__grid">'
+         '<div class="story__media" data-reveal>' + img("assets/images/about/swk-office.jpg", "SWK Properties office overlooking Business Bay") + '</div>'
+         '<div class="story__copy" data-reveal><span class="eyebrow">Why SWK</span><h2>Built by agents, run for clients</h2>'
+         '<p>SWK Properties was started in 2016 by a small team of agents frustrated with how opaque property buying in Dubai could feel for outsiders. '
+         'Every fee, every payment plan clause and every ROI figure gets explained in plain language before you sign anything.</p>'
+         '<div class="story__stats">' + "".join(
+             f'<div><div class="story__num" data-count="{n}" data-suffix="{sfx}">{n}{sfx}</div><div class="story__label">{lab}</div></div>' for n, sfx, lab in STATS) +
+         '</div><a href="/about/" class="btn btn-primary">Our story</a></div></div></section>')
 
 
 def footer():
@@ -290,7 +325,7 @@ def footer():
 <p class="form-status" role="status" aria-live="polite" hidden></p>
 </form></div>
 <div class="footer-grid">
-<div class="footer-col footer-col--brand"><a href="/" class="footer-logo" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-white.png" alt="SWK Properties" width="338" height="275" loading="lazy" decoding="async"></a>
+<div class="footer-col footer-col--brand"><a href="/" class="footer-logo" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-dark.png" alt="SWK Properties" width="338" height="275" loading="lazy" decoding="async"></a>
 <p>A premium Dubai real estate agency helping investors and homeowners buy, sell and manage property with confidence.</p>
 <div class="social-row">
 <a href="{SITE['instagram']}" target="_blank" rel="noopener noreferrer" aria-label="SWK Properties on Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
@@ -323,8 +358,8 @@ def head(path, title, desc, image, ld, og_type, robots, preload):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
-<meta name="theme-color" content="#0a1233">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#faf7f2">
+<meta name="color-scheme" content="light">
 <link rel="canonical" href="{url}">
 {rb}<meta property="og:type" content="{og_type}">
 <meta property="og:site_name" content="{SITE['name']}">
@@ -350,7 +385,7 @@ def page(path, title, desc, body, *, image=PAGE_HERO_IMG, ld=None, og_type="webs
 <div class="scroll-progress" aria-hidden="true"></div>
 {PRELOADER}
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header-bar"><a href="/" class="site-brand" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-white.png" alt="SWK Properties" class="brand-logo" width="338" height="275" decoding="async" fetchpriority="high"></a></header>
+{site_header(path)}
 {dock(path)}
 <main id="main">
 {body}
@@ -485,11 +520,11 @@ def calculator(analyze_href, analyze_label="Analyze"):
 
 
 def cta_section(title="Ready to find your next address in Dubai?", text="Tell us what you're looking for and one of our consultants will curate a shortlist within 24 hours."):
-    return f"""<section class="section section--alt ambient-glow-host" style="text-align:center">{GLOW}
-<div class="container"><h2>{e(title)}</h2><p style="max-width:52ch; margin:var(--space-4) auto 0">{e(text)}</p>
-<div class="hero__ctas" style="justify-content:center; margin-top:var(--space-6)">
-<a href="/contact/" class="btn btn-primary btn-lg">Book a Consultation</a>
-<a href="{wa("Hello, I'd like to speak to a consultant about buying property in Dubai.")}" class="btn btn-whatsapp btn-lg" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a></div></div></section>"""
+    return f"""<section class="section cta-section"><div class="container"><div class="cta-band on-dark">
+<div class="cta-band__copy"><span class="eyebrow">Let's make it happen</span><h2>{e(title)}</h2><p>{e(text)}</p>
+<div class="cta-band__actions"><a href="/contact/" class="btn btn-gold btn-lg">Book a Consultation</a>
+<a href="{wa("Hello, I'd like to speak to a consultant about buying property in Dubai.")}" class="btn btn-outline btn-lg" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a></div></div>
+<div class="cta-band__art" aria-hidden="true"></div></div></div></section>"""
 
 
 def org_ld():
@@ -549,20 +584,23 @@ def build_home():
 <script type="application/json" id="team-data">{json.dumps([{"name": t["name"], "role": t["role"], "bio": t["bio"]} for t in TEAM], ensure_ascii=False).replace("</", "<\\/")}</script>"""
 
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-dusk-mobile.jpg">
-<img src="/assets/images/hero/dubai-dusk.jpg" alt="Dubai skyline at dusk" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
+<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-golden-mobile.jpg">
+<img src="/assets/images/hero/dubai-golden.jpg" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
 <canvas class="hero__gl" aria-hidden="true"></canvas>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
-<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>After dark.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
+<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__content container">
 <span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>
-<h1 class="hero__title"><span class="sr-only">Experience Luxury Living in UAE</span><span data-typewriter aria-hidden="true">Experience Luxury<br>Living in UAE</span></h1>
-<div class="hero__ctas"><a href="/properties/" class="btn-slide-arrow"><span class="btn-slide-arrow__fill" aria-hidden="true"><span class="btn-slide-arrow__icon">{ARROW}</span></span><span class="btn-slide-arrow__text">Explore Listings</span></a></div>
+<h1 class="hero__title"><span class="sr-only">Experience Luxury Living in UAE</span><span data-typewriter aria-hidden="true">Experience Luxury<br><em>Living in UAE</em></span></h1>
+<p class="hero__subtitle">Off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.</p>
+<div class="hero__ctas"><a href="/properties/" class="btn btn-primary btn-lg">Explore Listings {ARROW}</a><a href="/contact/" class="btn btn-outline-dark btn-lg">Talk to an advisor</a></div>
 <div class="hero__search-wrap"><form class="search-bar glass-panel" action="/properties/" method="get" aria-label="Search properties">{search}
 <button type="submit" class="btn btn-primary">{SEARCH} Search</button></form></div>
 </div>
 <div class="hero__scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section></div>
+
+{VALUES}
 
 <section class="section container arc-gallery ambient-glow-host" data-arc-gallery>{GLOW}
 <div class="section-header center"><span class="eyebrow">Portfolio</span>{h2_cascade("A closer look at our listings")}
@@ -579,6 +617,8 @@ def build_home():
 <div class="feature-slider" data-feature-slider><div class="feature-slider__viewport"><div class="feature-slider__track" data-featured-grid>{feat_cards}</div></div><div class="feature-slider__nav"></div></div>
 <p class="listing-note">ROI figures are estimates based on current market rents and are not guaranteed. Prices and availability are subject to change.</p>
 </div></section>
+
+{STORY}
 
 <section class="section ambient-glow-host" data-developers>{GLOW}<div class="container">
 <div class="section-header center"><span class="eyebrow">Trusted Partners</span>{h2_cascade("Backed by Dubai's leading developers")}
@@ -610,8 +650,8 @@ def build_home():
     write("/", page("/", "SWK Properties | Luxury Real Estate in Dubai",
                     "SWK Properties is a premium Dubai real estate agency — off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.",
                     body, ld=ld,
-                    preload=[("/assets/images/hero/dubai-dusk-mobile.jpg", ' media="(max-width: 767px)" fetchpriority="high"'),
-                             ("/assets/images/hero/dubai-dusk.jpg", ' media="(min-width: 768px)" fetchpriority="high"')]))
+                    preload=[("/assets/images/hero/dubai-golden-mobile.jpg", ' media="(max-width: 767px)" fetchpriority="high"'),
+                             ("/assets/images/hero/dubai-golden.jpg", ' media="(min-width: 768px)" fetchpriority="high"')]))
 
 
 def build_properties():
@@ -696,7 +736,7 @@ def build_about():
               ("One Point of Contact", "The consultant who takes your first call is the one who sees your deal through to handover."),
               ("Long-Term Relationships", "Most of our new business comes from repeat clients and referrals — that's the metric we optimise for.")]
     steps = "".join(f'<div class="step-item" data-reveal data-reveal-delay="{i * 80}"><div class="num">{i + 1:02d}</div><div><h3>{e(t)}</h3><p>{e(d)}</p></div></div>' for i, (t, d) in enumerate(values))
-    stats = [("10", "+", "Years in Dubai"), ("100", "+", "Homes Sold"), ("40", "+", "Consultants"), ("100", "%", "Client Satisfaction")]
+    stats = STATS
     stat_html = "".join(f'<div><div class="stat-num" data-count="{n}" data-suffix="{s}">{n}{s}</div><div class="stat-label">{l}</div></div>' for n, s, l in stats)
     trail = [("Home", "/"), ("About", None)]
     body = f"""{page_hero("Ten years of getting Dubai property right", "SWK Properties was founded on a simple idea: buying a home in Dubai — whether you live down the road or on the other side of the world — should feel transparent, not transactional.", trail)}

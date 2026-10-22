@@ -80,7 +80,7 @@ body {
   font-synthesis: none;
   font-kerning: normal;
   overflow-x: hidden;
-  cursor: url('../assets/images/brand/swk-cursor.png') 14 14, auto;
+  cursor: url('../assets/images/brand/swk-cursor-dark.png') 14 14, auto;
 }
 
 /* Links/buttons get their own explicit cursor rule since the browser's
@@ -90,7 +90,7 @@ body {
    later button-reset rule below also sets cursor: pointer at equal
    specificity and would otherwise win by source order. */
 a, button, [role='button'] {
-  cursor: url('../assets/images/brand/swk-cursor.png') 14 14, pointer !important;
+  cursor: url('../assets/images/brand/swk-cursor-dark.png') 14 14, pointer !important;
 }
 
 img, picture, video, canvas, svg {
@@ -299,6 +299,6 @@ ul, ol { list-style: none; }
    tile instead of the browser's broken-image icon. */
 img.is-broken {
   object-fit: contain;
-  background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+  background: linear-gradient(135deg, var(--color-surface-alt), var(--color-border));
   color: transparent;
 }
