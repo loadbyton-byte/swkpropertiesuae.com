@@ -172,9 +172,9 @@ const SKY_FRAG = /* glsl */ `
   void main() {
     vec3 d = normalize(vDir);
     float y = d.y;
-    vec3 zenith = vec3(0.30, 0.50, 0.90);
-    vec3 mid    = vec3(0.90, 0.66, 0.80);
-    vec3 hor    = vec3(1.0, 0.74, 0.44);
+    vec3 zenith = vec3(0.15, 0.33, 0.62);
+    vec3 mid    = vec3(0.60, 0.74, 0.88);
+    vec3 hor    = vec3(0.98, 0.82, 0.60);
     vec3 col = mix(hor, mid, smoothstep(0.0, 0.2, y));
     col = mix(col, zenith, smoothstep(0.16, 0.8, y));
 
@@ -189,7 +189,7 @@ const SKY_FRAG = /* glsl */ `
     vec2 cuv = d.xz / (max(y, 0.0) + 0.22) * 0.9 + vec2(uTime * 0.03, uTime * 0.004);
     float c = fbm(cuv * 1.3);
     float cm = smoothstep(0.52, 0.78, c) * smoothstep(0.02, 0.2, y);
-    vec3 cloud = mix(vec3(1.0, 0.96, 0.92), vec3(0.93, 0.76, 0.76), smoothstep(0.55, 0.9, c));
+    vec3 cloud = mix(vec3(1.0, 0.98, 0.94), vec3(0.86, 0.80, 0.70), smoothstep(0.55, 0.9, c));
     cloud += vec3(1.0, 0.85, 0.55) * pow(max(sd, 0.0), 4.0) * 0.25;
     col = mix(col, cloud, cm * 0.92);
 

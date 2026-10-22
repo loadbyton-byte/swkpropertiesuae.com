@@ -181,16 +181,16 @@ p, li { text-rendering: optimizeLegibility; }
 
 /* ---- Cinematic interior heroes: sunset sky, drifting light, skyline silhouettes, film vignette ---- */
 .page-hero {
-  background: linear-gradient(180deg, #9db0ee 0%, #cbb0e2 34%, #f6bcb4 66%, #ffdca6 100%);
+  background: linear-gradient(180deg, #cfdcec 0%, #e3ebf4 38%, #f3e4c6 78%, #eacb92 100%);
   background-size: 100% 140%;
   animation: hero-sky 18s ease-in-out infinite alternate;
 }
 @keyframes hero-sky { from { background-position: 50% 0; } to { background-position: 50% 100%; } }
 .page-hero::after {
   background:
-    radial-gradient(ellipse 38% 55% at 82% 62%, rgba(255, 236, 190, 0.95), rgba(255, 214, 140, 0.35) 45%, transparent 70%),
+    radial-gradient(ellipse 38% 55% at 82% 62%, rgba(255, 238, 200, 0.95), rgba(236, 196, 120, 0.4) 45%, transparent 70%),
     radial-gradient(ellipse 60% 50% at 10% 0%, rgba(255, 255, 255, 0.35), transparent 70%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(120, 70, 40, 0.16) 100%);
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(120, 90, 40, 0.14) 100%);
 }
 .page-hero .breadcrumbs, .page-hero .breadcrumbs a { color: #3a2410; font-weight: 600; }
 .page-hero .breadcrumbs a:hover { color: #0c1f45; }
