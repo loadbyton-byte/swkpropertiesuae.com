@@ -1140,19 +1140,23 @@
         var endpoint = form.getAttribute('data-endpoint');
         var done = kind === 'contact'
           ? 'Thank you — your message has been received. A consultant will be in touch within one business day.'
+          : kind === 'viewing'
+            ? 'Thank you — we have your viewing request and will confirm shortly.'
           : kind === 'callback'
             ? 'Thank you — we will call you back at your preferred time.'
             : 'Thank you — you\'re subscribed.';
 
         if (!endpoint) {
-          var body = kind === 'callback'
+          var body = kind === 'viewing'
+            ? 'Please book me a viewing.\nProperty page: ' + location.href + '\nName: ' + data.get('name') + '\nPhone: ' + data.get('phone') + '\nWhen: ' + data.get('date') + ' ' + data.get('time')
+            : kind === 'callback'
             ? 'Please call me back.\nName: ' + data.get('name') + '\nPhone: ' + data.get('phone') + '\nBest time: ' + (data.get('when') || '-')
             : kind === 'contact'
             ? 'Name: ' + data.get('name') + '\nEmail: ' + data.get('email') + '\nPhone: ' + (data.get('phone') || '-') +
               '\nInterested in: ' + data.get('interest') + '\n\n' + data.get('message')
             : 'Please add ' + data.get('email') + ' to the SWK Properties market updates list.';
           status(form, 'Your email app should open with your message ready to send. Prefer WhatsApp? Message us on ' + CFG.phone + '.', 'ok');
-          window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(kind === 'contact' ? 'Website enquiry' : kind === 'callback' ? 'Callback request' : 'Newsletter sign-up') +
+          window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(kind === 'contact' ? 'Website enquiry' : kind === 'callback' ? 'Callback request' : kind === 'viewing' ? 'Viewing request' : 'Newsletter sign-up') +
             '&body=' + encodeURIComponent(body);
           return;
         }
@@ -1329,17 +1333,29 @@
 
   // ---- Toasts --------------------------------------------------------------
   var toastHost;
-  SWK.toast = function (msg, kind, ms) {
+  SWK.toast = function (msg, kind, ms, actions) {
     if (!toastHost) toastHost = document.getElementById('toasts');
     if (!toastHost || !msg) return;
     var t = document.createElement('div');
     t.className = 'toast toast--' + (kind || 'info');
     t.setAttribute('role', kind === 'error' ? 'alert' : 'status');
-    var p = document.createElement('p'); p.textContent = msg;
+    var wrap = document.createElement('div'); wrap.className = 'toast__body';
+    var p = document.createElement('p'); p.textContent = msg; wrap.appendChild(p);
     var b = document.createElement('button');
-    b.type = 'button'; b.className = 'toast__close'; b.setAttribute('aria-label', 'Dismiss notification'); b.textContent = '×';
-    t.appendChild(p); t.appendChild(b);
+    b.type = 'button'; b.className = 'toast__close'; b.setAttribute('aria-label', 'Dismiss notification'); b.textContent = '\u00d7';
+    t.appendChild(wrap); t.appendChild(b);
     toastHost.appendChild(t);
+    if (actions && actions.length) {
+      var row = document.createElement('div'); row.className = 'toast__actions';
+      actions.forEach(function (a) {
+        var el = document.createElement(a.href ? 'a' : 'button');
+        el.textContent = a.label;
+        if (a.href) { el.href = a.href; if (/^http/.test(a.href)) { el.target = '_blank'; el.rel = 'noopener noreferrer'; } } else el.type = 'button';
+        el.addEventListener('click', function () { if (a.onclick) a.onclick(); close(); });
+        row.appendChild(el);
+      });
+      wrap.appendChild(row);
+    }
     while (toastHost.children.length > 3) toastHost.removeChild(toastHost.firstChild);
     requestAnimationFrame(function () { t.classList.add('is-in'); });
     var gone = false;
@@ -1349,7 +1365,7 @@
       setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
     }
     b.addEventListener('click', close);
-    setTimeout(close, ms || (kind === 'error' ? 8000 : 5500));
+    setTimeout(close, ms || (actions ? 14000 : kind === 'error' ? 8000 : 5500));
   };
 
   // ---- Dialog helper (focus trap, ESC, backdrop click, focus return) -------
@@ -1485,14 +1501,68 @@
 
     // ---- Callback modal
     var cbEl = SWK.$('[data-callback-modal]');
-    var cb = cbEl ? dialog(cbEl) : null;
+    var cb = cbEl ? dialog(cbEl) : null; var lead = null;
     SWK.$$('[data-open-callback]').forEach(function (b) {
       b.addEventListener('click', function (ev) { ev.preventDefault(); if (cb) { if (lead) lead.close(true); cb.open(b); } });
     });
 
+    // ---- Viewing modal
+    var vwEl = SWK.$('[data-viewing-modal]');
+    var vw = vwEl ? dialog(vwEl) : null;
+    SWK.$$('[data-open-viewing]').forEach(function (b) {
+      b.addEventListener('click', function (ev) { ev.preventDefault(); if (vw) vw.open(b); });
+    });
+    var vwDate = vwEl && SWK.$('[name="date"]', vwEl);
+    if (vwDate) { var d = new Date(); d.setDate(d.getDate() + 1); vwDate.min = d.toISOString().slice(0, 10); }
+
+    // ---- Save listing (local shortlist)
+    SWK.$$('[data-save-listing]').forEach(function (b) {
+      var id = b.getAttribute('data-save-listing');
+      var list = [];
+      try { list = JSON.parse(store('swk_saved') || '[]'); } catch (err) { list = []; }
+      function paint() { var on = list.indexOf(id) > -1; b.classList.toggle('is-saved', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.textContent = on ? 'Saved to shortlist' : 'Save listing'; }
+      paint();
+      b.addEventListener('click', function () {
+        var i = list.indexOf(id);
+        if (i > -1) list.splice(i, 1); else list.push(id);
+        store('swk_saved', JSON.stringify(list)); paint();
+        SWK.toast(i > -1 ? 'Removed from your shortlist.' : 'Saved to your shortlist on this device.', 'success', 3200);
+      });
+    });
+
+    // ---- Helpful nudges (once per session each, never stacked on dialogs)
+    function once(k) { try { if (sessionStorage.getItem(k)) return false; sessionStorage.setItem(k, '1'); return true; } catch (err) { return true; } }
+    var onProperty = /^\/properties\/[^/]+\/$/.test(location.pathname);
+    if (onProperty) {
+      setTimeout(function () {
+        if (openDialog || (banner && !banner.hidden && !consent) || !once('swk_nudge_prop')) return;
+        SWK.toast('Interested in this property? We can arrange a viewing or send the brochure.', 'promo', 16000, [
+          { label: 'Book a viewing', onclick: function () { if (vw) vw.open(null); } },
+          { label: 'WhatsApp us', href: (C.whatsapp || 'https://wa.me/971564330448') }
+        ]);
+      }, 40000);
+    }
+    var deep = SWK.raf(function () {
+      var h = document.documentElement.scrollHeight - innerHeight;
+      if (location.pathname === '/' && h > 0 && window.scrollY / h > 0.7 && !openDialog && once('swk_nudge_home')) {
+        window.removeEventListener('scroll', deep);
+        SWK.toast('Ready to take the next step? Speak to a consultant, no obligation.', 'promo', 14000, [
+          { label: 'Request a callback', onclick: function () { if (cb) cb.open(null); } },
+          { label: 'Browse listings', href: '/properties/' }
+        ]);
+      }
+    });
+    if (location.pathname === '/') window.addEventListener('scroll', deep, { passive: true });
+    // Mortgage calculator hint
+    if (location.pathname === '/mortgage/') {
+      setTimeout(function () {
+        if (!openDialog && once('swk_nudge_mort')) SWK.toast('Tip: most Dubai buyers can finance up to 80% of the price. Our team can compare lenders for you.', 'info', 12000, [{ label: 'Talk to us', href: '/contact/' }]);
+      }, 25000);
+    }
+
     // ---- Lead-capture popup (once per 14 days, never on /contact/, never over the cookie banner)
     var leadEl = SWK.$('[data-lead-popup]');
-    var lead = leadEl ? dialog(leadEl) : null;
+    lead = leadEl ? dialog(leadEl) : null;
     var leadShown = false, leadTimer = null;
     function leadAllowed() {
       if (!lead || leadShown || openDialog) return false;

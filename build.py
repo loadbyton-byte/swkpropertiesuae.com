@@ -425,10 +425,22 @@ def ui_markup():
         '<label class="form-check"><input type="checkbox" name="consent" required><span>I agree to be contacted and accept the <a href="/privacy/">Privacy Policy</a>.</span></label>'
         '<button type="submit" class="btn btn-primary btn-block">Call me back</button>'
         '<p class="form-status" role="status" aria-live="polite" hidden></p></form>', "callback form")
+    viewing = dialog_html("data-viewing-modal", "vw-title", "Book a viewing",
+        '<p>Pick a day and time and a consultant will confirm by phone or WhatsApp.</p>'
+        f'<form data-form="viewing" data-endpoint="{e(SITE["formEndpoint"])}" novalidate>'
+        '<div class="form-field"><label for="vw-name">Name</label><input id="vw-name" name="name" autocomplete="name" required data-autofocus></div>'
+        '<div class="form-field"><label for="vw-phone">Phone (with country code)</label><input id="vw-phone" name="phone" type="tel" autocomplete="tel" pattern="[+0-9 ()\\-]{7,20}" required></div>'
+        '<div class="form-grid cols-2" style="gap:var(--space-3)"><div class="form-field"><label for="vw-date">Preferred date</label><input id="vw-date" name="date" type="date" required></div>'
+        '<div class="form-field"><label for="vw-time">Time</label><select id="vw-time" name="time"><option>10:00</option><option>12:00</option><option>14:00</option><option>16:00</option><option>18:00</option></select></div></div>'
+        '<input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">'
+        '<label class="form-check"><input type="checkbox" name="consent" required><span>I agree to be contacted and accept the <a href="/privacy/">Privacy Policy</a>.</span></label>'
+        '<button type="submit" class="btn btn-primary btn-block">Request viewing</button>'
+        '<p class="form-status" role="status" aria-live="polite" hidden></p></form>', "viewing form")
+    cfg["whatsapp"] = WA_DEFAULT
     cfg_json = json.dumps(cfg).replace("</", "<\\/")
     return (f'<script type="application/json" id="swk-config">{cfg_json}</script>\n'
             '<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>\n'
-            f'{cookie}\n{prefs}\n{lead}\n{callback}\n'
+            f'{cookie}\n{prefs}\n{lead}\n{callback}\n{viewing}\n'
             f'<button type="button" class="back-top" data-back-top aria-label="Back to top">{ICON_UP}</button>')
 
 
@@ -552,9 +564,37 @@ def breadcrumb_ld(items):
         {"@type": "ListItem", "position": i + 1, "name": label, "item": BASE + (href or "")} for i, (label, href) in enumerate(items)]}
 
 
-def page_hero(title, lead, trail):
-    return f"""<section class="page-hero"><div class="container">{crumbs(trail)}
-<h1 class="page-hero__title">{e(title)}</h1><p>{e(lead)}</p></div></section>"""
+# Unsplash photos for the interior heroes (hot-linked, per Unsplash guidelines; each page gets its own).
+UNSPLASH = {
+    "properties": ("photo-1743819455744-05417bf55cea", "Ben Koorengevel", "Luxury villa with a green lawn in Dubai"),
+    "about": ("photo-1775866899351-11414443e0d0", "Dynamic Hong Kong", "Dubai skyline in desert haze"),
+    "services": ("photo-1682184805271-11671b7ecf4c", "Lumbardh Plluzhina", "Modern living room with a large window"),
+    "mortgage": ("photo-1682410601760-6372fd33ad2b", "Jhonwayne Pumaras", "Aerial view of Dubai Marina"),
+    "blog": ("photo-1580674684081-7617fbf3d745", "Wael Hneini", "High-rise towers beside the water in Dubai"),
+    "contact": ("photo-1677632227880-4d21073ef8f4", "Thomas Haas", "Palm Jumeirah seen from above"),
+    "legal": ("photo-1700556498243-9b5b66326e68", "Hongbin", "Sunset over Dubai Creek"),
+}
+
+
+def hero_photo(key):
+    pid, who, alt = UNSPLASH[key]
+    base = f"https://images.unsplash.com/{pid}?auto=format&fit=crop&q=70"
+    srcset = ", ".join(f"{base}&w={w} {w}w" for w in (800, 1400, 2000))
+    return (f'<div class="page-hero__bg" aria-hidden="true"><img src="{base}&w=1400" srcset="{srcset}" sizes="100vw" alt="" width="1400" height="900" '
+            'fetchpriority="high" decoding="async" referrerpolicy="no-referrer"></div>',
+            f'<a class="photo-credit" href="https://unsplash.com/?utm_source=swk_properties&utm_medium=referral" target="_blank" rel="noopener noreferrer" title="{e(alt)}">Photo: {e(who)} / Unsplash</a>')
+
+
+def page_hero(title, lead, trail, bg=None, local=None):
+    """bg: key into UNSPLASH; local: path of a local image used instead (property / article pages)."""
+    media, credit = "", ""
+    if bg:
+        media, credit = hero_photo(bg)
+    elif local:
+        media = f'<div class="page-hero__bg" aria-hidden="true">{img(local, "", lazy=False, sizes="100vw")}</div>'
+    cls = " page-hero--photo" if media else ""
+    return f"""<section class="page-hero{cls}">{media}<div class="container">{crumbs(trail)}
+<h1 class="page-hero__title">{e(title)}</h1><p>{e(lead)}</p></div>{credit}</section>"""
 
 
 def badges(p):
@@ -794,7 +834,7 @@ def build_properties():
                + sel("budget", "Budget", budgets, "Any budget") + sel("status", "Status", stats, "Any status"))
     cards = "".join(prop_card(p) for p in PROPS)
     trail = [("Home", "/"), ("Properties", None)]
-    body = f"""{page_hero("Properties for Sale in Dubai", "Off-plan and ready homes across Dubai's most sought-after communities, updated as new listings launch.", trail)}
+    body = f"""{page_hero("Properties for Sale in Dubai", "Off-plan and ready homes across Dubai's most sought-after communities, updated as new listings launch.", trail, bg="properties")}
 <section class="section container ambient-glow-host">{GLOW}
 <form class="filter-bar" data-filters aria-label="Filter properties" novalidate>{filters}
 <button type="button" class="btn btn-outline-dark btn-sm" data-filters-reset>Reset</button>
@@ -828,7 +868,7 @@ def build_property(p):
     amen = "".join(f"<li>{e(a)}</li>" for a in p["amenities"])
     similar = sorted((q for q in PROPS if q["id"] != p["id"]), key=lambda q: (q["status"] != p["status"], q["community"] != p["community"]))[:3]
     trail = [("Home", "/"), ("Properties", "/properties/"), (p["title"], None)]
-    body = f"""<section class="page-hero"><div class="container">{crumbs(trail)}
+    body = f"""<section class="page-hero page-hero--photo"><div class="page-hero__bg" aria-hidden="true">{img(prop_images(p)[0], "", lazy=False, sizes="100vw")}</div><div class="container">{crumbs(trail)}
 <div class="pd-head">{badges(p)}</div><h1 class="page-hero__title">{e(p['title'])}</h1>
 <p>{PIN} {e(location(p))} · by {e(p['developer'])}</p></div></section>
 <section class="section container ambient-glow-host">{GLOW}
@@ -843,7 +883,9 @@ def build_property(p):
 <div class="pd-agent-card"><div class="pd-price"><small>Starting price</small><br>{money(p['price'])}</div>
 <div class="pd-cta" style="margin-top:var(--space-5)"><a href="/contact/?property={p['id']}" class="btn btn-primary btn-block">Request details</a>
 <a href="{wa(f"Hello SWK Properties, I'd like details on {p['title']}.")}" class="btn btn-whatsapp btn-block" target="_blank" rel="noopener noreferrer">Ask on WhatsApp</a>
+<button type="button" class="btn btn-gold btn-block" data-open-viewing>Book a viewing</button>
 <button type="button" class="btn btn-outline-dark btn-block" data-open-callback>Request a callback</button>
+<button type="button" class="btn btn-outline-dark btn-block" data-save-listing="{p['id']}" aria-pressed="false">Save listing</button>
 <button type="button" class="btn btn-outline-dark btn-block" data-share>Share this listing</button></div></div>
 <div class="pd-agent-card">{img("assets/images/team/mohd-shahid-khan.webp", "Mohd Shahid Khan")}<p class="pd-agent-name">Mohd Shahid Khan</p><p>Your point of contact for this listing</p></div>
 </aside></div></section>
@@ -858,10 +900,9 @@ def build_property(p):
 
 
 def build_about():
-    people = [("Fahad Khan", "Senior Property Consultant · Downtown & Marina"), ("Usman Khan", "Investment Advisor · Palm & Ultra-Prime"),
-              ("Junaid Ahmad", "Property Consultant · Off-Plan & Creek Harbour"), ("Megha Nair", "Senior Sales Manager · Business Bay & JVC")]
-    avatar = '<div class="avatar-placeholder" style="width:84px;height:84px;border-radius:999px" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg></div>'
-    cards = "".join(f'<div class="developer-card" data-reveal data-reveal-delay="{i * 80}">{avatar}<h3>{e(n)}</h3><p class="text-muted" style="font-size:var(--fs-xs)">{e(r)}</p></div>' for i, (n, r) in enumerate(people))
+    cards = "".join(f'''<article class="team-card" data-reveal data-reveal-delay="{i * 80}" data-tilt="6" style="--theme-color:{FEATURE_THEMES[i % len(FEATURE_THEMES)]}">
+<div class="team-card__photo">{img(t["photo"], t["name"], sizes="(min-width: 900px) 360px, 90vw")}</div>
+<div class="team-card__body"><h3>{e(t["name"])}</h3><p class="team-card__role">{e(t["role"])}</p><p class="team-card__bio">{e(t["bio"])}</p></div></article>''' for i, t in enumerate(TEAM))
     values = [("Radical Transparency", "Every fee, commission and clause disclosed upfront — no surprises at signing."),
               ("Data Over Hype", "ROI and appreciation projections built on transaction data, not developer marketing."),
               ("One Point of Contact", "The consultant who takes your first call is the one who sees your deal through to handover."),
@@ -870,7 +911,7 @@ def build_about():
     stats = STATS
     stat_html = "".join(f'<div><div class="stat-num" data-count="{n}" data-suffix="{s}">{n}{s}</div><div class="stat-label">{l}</div></div>' for n, s, l in stats)
     trail = [("Home", "/"), ("About", None)]
-    body = f"""{page_hero("Ten years of getting Dubai property right", "SWK Properties was founded on a simple idea: buying a home in Dubai — whether you live down the road or on the other side of the world — should feel transparent, not transactional.", trail)}
+    body = f"""{page_hero("Ten years of getting Dubai property right", "SWK Properties was founded on a simple idea: buying a home in Dubai — whether you live down the road or on the other side of the world — should feel transparent, not transactional.", trail, bg="about")}
 <section class="section container ambient-glow-host">{GLOW}<div class="split-block">{img("assets/images/about/swk-office.webp", "SWK Properties office overlooking Business Bay", sizes="(min-width: 900px) 600px, 100vw")}
 <div data-reveal><span class="eyebrow">Our Story</span><h2>Built by agents, run for clients</h2>
 <p>SWK Properties was started in 2016 by a small team of agents frustrated with how opaque property buying in Dubai could feel for outsiders. Today we're a full-service brokerage of over 40 consultants, but the founding principle hasn't changed: every fee, every payment plan clause, and every ROI figure gets explained in plain language before you sign anything.</p>
@@ -879,7 +920,7 @@ def build_about():
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Our Values</span><h2>What guides every deal we close</h2></div><div class="step-list">{steps}</div></div></section>
 <section class="section section--dark ambient-glow-host">{GLOW}<div class="container"><div class="stat-strip">{stat_html}</div></div></section>
 <section class="section ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Our People</span><h2>Meet a few of our consultants</h2>
-<p>Every client is paired with a dedicated consultant for the life of their purchase.</p></div><div class="testimonials-grid">{cards}</div></div></section>
+<p>Every client is paired with a dedicated consultant for the life of their purchase.</p></div><div class="team-grid">{cards}</div></div></section>
 {cta_section("Let's find your next Dubai address", "Book a no-obligation consultation and we'll come prepared with listings matched to your budget.")}"""
     write("/about/", page("/about/", "About Us | SWK Properties",
                           "SWK Properties is a Dubai-based real estate agency built on ten years of local market expertise, transparent advice, and full-service support for buyers and investors.",
@@ -895,7 +936,7 @@ def build_services():
                ("Handover & Beyond", "Legal transfer, mortgage coordination, and ongoing management if you choose to let.")]
     steps = "".join(f'<div class="step-item" data-reveal data-reveal-delay="{i * 80}"><div class="num">{i + 1:02d}</div><div><h3>{e(t)}</h3><p>{e(d)}</p></div></div>' for i, (t, d) in enumerate(process))
     trail = [("Home", "/"), ("Services", None)]
-    body = f"""{page_hero("Full-service support, start to handover", "Buying, selling, financing or managing a Dubai property — one team handles every step, with a single consultant as your point of contact throughout.", trail)}
+    body = f"""{page_hero("Full-service support, start to handover", "Buying, selling, financing or managing a Dubai property — one team handles every step, with a single consultant as your point of contact throughout.", trail, bg="services")}
 <section class="section container ambient-glow-host">{GLOW}<h2 class="sr-only">Our services</h2><div class="services-grid" data-reveal>{cards}</div></section>
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">How It Works</span><h2>Our process</h2></div><div class="step-list">{steps}</div></div></section>
 {cta_section("Not sure which service you need?", "Start with a free consultation — we'll recommend the right path for your goals.")}"""
@@ -913,7 +954,7 @@ def build_mortgage():
     faq = "".join(f"""<div class="accordion-item" data-accordion-item><h3><button type="button" class="accordion-trigger" data-accordion-trigger aria-expanded="false" aria-controls="faq-panel-{i}" id="faq-trigger-{i}">{e(f['question'])}<span class="icon-plus" aria-hidden="true"></span></button></h3>
 <div class="accordion-panel" data-accordion-panel id="faq-panel-{i}" role="region" aria-labelledby="faq-trigger-{i}"><p>{e(f['answer'])}</p></div></div>""" for i, f in enumerate(FAQ))
     trail = [("Home", "/"), ("Mortgage", None)]
-    body = f"""{page_hero("Mortgage Calculator", "Get an instant estimate of your monthly payment, then let our lending partners find you the sharpest rate available.", trail)}
+    body = f"""{page_hero("Mortgage Calculator", "Get an instant estimate of your monthly payment, then let our lending partners find you the sharpest rate available.", trail, bg="mortgage")}
 <section class="section container ambient-glow-host">{GLOW}<h2 class="sr-only">Calculate your repayments</h2><div class="mortgage-layout">{calculator("/contact/", "Analyze")}</div></section>
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Getting Approved</span><h2>What you'll need for a UAE mortgage</h2></div><div class="step-list">{steps}</div></div></section>
 <section class="section container ambient-glow-host">{GLOW}<div class="section-header center"><span class="eyebrow">Questions</span><h2>Mortgage &amp; buying costs FAQ</h2></div>
@@ -930,7 +971,7 @@ def build_contact():
     gm = f"https://maps.google.com/maps?q={SITE['geo'][0]},{SITE['geo'][1]}&z=16&output=embed"
     ic = lambda d: f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">{d}</svg>'
     trail = [("Home", "/"), ("Contact", None)]
-    body = f"""{page_hero("Let's talk about your next move", "Whether you're buying, selling, or just exploring the market — a consultant will get back to you within one business day.", trail)}
+    body = f"""{page_hero("Let's talk about your next move", "Whether you're buying, selling, or just exploring the market — a consultant will get back to you within one business day.", trail, bg="contact")}
 <section class="section container ambient-glow-host">{GLOW}<div class="contact-layout">
 <div data-reveal><span class="eyebrow">Send a Message</span><h2>Tell us what you're looking for</h2>
 <form id="contact-form" data-form="contact" data-endpoint="{e(SITE['formEndpoint'])}" novalidate style="margin-top:var(--space-6)"><div class="form-grid">
@@ -957,7 +998,7 @@ def build_contact():
 
 def build_blog():
     trail = [("Home", "/"), ("Journal", None)]
-    body = f"""{page_hero("The SWK Journal", "Market insight, buyer guides and community spotlights from our consultants on the ground in Dubai.", trail)}
+    body = f"""{page_hero("The SWK Journal", "Market insight, buyer guides and community spotlights from our consultants on the ground in Dubai.", trail, bg="blog")}
 <section class="section container ambient-glow-host">{GLOW}<h2 class="sr-only">All articles</h2><div class="blog-grid" data-blog-grid>{"".join(blog_card(p, i) for i, p in enumerate(POSTS))}</div></section>
 <section class="section section--alt ambient-glow-host" style="text-align:center">{GLOW}<div class="container"><h2>Want market updates in your inbox?</h2>
 <p style="max-width:52ch; margin:var(--space-4) auto var(--space-5)">Subscribe for monthly insight on Dubai pricing trends, new launches and yield opportunities.</p>
@@ -972,7 +1013,7 @@ def build_blog():
     for p in POSTS:
         others = [q for q in POSTS if q["slug"] != p["slug"]]
         tr = [("Home", "/"), ("Journal", "/blog/"), (p["title"], None)]
-        b = f"""<section class="page-hero"><div class="container">{crumbs(tr)}<span class="badge badge-gold">{e(p['category'])}</span>
+        b = f"""<section class="page-hero page-hero--photo"><div class="page-hero__bg" aria-hidden="true">{img(p['image'], "", lazy=False, sizes="100vw")}</div><div class="container">{crumbs(tr)}<span class="badge badge-gold">{e(p['category'])}</span>
 <h1 class="page-hero__title" style="margin-top:var(--space-4)">{e(p['title'])}</h1>
 <p class="post-meta"><time datetime="{p['date']}">{nice_date(p['date'])}</time> · {e(p['readTime'])}</p>
 <div class="pd-actions"><button type="button" class="btn btn-outline-dark" data-share>Share this article</button></div></div></section>
@@ -993,7 +1034,7 @@ def build_blog():
 def legal(path, title, desc, sections):
     parts = "".join(f"<h2>{e(h)}</h2>" + "".join(f"<p>{e(t)}</p>" for t in ps) for h, ps in sections)
     trail = [("Home", "/"), (title, None)]
-    body = f"""{page_hero(title, desc, trail)}<section class="section container ambient-glow-host">{GLOW}<div class="prose legal"><p class="post-meta">Last updated {nice_date(TODAY.isoformat())}</p>{parts}</div></section>"""
+    body = f"""{page_hero(title, desc, trail, bg="legal")}<section class="section container ambient-glow-host">{GLOW}<div class="prose legal"><p class="post-meta">Last updated {nice_date(TODAY.isoformat())}</p>{parts}</div></section>"""
     write(path, page(path, f"{title} | SWK Properties", desc, body, ld=[breadcrumb_ld(trail)]))
 
 
