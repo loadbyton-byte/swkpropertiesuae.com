@@ -1618,6 +1618,39 @@
       } catch (err) { el.textContent = ''; }
     });
 
+    // ---- Gallery: "view all" opens the lightbox on the first hidden photo
+    var more = SWK.$('[data-gallery-more]');
+    if (more) more.addEventListener('click', function () { var t = SWK.$('[data-lightbox-index="9"]'); if (t) t.click(); });
+
+    // ---- Notification centre
+    var nc = SWK.$('[data-notif]');
+    if (nc) {
+      var ids = [], read = [];
+      try { ids = JSON.parse(nc.getAttribute('data-ids') || '[]'); read = JSON.parse(store('swk_notif_read') || '[]'); } catch (err) { /* ignore */ }
+      var badge = SWK.$('[data-notif-badge]', nc), btn = SWK.$('[data-notif-btn]', nc), panel = SWK.$('[data-notif-panel]', nc);
+      var paint = function () {
+        var unread = ids.filter(function (i) { return read.indexOf(i) === -1; });
+        badge.hidden = !unread.length; badge.textContent = unread.length;
+        SWK.$$('[data-notif-id]', nc).forEach(function (a) { a.parentNode.classList.toggle('is-unread', read.indexOf(a.getAttribute('data-notif-id')) === -1); });
+      };
+      var saveRead = function () { store('swk_notif_read', JSON.stringify(read)); paint(); };
+      var toggle = function (open) {
+        panel.hidden = !open; btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) { var f = SWK.$('a', panel); if (f) f.focus(); }
+      };
+      btn.addEventListener('click', function () { toggle(panel.hidden); });
+      document.addEventListener('click', function (ev) { if (!panel.hidden && !nc.contains(ev.target)) toggle(false); });
+      document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !panel.hidden) { toggle(false); btn.focus(); } });
+      SWK.$('[data-notif-readall]', nc).addEventListener('click', function () { read = ids.slice(); saveRead(); });
+      SWK.$$('[data-notif-id]', nc).forEach(function (a) { a.addEventListener('click', function () { var i = a.getAttribute('data-notif-id'); if (read.indexOf(i) === -1) read.push(i); saveRead(); }); });
+      paint();
+      // First visit: a gentle toast points to the new bell
+      if (!store('swk_notif_intro') && ids.length) {
+        store('swk_notif_intro', '1');
+        setTimeout(function () { if (!openDialog) SWK.toast('You have ' + ids.length + ' new updates. Tap the bell to see them.', 'info', 6000); }, 6500);
+      }
+    }
+
     // ---- Back to top
     var top = SWK.$('[data-back-top]');
     if (top) {
