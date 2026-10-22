@@ -33,6 +33,7 @@ COMMUNITIES = load("communities")
 SERVICES = load("services")
 FAQ = load("faq")
 TEAM = load("team")
+REVIEWS = load("testimonials")
 POSTS = sorted(load("blog"), key=lambda p: p["date"], reverse=True)
 
 BASE = SITE["url"]
@@ -48,8 +49,8 @@ BUDGETS = [
     ("6000000-10000000", "AED 6M - 10M"),
     ("10000000", "AED 10M+"),
 ]
-FEATURE_THEMES = ["215 70% 34%", "16 72% 46%", "180 62% 31%", "38 86% 44%", "276 40% 40%"]
-SERVICE_THEMES = ["215 70% 38%", "16 72% 48%", "180 62% 32%", "38 86% 46%", "276 40% 44%", "150 48% 33%"]
+FEATURE_THEMES = ["30 46% 30%", "24 40% 26%", "36 44% 34%", "28 36% 24%", "33 42% 28%"]
+SERVICE_THEMES = ["30 46% 40%", "24 40% 36%", "36 44% 44%", "28 36% 34%", "33 42% 38%", "30 30% 42%"]
 PAGE_HERO_IMG = "og/default.jpg"
 
 
@@ -220,20 +221,18 @@ ASSET_V = ""
 def build_assets():
     """Concatenate CSS and JS, fingerprint them, and copy vendor files."""
     global ASSET_V
-    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme", "ui"]
+    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme", "ui", "luxe"]
     css = "\n".join((SRC / "css" / f"{n}.css").read_text(encoding="utf-8") for n in css_order)
     css = css.replace("../assets/", "/assets/")
     mods = sorted((SRC / "js" / "modules").glob("*.js"))
     js = "\n".join(m.read_text(encoding="utf-8") for m in mods)
-    scene = (SRC / "js" / "hero-scene.js").read_text(encoding="utf-8")
-    ASSET_V = hashlib.sha1((css + js + scene).encode("utf-8")).hexdigest()[:8]
+    ASSET_V = hashlib.sha1((css + js).encode("utf-8")).hexdigest()[:8]
 
     (OUT / "assets" / "css").mkdir(parents=True, exist_ok=True)
     (OUT / "assets" / "js").mkdir(parents=True, exist_ok=True)
     (OUT / "assets" / "vendor").mkdir(parents=True, exist_ok=True)
     (OUT / "assets" / "css" / "site.css").write_text(css, encoding="utf-8")
     (OUT / "assets" / "js" / "main.js").write_text(js, encoding="utf-8")
-    (OUT / "assets" / "js" / "hero-scene.js").write_text(scene, encoding="utf-8")
     for f in (SRC / "vendor").iterdir():
         shutil.copy(f, OUT / "assets" / "vendor" / f.name)
     for f in (SRC / "root").iterdir():
@@ -247,7 +246,7 @@ def build_assets():
 # Fonts are self-hosted (see src/css/base.css); the faces used above the fold are preloaded.
 FONT_PRELOADS = "".join(
     f'<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/{f}.woff2" crossorigin>\n'
-    for f in ("instrument-serif/instrument-serif-400", "general-sans/general-sans-400", "general-sans/general-sans-600", "clash-display/clash-display-700"))
+    for f in ("inter/inter-variable", "montserrat/montserrat-500"))
 
 
 NAV = [("/", "Home"), ("/properties/", "Properties"), ("/about/", "About"), ("/services/", "Services"), ("/mortgage/", "Mortgage"), ("/blog/", "Journal"), ("/contact/", "Contact")]
@@ -271,7 +270,7 @@ def site_header(path):
     links = "".join(
         f'<a href="{h}"{" aria-current=\"page\"" if (h == path or (h != "/" and path.startswith(h))) else ""}>{l}</a>' for h, l in NAV)
     return (f'<header class="site-header" data-site-header><div class="site-header__inner container">'
-            f'<a href="/" class="site-brand" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-dark.png" alt="SWK Properties" class="brand-logo" width="338" height="275" decoding="async" fetchpriority="high"></a>'
+            f'<a href="/" class="site-brand" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-white.png" alt="SWK Properties" class="brand-logo" width="338" height="275" decoding="async" fetchpriority="high"></a>'
             f'<nav class="site-nav" aria-label="Primary">{links}</nav>'
             f'<div class="site-header__tools">{bell_html()}<a href="/contact/" class="btn btn-primary btn-sm site-header__cta">Book a consultation</a></div></div></header>')
 
@@ -289,7 +288,7 @@ def dock(path):
 
 
 PRELOADER = """<div class="preloader" role="status" aria-live="polite">
-<img src="/assets/images/brand/swk-logo-dark.png" alt="" class="preloader__logo" width="338" height="275" fetchpriority="high">
+<img src="/assets/images/brand/swk-logo-white.png" alt="" class="preloader__logo" width="338" height="275" fetchpriority="high">
 <div class="preloader__spinner" aria-hidden="true"></div><span class="preloader__text">Loading...</span></div>
 <script>
 (function () {
@@ -356,7 +355,7 @@ def footer():
 <p class="form-status" role="status" aria-live="polite" hidden></p>
 </form></div>
 <div class="footer-grid">
-<div class="footer-col footer-col--brand"><a href="/" class="footer-logo" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-dark.png" alt="SWK Properties" width="338" height="275" loading="lazy" decoding="async"></a>
+<div class="footer-col footer-col--brand"><a href="/" class="footer-logo" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-white.png" alt="SWK Properties" width="338" height="275" loading="lazy" decoding="async"></a>
 <p>A premium Dubai real estate agency helping investors and homeowners buy, sell and manage property with confidence.</p>
 <div class="social-row">
 <a href="{SITE['instagram']}" target="_blank" rel="noopener noreferrer" aria-label="SWK Properties on Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
@@ -474,8 +473,13 @@ def csp_for(html_text):
     if fb:
         connect += ["https://www.facebook.com", "https://connect.facebook.net"]
     return ("default-src 'self'; script-src " + " ".join(script_src) + "; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; "
-            "font-src 'self'; connect-src " + " ".join(connect) + "; frame-src https://www.google.com https://maps.google.com; worker-src 'self' blob:; "
+            "font-src 'self'; media-src 'self' https://videos.pexels.com; connect-src " + " ".join(connect) + "; frame-src https://www.google.com https://maps.google.com; worker-src 'self' blob:; "
             "object-src 'none'; base-uri 'self'; form-action 'self' mailto:")
+
+
+HERO_POSTER = "https://images.pexels.com/videos/31383779/4k-aerial-ascend-building-31383779.jpeg?auto=compress&cs=tinysrgb&h=720&w=1280"
+HERO_VIDEO_HD = "https://videos.pexels.com/video-files/31383779/13391463_1280_720_60fps.mp4"
+HERO_VIDEO_SD = "https://videos.pexels.com/video-files/31383779/13391462_960_540_60fps.mp4"
 
 
 def head(path, title, desc, image, ld, og_type, robots, preload):
@@ -491,7 +495,7 @@ def head(path, title, desc, image, ld, og_type, robots, preload):
     tw = f'<meta name="twitter:site" content="@{e(SITE["twitter"])}">\n' if SITE.get("twitter") else ""
     alt = e(f"{title} - {SITE['name']}")
     hreflang = "" if robots and "noindex" in robots else f'<link rel="alternate" hreflang="en-AE" href="{url}">\n<link rel="alternate" hreflang="x-default" href="{url}">\n'
-    pre = "".join(f'<link rel="preload" as="image" href="{u}"{a}>\n' for u, a in (preload or []))
+    pre = "".join(f'<link rel="preload" as="image" href="{u}"{a} referrerpolicy="no-referrer">\n' for u, a in (preload or []))
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -773,23 +777,19 @@ def build_home():
 <svg class="service-card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></div>
 <div class="service-card__decor" aria-hidden="true">{service_icon(s['id'])}</div></div>"""
 
-    tilts = [-6, 4, -3]
-    photos = "".join(
-        f'<div class="tc-photo" data-tc-photo="{i}" style="--tc-rot:{tilts[i % 3]}deg">{img(t["photo"], t["name"])}</div>' for i, t in enumerate(TEAM))
-    t0 = TEAM[0]
-    words = "".join(f'<span class="tc-word is-in">{e(w)}</span> ' for w in t0["bio"].split(" "))
-    team = f"""<div class="testimonials-carousel" data-testimonials-carousel><div class="testimonials-carousel__media" data-tc-media>{photos}</div>
-<div class="testimonials-carousel__content"><div data-tc-text><h3 class="tc-name">{e(t0['name'])}</h3><p class="tc-designation">{e(t0['role'])}</p><p class="tc-quote">{words}</p></div>
-<div class="tc-nav"><button type="button" class="tc-arrow" data-tc-prev aria-label="Previous team member">{PREV}</button><button type="button" class="tc-arrow" data-tc-next aria-label="Next team member">{NEXT}</button></div></div></div>
-<script type="application/json" id="team-data">{json.dumps([{"name": t["name"], "role": t["role"], "bio": t["bio"]} for t in TEAM], ensure_ascii=False).replace("</", "<\\/")}</script>"""
+    slides = "".join(
+        f'<figure class="rv-slide{" is-active" if i == 0 else ""}" data-rv-slide aria-hidden="{"false" if i == 0 else "true"}"><blockquote><p>{e(r["text"])}</p></blockquote>'
+        f'<figcaption><strong>{e(r["name"])}</strong><span>{e(r["place"])}</span></figcaption></figure>' for i, r in enumerate(REVIEWS))
+    team = f"""<div class="rv" data-reviews><div class="rv__stage" aria-live="off">{slides}</div>
+<div class="rv__bar"><div class="rv__progress" aria-hidden="true"><i data-rv-progress></i></div>
+<div class="rv__count" aria-hidden="true"><b data-rv-now>01</b> / {len(REVIEWS):02d}</div>
+<div class="rv__nav"><button type="button" class="tc-arrow" data-rv-prev aria-label="Previous review">{PREV}</button><button type="button" class="tc-arrow" data-rv-next aria-label="Next review">{NEXT}</button></div></div></div>"""
 
-    names_json = json.dumps([p["title"] for p in PROPS[:8]], ensure_ascii=False).replace("'", "&#39;")
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/hero-scene-mobile.webp">
-<img src="/assets/images/hero/hero-scene.webp" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
-<canvas class="hero__gl" aria-hidden="true" data-names='{names_json}'></canvas>
+<div class="hero__bg"><img src="{HERO_POSTER}" alt="" width="1280" height="720" fetchpriority="high" decoding="async" referrerpolicy="no-referrer"></div>
+<video class="hero__video" muted playsinline preload="auto" aria-hidden="true" tabindex="-1" data-video-desktop="{HERO_VIDEO_HD}" data-video-mobile="{HERO_VIDEO_SD}" poster="{HERO_POSTER}" crossorigin="anonymous"></video>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
-<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
+<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>Built to rise.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__content container">
 <span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>
 <h1 class="hero__title"><span class="sr-only">Experience Luxury Living in UAE</span><span data-typewriter aria-hidden="true">Experience Luxury<br><em>Living in UAE</em></span></h1>
@@ -839,7 +839,7 @@ def build_home():
 <p>Adjust the figures below for an instant estimate, or get a personalised rate comparison on our mortgage page.</p></div>
 {calculator("/mortgage/", "Analyze")}</div></section>
 
-<section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Our Experts</span><h2 class="sr-only">Meet our team</h2></div>{team}</div></section>
+<section class="section reviews-section ambient-glow-host" id="reviews" aria-labelledby="reviews-title">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Client reviews</span><h2 id="reviews-title">What Dubai property buyers say about SWK Properties</h2></div>{team}</div></section>
 
 <section class="section ambient-glow-host">{GLOW}<div class="container">
 <div class="section-head-row"><div class="section-header" style="margin-bottom:0"><span class="eyebrow">Insights</span>{h2_cascade("From the SWK journal")}</div>
@@ -851,8 +851,7 @@ def build_home():
     write("/", page("/", "SWK Properties | Luxury Real Estate in Dubai",
                     "SWK Properties is a premium Dubai real estate agency — off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.",
                     body, ld=ld,
-                    preload=[("/assets/images/hero/hero-scene-mobile.webp", ' media="(max-width: 767px)" fetchpriority="high"'),
-                             ("/assets/images/hero/hero-scene.webp", ' media="(min-width: 768px)" fetchpriority="high"')]))
+                    preload=[(HERO_POSTER, ' fetchpriority="high"')]))
 
 
 def build_properties():

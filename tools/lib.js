@@ -28,7 +28,17 @@ async function stubExternal(ctx) {
     const u = route.request().url();
     if (/fonts\.googleapis\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'text/css', body: '' });
     if (/maps\.google\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'text/html', body: '<html><body style="background:#222"></body></html>' });
-    if (/images\.unsplash\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'image/gif', body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64') });
+    if (/videos\.pexels\.com/.test(u)) {
+      const buf = require('fs').readFileSync(require('path').join(__dirname, 'fixtures', 'hero-test.webm'));
+      const m = /bytes=(\d+)-(\d*)/.exec(route.request().headers()['range'] || '');
+      const base = { 'Access-Control-Allow-Origin': '*', 'Accept-Ranges': 'bytes', 'Content-Type': 'video/webm' };
+      if (m) {
+        const start = +m[1], end = m[2] ? Math.min(+m[2], buf.length - 1) : buf.length - 1;
+        return route.fulfill({ status: 206, headers: { ...base, 'Content-Range': `bytes ${start}-${end}/${buf.length}`, 'Content-Length': String(end - start + 1) }, body: buf.subarray(start, end + 1) });
+      }
+      return route.fulfill({ status: 200, headers: { ...base, 'Content-Length': String(buf.length) }, body: buf });
+    }
+    if (/images\.(unsplash|pexels)\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'image/gif', body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64') });
     return route.fulfill({ status: 204, body: '' });
   });
 }

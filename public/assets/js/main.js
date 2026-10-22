@@ -289,27 +289,7 @@
     });
   }
 
-  // ---- WebGL gate -------------------------------------------------------
-  function webglOK() {
-    try {
-      var c = document.createElement('canvas');
-      var gl = c.getContext('webgl2') || c.getContext('webgl');
-      if (!gl) return false;
-      var lose = gl.getExtension('WEBGL_lose_context');
-      if (lose) lose.loseContext();
-      return true;
-    } catch (e) { return false; }
-  }
-
-  function wantsGL() {
-    if (SWK.reduced) return false;
-    if (/[?&]nowebgl\b/.test(location.search)) return false;
-    var nav = navigator;
-    if (nav.connection && nav.connection.saveData) return false;
-    if (nav.deviceMemory && nav.deviceMemory < 2) return false;
-    return webglOK();
-  }
-
+  // ---- Scroll-scrubbed stock video ------------------------------------
   SWK.reg('hero', function () {
     var hero = SWK.$('.hero');
     var wrap = SWK.$('.hero-cine');
@@ -317,29 +297,17 @@
 
     initTypewriter();
 
-    var useGL = !!wrap && wantsGL();
-    var canvas = SWK.$('.hero__gl', hero);
-    if (!useGL || !canvas) {
-      if (wrap) wrap.classList.add('is-flat');
-      return;
-    }
-
+    var video = SWK.$('.hero__video', hero);
     var captions = SWK.$$('.hero__caption', hero);
     var ranges = [[0.26, 0.52], [0.52, 0.78], [0.78, 1.2]];
-    var progress = 0;
-    var scene = null;
-    var visible = true;
+    var progress = 0, target = 0, ready = false, failed = false, raf = 0;
     var mobile = window.matchMedia('(max-width: 767px)').matches;
 
-    function flatten() {
-      if (scene) { try { scene.dispose(); } catch (e) { /* noop */ } scene = null; }
-      hero.classList.remove('is-gl', 'is-gl-pending');
-      wrap.classList.add('is-flat');
-    }
+    function flat() { if (wrap) wrap.classList.add('is-flat'); hero.classList.remove('is-gl', 'is-gl-pending'); failed = true; }
 
     var update = SWK.raf(function () {
-      var total = wrap.offsetHeight - hero.offsetHeight;
-      var r = wrap.getBoundingClientRect();
+      var total = wrap ? wrap.offsetHeight - hero.offsetHeight : 0;
+      var r = wrap ? wrap.getBoundingClientRect() : { top: 0 };
       progress = total > 0 ? SWK.clamp(-r.top / total, 0, 1) : 0;
       hero.style.setProperty('--p', progress.toFixed(4));
       hero.classList.toggle('is-leaving', progress > 0.18);
@@ -352,65 +320,54 @@
         el.style.setProperty('--y', ((0.5 - t) * 46).toFixed(1) + 'px');
         el.style.setProperty('--s', (0.96 + t * 0.07).toFixed(3));
       });
-      if (scene) scene.setProgress(progress);
+      target = progress;
+      if (ready && !raf) raf = requestAnimationFrame(seek);
     });
 
-    hero.classList.add('is-gl-pending');
+    // Ease the video's playhead toward the scroll position (smooth, never jumpy).
+    function seek() {
+      raf = 0;
+      if (!video || !ready || failed || !video.duration) return;
+      var want = target * (video.duration - 0.05);
+      var diff = want - video.currentTime;
+      if (Math.abs(diff) > 0.012) {
+        var next = video.currentTime + diff * 0.22;
+        try { if (video.fastSeek && Math.abs(diff) > 0.6) video.fastSeek(next); else video.currentTime = next; } catch (e) { /* noop */ }
+        raf = requestAnimationFrame(seek);
+      }
+    }
+
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
     update();
 
-    var giveUp = setTimeout(flatten, 15000);
+    var useVideo = video && wrap && !SWK.reduced && !/[?&]novideo\b/.test(location.search) &&
+      !(navigator.connection && navigator.connection.saveData);
+    if (!useVideo) { flat(); return; }
 
-    var src = (window.SWK_ASSETS || '/assets/js/') + 'hero-scene.js' + (window.SWK_V ? '?v=' + window.SWK_V : '');
-    import(src).then(function (mod) {
-      try {
-        scene = mod.createHeroScene(canvas, { mobile: mobile, hold: /[?&]hold\b/.test(location.search) });
-      } catch (err) {
-        console.warn('[swk] WebGL hero unavailable, using the photo hero.', err && err.message);
-        clearTimeout(giveUp);
-        flatten();
-        return;
-      }
-      scene.onReady = function () {
-        clearTimeout(giveUp);
-        hero.classList.remove('is-gl-pending');
-        hero.classList.add('is-gl');
-      };
-      scene.onSlow = flatten;
-      scene.setProgress(progress);
-
-      if (window.ResizeObserver) new ResizeObserver(function () { if (scene) scene.resize(); }).observe(canvas);
-      else window.addEventListener('resize', function () { if (scene) scene.resize(); });
-
-      canvas.addEventListener('webglcontextlost', function (ev) { ev.preventDefault(); flatten(); });
-
-      function sync() {
-        if (!scene) return;
-        if (visible && !document.hidden) scene.start(); else scene.stop();
-      }
-      if ('IntersectionObserver' in window) {
-        new IntersectionObserver(function (entries) {
-          visible = entries[0].isIntersecting;
-          sync();
-        }, { threshold: 0 }).observe(hero);
-      }
-      document.addEventListener('visibilitychange', sync);
-      sync();
-
-      if (SWK.fine) {
-        hero.addEventListener('pointermove', function (ev) {
-          if (!scene || ev.pointerType === 'touch') return;
-          var r = hero.getBoundingClientRect();
-          scene.setPointer(((ev.clientX - r.left) / r.width) * 2 - 1, -(((ev.clientY - r.top) / r.height) * 2 - 1));
-        });
-        hero.addEventListener('pointerleave', function () { if (scene) scene.setPointer(0, 0); });
-      }
-    }).catch(function (err) {
-      console.warn('[swk] could not load the WebGL hero, using the photo hero.', err && err.message);
-      clearTimeout(giveUp);
-      flatten();
+    hero.classList.add('is-gl-pending');
+    var timer = setTimeout(flat, 12000);
+    video.addEventListener('loadeddata', function () {
+      clearTimeout(timer);
+      ready = true;
+      hero.classList.remove('is-gl-pending');
+      hero.classList.add('is-gl');
+      video.currentTime = 0.001;
+      update();
     });
+    video.addEventListener('error', function () { clearTimeout(timer); flat(); });
+    video.src = mobile ? video.getAttribute('data-video-mobile') : video.getAttribute('data-video-desktop');
+    video.load();
+
+    // Pointer parallax: the footage tilts a few degrees with the cursor.
+    if (SWK.fine) {
+      hero.addEventListener('pointermove', function (ev) {
+        var r = hero.getBoundingClientRect();
+        var nx = ((ev.clientX - r.left) / r.width - 0.5) * 2, ny = ((ev.clientY - r.top) / r.height - 0.5) * 2;
+        hero.style.setProperty('--tx', (nx * 14).toFixed(1) + 'px');
+        hero.style.setProperty('--ty', (ny * 10).toFixed(1) + 'px');
+      });
+    }
 
     // Tilt the glass search panel toward the pointer.
     var bar = SWK.$('.search-bar', hero);
@@ -429,6 +386,64 @@
         bar.style.setProperty('--rx', '0deg');
       });
     }
+  });
+})();
+
+// Review slider: text-only quotes that cross-fade on a timer, with progress, counter and arrows.
+(function () {
+  'use strict';
+  var SWK = window.SWK;
+
+  SWK.reg('reviews', function () {
+    var root = SWK.$('[data-reviews]');
+    if (!root) return;
+    var slides = SWK.$$('[data-rv-slide]', root);
+    if (slides.length < 2) return;
+    var bar = SWK.$('[data-rv-progress]', root);
+    var now = SWK.$('[data-rv-now]', root);
+    var DURATION = 7000;
+    var idx = 0, timer = null, start = 0, paused = false, raf = 0, elapsed = 0;
+
+    function show(n, dir) {
+      var prev = slides[idx];
+      idx = (n + slides.length) % slides.length;
+      slides.forEach(function (s, i) {
+        var on = i === idx;
+        s.classList.toggle('is-active', on);
+        s.classList.toggle('is-prev', s === prev && !on);
+        s.setAttribute('aria-hidden', on ? 'false' : 'true');
+        s.style.setProperty('--dir', dir || 1);
+      });
+      if (now) now.textContent = String(idx + 1).padStart(2, '0');
+      elapsed = 0; start = performance.now();
+    }
+
+    function tick(t) {
+      raf = requestAnimationFrame(tick);
+      if (paused || SWK.reduced) { start = t - elapsed; return; }
+      elapsed = t - start;
+      if (bar) bar.style.transform = 'scaleX(' + Math.min(elapsed / DURATION, 1) + ')';
+      if (elapsed >= DURATION) show(idx + 1, 1);
+    }
+
+    SWK.$('[data-rv-next]', root).addEventListener('click', function () { show(idx + 1, 1); });
+    SWK.$('[data-rv-prev]', root).addEventListener('click', function () { show(idx - 1, -1); });
+    root.addEventListener('mouseenter', function () { paused = true; });
+    root.addEventListener('mouseleave', function () { paused = false; });
+    root.addEventListener('focusin', function () { paused = true; });
+    root.addEventListener('focusout', function () { paused = false; });
+    root.addEventListener('keydown', function (ev) {
+      if (ev.key === 'ArrowRight') show(idx + 1, 1); else if (ev.key === 'ArrowLeft') show(idx - 1, -1);
+    });
+
+    // Only run while on screen
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (e) {
+        if (e[0].isIntersecting) { if (!raf) { start = performance.now() - elapsed; raf = requestAnimationFrame(tick); } }
+        else { cancelAnimationFrame(raf); raf = 0; }
+      }).observe(root);
+    } else { raf = requestAnimationFrame(tick); }
+    show(0, 1);
   });
 })();
 

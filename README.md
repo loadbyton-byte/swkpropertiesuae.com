@@ -67,3 +67,10 @@ Add new files under `src/assets/`, never directly in `public/` (the build delete
 - Each page gets a meta CSP with computed script hashes (`csp_for` in `build.py`); extra headers live in `vercel.json`.
 - Generated: `sitemap.xml` (with images), `robots.txt`, `feed.xml`, `manifest.webmanifest`, `.well-known/security.txt`, `/cookies/`.
 - `python3 tools/make-icons.py` rebuilds favicon/PWA icons. Hero poster is saved as `src/assets/images/hero/hero-scene(.webp|-mobile.webp)`.
+
+## Luxe theme, video hero, reviews
+
+- Theme: near-black + bronze gradients, Inter (headings/body) and Montserrat (nav, buttons, labels), all self-hosted. Tokens and overrides: `src/css/luxe.css` (loaded last).
+- Home hero is a scroll-scrubbed stock video (Pexels, Rasmus Carlin, hot-linked; URLs in `build.py` as `HERO_VIDEO_*`/`HERO_POSTER`). `?novideo` forces the poster. CSP `media-src` allows `videos.pexels.com`.
+- Reviews: `data/testimonials.json` (replace with real client reviews before launch). Team: `data/team.json`.
+- QA stubs the video with `tools/fixtures/hero-test.webm` (Playwright's Chromium has no H.264).
