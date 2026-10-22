@@ -28,7 +28,7 @@ Three.js r160 is vendored (`src/vendor/three.module.min.js`) and loaded only whe
 
 The Dubai golden-hour skyline is procedural (`src/js/hero-scene.js`). Scrolling the hero flies the camera down the boulevard; chapter captions follow scroll progress.
 
-The static poster shown before WebGL starts (and used as the fallback) is a render of the scene's first frame, so there is no visible switch. After changing the scene, re-render it: serve `public/`, open `/?hold` (draws one still frame) and screenshot the canvas at 1600x1067 and 900x600 into `src/assets/images/hero/dubai-golden.jpg` and `dubai-golden-mobile.jpg`.
+The static poster shown before WebGL starts (and used as the fallback) is a render of the scene's first frame, so there is no visible switch. After changing the scene, re-render it: serve `public/`, open `/?hold` (draws one still frame) and screenshot the canvas at 1600x1067 and 900x600 into `src/assets/images/hero/hero-scene.jpg` and `hero-scene-mobile.jpg`.
 
 ## Deploy
 
@@ -66,4 +66,4 @@ Add new files under `src/assets/`, never directly in `public/` (the build delete
 - Cookie banner + preferences, toasts, callback modal, back-to-top: `src/js/modules/75-ui.js`, `src/css/ui.css`.
 - Each page gets a meta CSP with computed script hashes (`csp_for` in `build.py`); extra headers live in `vercel.json`.
 - Generated: `sitemap.xml` (with images), `robots.txt`, `feed.xml`, `manifest.webmanifest`, `.well-known/security.txt`, `/cookies/`.
-- `python3 tools/make-icons.py` rebuilds favicon/PWA icons. Hero poster is saved as `src/assets/images/hero/dubai-golden(.webp|-mobile.webp)`.
+- `python3 tools/make-icons.py` rebuilds favicon/PWA icons. Hero poster is saved as `src/assets/images/hero/hero-scene(.webp|-mobile.webp)`.
