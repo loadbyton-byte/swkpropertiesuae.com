@@ -70,19 +70,23 @@
         var endpoint = form.getAttribute('data-endpoint');
         var done = kind === 'contact'
           ? 'Thank you — your message has been received. A consultant will be in touch within one business day.'
+          : kind === 'viewing'
+            ? 'Thank you — we have your viewing request and will confirm shortly.'
           : kind === 'callback'
             ? 'Thank you — we will call you back at your preferred time.'
             : 'Thank you — you\'re subscribed.';
 
         if (!endpoint) {
-          var body = kind === 'callback'
+          var body = kind === 'viewing'
+            ? 'Please book me a viewing.\nProperty page: ' + location.href + '\nName: ' + data.get('name') + '\nPhone: ' + data.get('phone') + '\nWhen: ' + data.get('date') + ' ' + data.get('time')
+            : kind === 'callback'
             ? 'Please call me back.\nName: ' + data.get('name') + '\nPhone: ' + data.get('phone') + '\nBest time: ' + (data.get('when') || '-')
             : kind === 'contact'
             ? 'Name: ' + data.get('name') + '\nEmail: ' + data.get('email') + '\nPhone: ' + (data.get('phone') || '-') +
               '\nInterested in: ' + data.get('interest') + '\n\n' + data.get('message')
             : 'Please add ' + data.get('email') + ' to the SWK Properties market updates list.';
           status(form, 'Your email app should open with your message ready to send. Prefer WhatsApp? Message us on ' + CFG.phone + '.', 'ok');
-          window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(kind === 'contact' ? 'Website enquiry' : kind === 'callback' ? 'Callback request' : 'Newsletter sign-up') +
+          window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(kind === 'contact' ? 'Website enquiry' : kind === 'callback' ? 'Callback request' : kind === 'viewing' ? 'Viewing request' : 'Newsletter sign-up') +
             '&body=' + encodeURIComponent(body);
           return;
         }

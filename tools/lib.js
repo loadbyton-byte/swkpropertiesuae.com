@@ -28,6 +28,7 @@ async function stubExternal(ctx) {
     const u = route.request().url();
     if (/fonts\.googleapis\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'text/css', body: '' });
     if (/maps\.google\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'text/html', body: '<html><body style="background:#222"></body></html>' });
+    if (/images\.unsplash\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'image/gif', body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64') });
     return route.fulfill({ status: 204, body: '' });
   });
 }
