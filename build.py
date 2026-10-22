@@ -179,6 +179,8 @@ def build_assets():
         shutil.copy(f, OUT / "assets" / "vendor" / f.name)
     for f in (SRC / "root").iterdir():
         shutil.copy(f, OUT / f.name)
+    # Brand assets: images (logo, hero, listings, team...) and self-hosted fonts.
+    shutil.copytree(SRC / "assets", OUT / "assets", dirs_exist_ok=True)
 
 
 # ---------------------------------------------------------------- layout
