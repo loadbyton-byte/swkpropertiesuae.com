@@ -32,7 +32,13 @@ The Dubai dusk skyline is procedural (`src/js/hero-scene.js`). Scrolling the her
 
 Upload `public/` to any static host. `vercel.json` sets the output directory, redirects and headers; `public/.htaccess` covers Apache (HTTPS/www redirect, old URL 301s, caching).
 
-Images and fonts are not in the repo. They live on the production host under `/assets/images/` and load from Google Fonts. Copy the images over when deploying somewhere new.
+Brand assets live in `src/assets/` and the build copies them into `public/assets/`:
+
+- `images/brand` logo, favicon, cursor · `images/hero` · `images/developers` (marquee logos `logo-01..10`) · `images/team` · `images/about` · `images/blog` · `images/communities` · `images/gallery` (`image1..25`)
+- `images/properties/{id}-{n}.{png|jpg}`, matching `imageExt` / `imageOrder` in `data/properties.json`
+- `fonts/clash-display` and `fonts/general-sans` (woff2, weights 400-700), declared in `src/css/base.css`
+
+Inter, Playfair Display and Bodoni Moda are still loaded from Google Fonts. Add new files under `src/assets/`, never directly in `public/` (the build deletes and regenerates it).
 
 ## Needs your input
 
