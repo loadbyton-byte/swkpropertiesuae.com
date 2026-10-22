@@ -96,12 +96,12 @@
 /* ---- Dark section wrapper (developer showcase, benefits, calculator band) ---- */
 
 .section--dark {
-  background: var(--grad-navy);
-  color: var(--color-text);
+  background: var(--navy-950);
+  color: var(--cream-50);
 }
 
-.section--dark p { color: var(--color-text-muted); }
-.section--dark h2, .section--dark h3 { color: var(--color-text); }
+.section--dark p { color: var(--slate-300); }
+.section--dark h2, .section--dark h3 { color: var(--white); }
 
 /* A gradient, not a flat fill: blends in from the surrounding (transparent,
    body-navy) sections at the top and bottom edges instead of snapping to a
@@ -205,8 +205,8 @@
   flex-shrink: 0;
   border-radius: var(--radius-full);
   border: 1.5px solid var(--color-border);
-  background: var(--color-surface-alt);
-  color: var(--color-text-muted);
+  background: var(--navy-800);
+  color: var(--slate-300);
   transition: color var(--duration-fast) var(--ease-luxury), border-color var(--duration-fast) var(--ease-luxury);
 }
 
@@ -225,7 +225,7 @@
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background: var(--color-border);
+  background: var(--navy-700);
   transition: background var(--duration-base) var(--ease-luxury), transform var(--duration-base) var(--ease-luxury);
 }
 
@@ -296,7 +296,7 @@
 
 .lightbox__counter {
   text-align: center;
-  color: var(--color-text-muted);
+  color: var(--slate-300);
   font-size: var(--fs-xs);
   margin-top: var(--space-3);
 }
@@ -349,8 +349,8 @@
   flex-shrink: 0;
   border-radius: var(--radius-full);
   border: 1.5px solid var(--color-border);
-  background: var(--color-surface-alt);
-  color: var(--color-text-muted);
+  background: var(--navy-800);
+  color: var(--slate-300);
   transition: color var(--duration-fast) var(--ease-luxury), border-color var(--duration-fast) var(--ease-luxury), opacity var(--duration-fast) var(--ease-luxury);
 }
 
@@ -379,7 +379,7 @@
   width: 8px;
   height: 8px;
   border-radius: var(--radius-full);
-  background: var(--color-border);
+  background: var(--navy-700);
   transition: background var(--duration-base) var(--ease-luxury), transform var(--duration-base) var(--ease-luxury);
 }
 
@@ -444,39 +444,19 @@
 /* ---- Page hero (interior pages, non full-screen) ---- */
 
 .page-hero {
-  background: var(--grad-sky);
-  color: var(--color-text);
+  background: var(--navy-950);
+  color: var(--cream-50);
   padding-top: calc(var(--header-h) + var(--space-8));
-  padding-bottom: calc(var(--space-8) + 48px);
+  padding-bottom: var(--space-8);
   position: relative;
   overflow: hidden;
-  isolation: isolate;
 }
 
-/* Colourful sky wash + a layered Dubai skyline that parallaxes with scroll. */
 .page-hero::after {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(circle at 88% 8%, rgba(243, 201, 91, 0.55), transparent 42%),
-    radial-gradient(circle at 8% 0%, rgba(31, 111, 229, 0.22), transparent 46%),
-    radial-gradient(circle at 60% 100%, rgba(15, 168, 160, 0.18), transparent 50%);
-  pointer-events: none;
-}
-
-.page-hero::before {
-  content: '';
-  position: absolute;
-  left: -2%; right: -2%; bottom: 0;
-  height: 150px;
-  z-index: -1;
-  background:
-    url('../assets/images/brand/skyline-front.svg') repeat-x center bottom / auto 100%,
-    url('../assets/images/brand/skyline-back.svg') repeat-x 30% bottom / auto 150%;
-  opacity: 0.9;
-  transform: translate3d(0, calc(var(--hp, 0) * 18px), 0);
+  background: radial-gradient(circle at 85% 20%, rgba(232, 69, 44, 0.16), transparent 55%);
   pointer-events: none;
 }
 
