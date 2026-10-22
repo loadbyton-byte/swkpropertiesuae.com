@@ -126,3 +126,13 @@
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; }
   .hero-cine { height: auto !important; }
 }
+
+/* ---- Hero: clear the announcement bar and keep the scroll cue off the search pill on short screens ---- */
+.has-ann:not(.ann-off) .hero__content { padding-top: calc(var(--header-h) + var(--ann-h) + var(--space-6)); }
+@media (max-height: 760px) { .hero__scroll-cue { display: none; } }
+@media (min-width: 768px) and (max-height: 860px) {
+  .hero__title { font-size: clamp(2.4rem, min(5.2vw + 0.6rem, 10.5vh), 5.9rem); }
+  .hero__subtitle { margin-top: var(--space-3); font-size: var(--fs-base); }
+  .hero__eyebrow { margin-bottom: var(--space-3); }
+  .has-ann:not(.ann-off) .hero__content, .hero__content { padding-top: calc(var(--header-h) + var(--ann-h) + var(--space-5)); padding-bottom: var(--space-6); }
+}
