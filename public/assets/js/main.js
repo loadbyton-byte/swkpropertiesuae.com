@@ -289,7 +289,7 @@
     });
   }
 
-  // ---- Scroll-scrubbed stock video ------------------------------------
+  // ---- Boulevard fly-through: real photographs as textured planes, driven by scroll ----
   SWK.reg('hero', function () {
     var hero = SWK.$('.hero');
     var wrap = SWK.$('.hero-cine');
@@ -297,21 +297,21 @@
 
     initTypewriter();
 
-    var video = SWK.$('.hero__video', hero);
+    var flight = SWK.$('[data-flight]', hero);
+    var panels = SWK.$$('[data-pz]', hero).map(function (el) { return { el: el, z: parseFloat(el.getAttribute('data-pz')) }; });
     var captions = SWK.$$('.hero__caption', hero);
-    var ads = SWK.$$('[data-ad]', hero);
-    var adRanges = [[0.10, 0.42], [0.26, 0.58], [0.44, 0.78], [0.62, 0.92], [0.78, 1.05]];
     var ranges = [[0.26, 0.52], [0.52, 0.78], [0.78, 1.2]];
-    var progress = 0, target = 0, ready = false, failed = false, raf = 0;
-    var mobile = window.matchMedia('(max-width: 767px)').matches;
+    var progress = 0;
+    var TRAVEL = 3300;
 
-    function flat() { if (wrap) wrap.classList.add('is-flat'); hero.classList.remove('is-gl', 'is-gl-pending'); failed = true; }
+    function flat() { if (wrap) wrap.classList.add('is-flat'); hero.classList.remove('is-gl', 'is-gl-pending'); }
 
     var update = SWK.raf(function () {
       var total = wrap ? wrap.offsetHeight - hero.offsetHeight : 0;
       var r = wrap ? wrap.getBoundingClientRect() : { top: 0 };
       progress = total > 0 ? SWK.clamp(-r.top / total, 0, 1) : 0;
       hero.style.setProperty('--p', progress.toFixed(4));
+      hero.style.setProperty('--sway', (Math.sin(progress * Math.PI * 2) * 34).toFixed(1) + 'px');
       hero.classList.toggle('is-leaving', progress > 0.18);
       captions.forEach(function (el, i) {
         var rg = ranges[i] || [2, 3];
@@ -322,51 +322,27 @@
         el.style.setProperty('--y', ((0.5 - t) * 46).toFixed(1) + 'px');
         el.style.setProperty('--s', (0.96 + t * 0.07).toFixed(3));
       });
-      ads.forEach(function (el, i) {
-        var rg = adRanges[i] || [2, 3];
-        var o = SWK.clamp((progress - rg[0]) / 0.06, 0, 1) * SWK.clamp((rg[1] - progress) / 0.06, 0, 1);
-        var t = SWK.clamp((progress - rg[0]) / (rg[1] - rg[0]), 0, 1);
-        el.style.setProperty('--o', o.toFixed(3));
-        el.style.setProperty('--y', ((0.5 - t) * 60).toFixed(1) + 'px');
+      // Panels fade in far away and out as they pass the camera
+      var travel = progress * TRAVEL;
+      panels.forEach(function (pn) {
+        var z = pn.z + travel;
+        var o = SWK.clamp((z + 7600) / 1800, 0, 1) * SWK.clamp((380 - z) / 260, 0, 1);
+        pn.el.style.opacity = o.toFixed(3);
       });
-      target = progress;
-      if (ready && !raf) raf = requestAnimationFrame(seek);
     });
-
-    // Ease the video's playhead toward the scroll position (smooth, never jumpy).
-    function seek() {
-      raf = 0;
-      if (!video || !ready || failed || !video.duration) return;
-      var want = target * (video.duration - 0.05);
-      var diff = want - video.currentTime;
-      if (Math.abs(diff) > 0.012) {
-        var next = video.currentTime + diff * 0.22;
-        try { if (video.fastSeek && Math.abs(diff) > 0.6) video.fastSeek(next); else video.currentTime = next; } catch (e) { /* noop */ }
-        raf = requestAnimationFrame(seek);
-      }
-    }
 
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
     update();
 
-    var useVideo = video && wrap && !SWK.reduced && !/[?&]novideo\b/.test(location.search) &&
+    var use = flight && wrap && !SWK.reduced && !/[?&]novideo\b/.test(location.search) &&
       !(navigator.connection && navigator.connection.saveData);
-    if (!useVideo) { flat(); return; }
+    if (!use) { flat(); return; }
 
-    hero.classList.add('is-gl-pending');
-    var timer = setTimeout(flat, 12000);
-    video.addEventListener('loadeddata', function () {
-      clearTimeout(timer);
-      ready = true;
-      hero.classList.remove('is-gl-pending');
-      hero.classList.add('is-gl');
-      video.currentTime = 0.001;
-      update();
-    });
-    video.addEventListener('error', function () { clearTimeout(timer); flat(); });
-    video.src = mobile ? video.getAttribute('data-video-mobile') : video.getAttribute('data-video-desktop');
-    video.load();
+    // Reveal once the backdrop photo is decoded, so the first frame is never half-built.
+    var back = SWK.$('.flight__back img', hero);
+    var done = function () { hero.classList.add('is-gl'); update(); };
+    if (back && back.decode) back.decode().then(done, done); else done();
 
     // Tilt the glass search panel toward the pointer.
     var bar = SWK.$('.search-bar', hero);

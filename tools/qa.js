@@ -85,25 +85,26 @@ function pagesFromSitemap() {
   console.log(`  ${urls.length} pages checked`);
 
   // ---------------------------------------------------------------- home deep dive
-  sect('Home: video hero, scroll scrub, captions');
+  sect('Home: photo fly-through hero, scroll, captions');
   msgs.length = 0;
   await page.goto(L.BASE + '/', { waitUntil: 'load' });
   await page.waitForFunction(() => document.querySelector('.hero.is-gl'), null, { timeout: 20000 }).catch(() => {});
   ok(await page.evaluate(() => !!document.querySelector('.hero.is-gl')), 'hero reached is-gl');
   await page.waitForTimeout(3600);
   await shot(page, 'home-top');
-  const vid = await page.evaluate(() => { const v = document.querySelector('.hero__video'); return { rs: v.readyState, w: v.videoWidth, dur: v.duration }; });
-  ok(vid.rs >= 2 && vid.w > 0 && vid.dur > 1, `hero video decoded ${JSON.stringify(vid)}`);
+  const fl = await page.evaluate(() => ({ walls: document.querySelectorAll('.hero .wall').length, ads: document.querySelectorAll('.hero .wall__ad').length, imgs: [...document.querySelectorAll('.hero .wall img')].filter((i) => i.complete && i.naturalWidth > 0).length }));
+  ok(fl.walls >= 20 && fl.ads >= 8 && fl.imgs === fl.walls, `fly-through built from real photos ${JSON.stringify(fl)}`);
   const progs = [];
   for (const f of [0, 0.35, 0.65, 1]) {
     await page.evaluate((f) => { const w = document.querySelector('.hero-cine'); scrollTo({ top: w.offsetTop + (w.offsetHeight - innerHeight) * f, behavior: 'instant' }); }, f);
-    await page.waitForTimeout(900);
+    await page.waitForFunction((f) => Math.abs(parseFloat(document.querySelector('.hero').style.getPropertyValue('--p') || 0) - f) < 0.03, f, { timeout: 20000 }).catch(() => {});
+    await page.waitForTimeout(1200);
     progs.push(await page.evaluate(() => ({ p: parseFloat(document.querySelector('.hero').style.getPropertyValue('--p')), caps: [...document.querySelectorAll('.hero__caption')].map((c) => parseFloat(c.style.getPropertyValue('--o') || 0)) })));
   }
   ok(progs[0].p === 0 && progs[3].p === 1 && progs[1].p > 0.3 && progs[1].p < 0.4, `scroll progress ${JSON.stringify(progs.map((x) => x.p))}`);
   ok(progs[1].caps[0] > 0.9 && progs[2].caps[1] > 0.9 && progs[3].caps[2] > 0.9, `captions per chapter ${JSON.stringify(progs.map((x) => x.caps))}`);
-  const ct = await page.evaluate(() => document.querySelector('.hero__video').currentTime);
-  ok(ct > 1.5, `video playhead follows scroll (t=${ct.toFixed(2)})`);
+  const visWalls = await page.evaluate(() => [...document.querySelectorAll('.hero .wall')].filter((w) => parseFloat(w.style.opacity || 0) > 0.3).length);
+  ok(visWalls >= 2, `wall panels visible at the end of the flight (${visWalls})`);
   await shot(page, 'home-fly');
   await page.evaluate(() => scrollTo(0, 0));
   ok(L.clean(msgs).length === 0, 'home console clean after scrub: ' + JSON.stringify(L.clean(msgs)));
@@ -240,7 +241,7 @@ function pagesFromSitemap() {
   await page.fill('#c-price', '100000'); await page.dispatchEvent('#c-price', 'change');
   ok(/between AED 200,000/.test(await page.textContent('[data-calc-hint]')), 'price range validation');
   await shot(page, 'mortgage');
-  await page.click('#faq-trigger-0'); await page.waitForTimeout(700);
+  await page.click('#faq-trigger-0'); await page.waitForFunction(() => document.querySelector('#faq-panel-0').getBoundingClientRect().height > 20, null, { timeout: 10000 }).catch(() => {});
   ok(await page.getAttribute('#faq-trigger-0', 'aria-expanded') === 'true' && (await page.evaluate(() => document.querySelector('#faq-panel-0').getBoundingClientRect().height)) > 20, 'FAQ accordion opens');
 
   // ---------------------------------------------------------------- contact
