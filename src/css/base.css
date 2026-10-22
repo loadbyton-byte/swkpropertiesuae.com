@@ -94,7 +94,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
-  cursor: url('../assets/images/brand/swk-cursor.png') 14 14, auto;
+  cursor: url('../assets/images/brand/swk-cursor-dark.png') 14 14, auto;
 }
 
 /* Links/buttons get their own explicit cursor rule since the browser's
@@ -104,7 +104,7 @@ body {
    later button-reset rule below also sets cursor: pointer at equal
    specificity and would otherwise win by source order. */
 a, button, [role='button'] {
-  cursor: url('../assets/images/brand/swk-cursor.png') 14 14, pointer !important;
+  cursor: url('../assets/images/brand/swk-cursor-dark.png') 14 14, pointer !important;
 }
 
 img, picture, video, canvas, svg {
@@ -171,7 +171,7 @@ ul, ol { list-style: none; }
   left: var(--space-4);
   z-index: 1000;
   background: var(--color-accent);
-  color: var(--navy-950);
+  color: var(--on-accent);
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-sm);
   transition: top var(--duration-fast) var(--ease-luxury);
@@ -208,11 +208,11 @@ ul, ol { list-style: none; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: url('../assets/images/brand/swk-logo.png');
+  background-image: url('../assets/images/brand/swk-logo-dark.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: min(380px, 55%);
-  opacity: 0.035;
+  opacity: 0.04;
 }
 
 .section > * {
@@ -304,6 +304,6 @@ ul, ol { list-style: none; }
    tile instead of the browser's broken-image icon. */
 img.is-broken {
   object-fit: contain;
-  background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+  background: linear-gradient(135deg, var(--color-surface-alt), var(--color-border));
   color: transparent;
 }

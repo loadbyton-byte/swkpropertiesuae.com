@@ -1,6 +1,6 @@
 # SWK Properties UAE — static site
 
-Dark navy + ember theme, cinematic WebGL hero, dock navigation, fan gallery, glow listing cards.
+Light corporate theme (white canvas, navy ink, coral / gold / azure / teal accents), daytime WebGL skyline hero, scroll-driven 3D depth, dock navigation, fan gallery, glow listing cards.
 No runtime dependencies. Output is plain static files in `public/`.
 
 ## Build
@@ -26,7 +26,15 @@ PLAYWRIGHT_PATH=/opt/node22/lib/node_modules/playwright node tools/qa.js
 
 Three.js r160 is vendored (`src/vendor/three.module.min.js`) and loaded only when WebGL works and the visitor has no reduced-motion, save-data or low-memory flag. Otherwise the hero falls back to the photo. Add `?nowebgl` to force the fallback.
 
-The Dubai dusk skyline is procedural (`src/js/hero-scene.js`). Scrolling the hero flies the camera down the boulevard; chapter captions follow scroll progress.
+The sunlit Dubai skyline is procedural (`src/js/hero-scene.js`). Scrolling the hero flies the camera down the boulevard; chapter captions follow scroll progress. The static poster used before WebGL starts (and as the fallback) is a render of that scene: `src/assets/images/hero/dubai-day*.jpg`. Re-render it after changing the scene.
+
+## Theme and motion
+
+- Colours are tokens in `src/css/variables.css`. Navy surfaces (footer, stats band, lightbox) are "dark islands": they re-scope the semantic tokens, so components inside need no overrides.
+- `src/css/theme.css` is loaded last: skyline divider, stat ribbon, image skeletons, scroll-scrubbed 3D entrances, cross-page View Transitions.
+- `src/js/modules/35-scroll3d.js` drives the scrubbed entrances and parallax skyline. Everything is off for `prefers-reduced-motion`.
+- Logo variants: `swk-logo.png` (white, for navy) and `swk-logo-dark.png` (navy, for light). `favicon-app.png` and `favicon-32.png` are navy tiles; `swk-cursor-dark.png` is the cursor.
+- Loading: the two main self-hosted fonts are preloaded, Google Fonts load without blocking render, `<img>` tags get intrinsic `width`/`height` from the files, and the preloader only appears on slow loads.
 
 ## Deploy
 
