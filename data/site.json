@@ -17,5 +17,30 @@
  "tradeLicense": "",
  "instagram": "https://www.instagram.com/swk.properties/",
  "linkedin": "https://www.linkedin.com/company/swk-properties-llc",
- "formEndpoint": ""
+ "formEndpoint": "",
+ "tagline": "Luxury real estate in Dubai",
+ "announcement": {
+  "enabled": true,
+  "id": "launches-2026-q4",
+  "text": "New off-plan launches this month with flexible payment plans from AED 680K.",
+  "linkText": "View listings",
+  "href": "/properties/"
+ },
+ "popup": {
+  "enabled": true,
+  "delaySeconds": 30,
+  "title": "Get the off-plan watchlist",
+  "text": "One email a month: new Dubai launches, price moves and payment-plan changes. No spam, unsubscribe any time."
+ },
+ "analytics": {
+  "ga4": "",
+  "gtm": "",
+  "metaPixel": ""
+ },
+ "verification": {
+  "google": "",
+  "bing": ""
+ },
+ "twitter": "",
+ "social": []
 }

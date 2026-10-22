@@ -11,8 +11,11 @@ const sect = (t) => console.log('\n# ' + t);
 const shot = async (page, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: true }); await page.screenshot({ path: `${SHOTS}/${name}.png` }); } };
 
 async function newPage(b, opts = {}) {
-  const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, ...opts });
+  const { fresh, ...ctxOpts } = opts;
+  const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, ...ctxOpts });
   await L.stubExternal(ctx);
+  // Most tests run as a returning visitor (cookie choice made, pop-up seen) so overlays don't block clicks.
+  if (!fresh) await ctx.addInitScript(() => { try { localStorage.setItem('swk_consent_v1', JSON.stringify({ a: false, m: false, t: 1 })); localStorage.setItem('swk_lead', String(Date.now())); } catch (e) {} });
   const page = await ctx.newPage();
   const msgs = []; L.watch(page, msgs);
   return { ctx, page, msgs };
@@ -55,7 +58,7 @@ function pagesFromSitemap() {
     ok(info.title && info.title.length > 10 && info.title.length < 70, `${tag} title length "${info.title}"`);
     ok(info.desc && info.desc.length > 50 && info.desc.length < 200, `${tag} description length ${info.desc && info.desc.length}`);
     ok(info.canon === 'https://www.swkpropertiesuae.com' + u, `${tag} canonical ${info.canon}`);
-    ok(/^https:\/\/www\.swkpropertiesuae\.com\/assets\/images\//.test(info.og), `${tag} og:image absolute ${info.og}`);
+    ok(/^https:\/\/www\.swkpropertiesuae\.com\/assets\/(images|og)\//.test(info.og), `${tag} og:image absolute ${info.og}`);
     ok(info.js && info.lang === 'en', `${tag} js class / lang`);
     ok(!info.overflow, `${tag} horizontal overflow`);
     ok(info.noAlt === 0, `${tag} images without alt: ${info.noAlt}`);
@@ -323,6 +326,50 @@ function pagesFromSitemap() {
   const j = await nj.page.evaluate(() => ({ h1: document.querySelector('.hero__title').innerText.replace(/\s+/g, ' ').trim(), cards: [...document.querySelectorAll('.property-card--feature')].every((c) => getComputedStyle(c).opacity === '1'), imgs: [...document.querySelectorAll('img')].filter((i) => getComputedStyle(i).opacity === '0').length, tall: document.querySelector('.hero-cine').offsetHeight <= innerHeight + 2 }));
   ok(/Experience Luxury/.test(j.h1) && j.cards && j.imgs === 0 && j.tall, `no-JS page is usable ${JSON.stringify(j)}`);
   await nj.ctx.close();
+
+
+  // ---------------------------------------------------------------- UI systems (fresh visitor)
+  sect('Announcement, cookies, dialogs, toasts, popup');
+  const fv = await newPage(b, { fresh: true });
+  await fv.page.goto(L.BASE + '/properties/', { waitUntil: 'load' });
+  ok(await fv.page.evaluate(() => !!document.querySelector('[data-announce]') && getComputedStyle(document.querySelector('[data-announce]')).display !== 'none'), 'announcement bar visible');
+  await fv.page.waitForSelector('[data-cookie-banner].is-in', { timeout: 5000 });
+  ok(true, 'cookie banner appears');
+  ok(await fv.page.evaluate(() => !window.dataLayer && !document.querySelector('script[src*="googletagmanager"]')), 'no analytics before consent');
+  await fv.page.click('[data-cookie-customise]');
+  await fv.page.waitForSelector('[data-cookie-prefs].is-open');
+  ok(await fv.page.evaluate(() => document.activeElement && document.querySelector('[data-cookie-prefs]').contains(document.activeElement)), 'prefs dialog traps focus inside');
+  await fv.page.keyboard.press('Escape'); await fv.page.waitForTimeout(400);
+  ok(await fv.page.evaluate(() => document.querySelector('[data-cookie-prefs]').hidden), 'ESC closes dialog');
+  await fv.page.click('[data-cookie-reject]'); await fv.page.waitForTimeout(500);
+  ok(await fv.page.evaluate(() => { const c = JSON.parse(localStorage.getItem('swk_consent_v1')); return c && c.a === false && c.m === false; }), 'essential-only choice stored');
+  ok(await fv.page.evaluate(() => !!document.querySelector('.toast--success')), 'toast shown after saving preferences');
+  await fv.page.click('[data-cookie-settings]'); await fv.page.waitForSelector('[data-cookie-prefs].is-open');
+  await fv.page.keyboard.press('Escape'); await fv.page.waitForTimeout(400);
+  await fv.page.click('[data-announce-close]');
+  await fv.page.reload({ waitUntil: 'load' });
+  ok(await fv.page.evaluate(() => getComputedStyle(document.querySelector('[data-announce]')).display === 'none'), 'dismissed announcement stays dismissed');
+  ok(await fv.page.evaluate(() => document.querySelector('[data-cookie-banner]').hidden), 'cookie banner does not return after a choice');
+  await fv.page.goto(L.BASE + '/properties/islands-2/', { waitUntil: 'load' });
+  await fv.page.click('.pd-cta [data-open-callback]');
+  await fv.page.waitForSelector('[data-callback-modal].is-open');
+  await fv.page.click('[data-callback-modal] button[type=submit]');
+  ok(await fv.page.evaluate(() => document.querySelectorAll('[data-callback-modal] .has-error, [data-callback-modal] .form-error').length > 0), 'callback form validates');
+  await fv.page.keyboard.press('Escape'); await fv.page.waitForTimeout(400);
+  ok(await fv.page.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-open-callback')), 'focus returns to opener');
+  await fv.page.evaluate(() => { localStorage.removeItem('swk_lead'); });
+  await fv.page.goto(L.BASE + '/about/', { waitUntil: 'load' });
+  await fv.page.evaluate(() => { document.dispatchEvent(new MouseEvent('mouseout', { clientY: -5, relatedTarget: null, bubbles: true })); });
+  ok(true, 'exit-intent handler runs without error');
+  await fv.page.evaluate(() => window.scrollTo({ top: 2000, behavior: 'instant' })); await fv.page.waitForTimeout(700);
+  ok(await fv.page.evaluate(() => document.querySelector('[data-back-top]').classList.contains('is-in')), 'back-to-top appears after scrolling');
+  ok(L.clean(fv.msgs).length === 0, 'UI flows console clean ' + JSON.stringify(L.clean(fv.msgs)));
+  await fv.ctx.close();
+
+  sect('SEO files and head tags');
+  for (const f of ['/robots.txt', '/sitemap.xml', '/feed.xml', '/manifest.webmanifest', '/favicon.ico', '/.well-known/security.txt', '/cookies/']) {
+    const r = await ctx.request.get(L.BASE + f); ok(r.ok(), `${f} serves 200`);
+  }
 
   await ctx.close(); await b.close();
   console.log(`\n${passes} checks passed, ${fails} failed`);
