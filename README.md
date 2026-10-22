@@ -1,6 +1,6 @@
 # SWK Properties UAE — static site
 
-Graphite theme with an indirect UAE palette (flag crimson and emerald, desert gold, pearl), serif display type, cinematic Gulf-sunset WebGL hero, scroll-driven 3D depth, dock navigation, fan gallery, glow listing cards.
+Warm light theme (cream canvas, deep navy ink, tan/gold accents), serif display type, cinematic golden-hour WebGL hero, scroll-driven 3D depth, dock navigation, fan gallery, glow listing cards.
 No runtime dependencies. Output is plain static files in `public/`.
 
 ## Build
@@ -26,9 +26,9 @@ PLAYWRIGHT_PATH=/opt/node22/lib/node_modules/playwright node tools/qa.js
 
 Three.js r160 is vendored (`src/vendor/three.module.min.js`) and loaded only when WebGL works and the visitor has no reduced-motion, save-data or low-memory flag. Otherwise the hero falls back to the photo. Add `?nowebgl` to force the fallback.
 
-The Dubai sunset skyline is procedural (`src/js/hero-scene.js`). Scrolling the hero flies the camera down the boulevard; chapter captions follow scroll progress.
+The Dubai golden-hour skyline is procedural (`src/js/hero-scene.js`). Scrolling the hero flies the camera down the boulevard; chapter captions follow scroll progress.
 
-The static poster shown before WebGL starts (and used as the fallback) is a render of the scene's first frame, so there is no visible switch. After changing the scene, re-render it: serve `public/`, open `/?hold` (draws one still frame) and screenshot the canvas at 1600x1067 and 900x600 into `src/assets/images/hero/dubai-dusk.jpg` and `dubai-dusk-mobile.jpg`.
+The static poster shown before WebGL starts (and used as the fallback) is a render of the scene's first frame, so there is no visible switch. After changing the scene, re-render it: serve `public/`, open `/?hold` (draws one still frame) and screenshot the canvas at 1600x1067 and 900x600 into `src/assets/images/hero/dubai-golden.jpg` and `dubai-golden-mobile.jpg`.
 
 ## Deploy
 
@@ -51,7 +51,8 @@ Add new files under `src/assets/`, never directly in `public/` (the build delete
 
 ## Theme and motion
 
-- Colours and fonts are tokens in `src/css/variables.css`. `src/css/theme.css` (loaded last) holds page transitions, skeleton loaders and scroll-scrubbed 3D entrances; `src/js/modules/35-scroll3d.js` drives them. Everything is off under `prefers-reduced-motion`.
+- Colours and fonts are tokens in `src/css/variables.css`. Navy bands (CTA, newsletter, stats, lightbox) re-scope the tokens via `.on-dark`, so components inside them need no overrides.
+- Navigation: a top bar on desktop (`.site-header`), the floating dock on tablet and phone. `src/css/theme.css` (loaded last) holds page transitions, skeleton loaders and scroll-scrubbed 3D entrances; `src/js/modules/35-scroll3d.js` drives them. Everything is off under `prefers-reduced-motion`.
 - Loading: the main fonts are preloaded, `<img>` tags get intrinsic `width`/`height` read from the files at build time, images show a skeleton until decoded, and the preloader only appears on slow loads.
 
 ## Notes

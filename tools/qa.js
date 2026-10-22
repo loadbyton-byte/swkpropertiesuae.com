@@ -112,8 +112,18 @@ function pagesFromSitemap() {
   await page.evaluate(() => scrollTo(0, 0));
   ok(L.clean(msgs).length === 0, 'home console clean after scrub: ' + JSON.stringify(L.clean(msgs)));
 
-  sect('Home: dock magnification, tilt, slider, fan, lightbox');
+  sect('Home: nav bar, dock magnification, tilt, slider, fan, lightbox');
   await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(500);
+  // Desktop uses the top navigation bar (the dock is hidden there); the dock is the tablet/phone nav.
+  const navInfo = await page.evaluate(() => { const h = document.querySelector('.site-header'), n = [...document.querySelectorAll('.site-nav a')]; const cur = n.filter((a) => a.getAttribute('aria-current') === 'page').map((a) => a.textContent);
+    return { links: n.map((a) => a.textContent), cur, headerH: Math.round(h.getBoundingClientRect().height), dockShown: getComputedStyle(document.querySelector('.dock-wrap')).display !== 'none' }; });
+  ok(navInfo.links.length === 7 && navInfo.cur.join() === 'Home' && !navInfo.dockShown, `desktop nav bar ${JSON.stringify(navInfo)}`);
+  const heroBox = await page.evaluate(() => { const t = document.querySelector('.hero__title').getBoundingClientRect(), h = document.querySelector('.site-header').getBoundingClientRect(), s = document.querySelector('.hero__search-wrap').getBoundingClientRect(); return { titleBelowHeader: t.top > h.bottom + 40, searchInView: s.bottom <= innerHeight }; });
+  ok(heroBox.titleBelowHeader && heroBox.searchInView, `hero text clears the header and search fits ${JSON.stringify(heroBox)}`);
+  await page.evaluate(() => scrollTo({ top: 400, behavior: 'instant' })); await page.waitForTimeout(500);
+  ok(await page.evaluate(() => document.querySelector('.site-header').classList.contains('is-scrolled')), 'header turns into a frosted bar on scroll');
+  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(400);
+  await page.setViewportSize({ width: 1000, height: 800 }); await page.waitForTimeout(500);
   const dockItems = await page.$$('.dock__item');
   const bb = await dockItems[3].boundingBox();
   await page.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2, { steps: 4 });
@@ -121,6 +131,7 @@ function pagesFromSitemap() {
   const mags = await page.evaluate(() => [...document.querySelectorAll('.dock__item')].map((e) => parseFloat(e.style.getPropertyValue('--mag') || 1)));
   ok(mags[3] > 1.5 && mags[0] < mags[3] && mags[6] < mags[3], `dock magnify ${mags.map((m) => m.toFixed(2))}`);
   await page.mouse.move(10, 400);
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(400);
 
   // featured slider
   await page.evaluate(() => document.querySelector('[data-feature-slider]').scrollIntoView({ block: 'center' }));

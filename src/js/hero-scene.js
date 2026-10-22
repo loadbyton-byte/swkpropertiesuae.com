@@ -1,4 +1,4 @@
-// Cinematic hero: a procedural Dubai skyline at dusk rendered with Three.js.
+// Cinematic hero: a procedural Dubai skyline in golden light rendered with Three.js.
 //
 //  - One InstancedMesh holds every building (and the landmark tower tiers);
 //    a custom shader draws lit windows, rim light, height fog and the ember
@@ -13,7 +13,7 @@
 
 import * as THREE from '/assets/vendor/three.module.min.js';
 
-const FOG_COLOR = new THREE.Color(0.30, 0.20, 0.19);
+const FOG_COLOR = new THREE.Color(0.96, 0.85, 0.72);
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -87,40 +87,48 @@ const BUILDING_FRAG = /* glsl */ `
     float seed = fract(sv);
     float hh = clamp(vWorld.y / 230.0, 0.0, 1.0);
 
-    vec3 base = mix(vec3(0.14, 0.16, 0.18), vec3(0.28, 0.30, 0.31), seed);
-    base += vec3(0.12, 0.07, 0.03) * hh;
-    vec3 ember = vec3(1.0, 0.62, 0.28);
+    // Facade palette: pearl white, sky glass, champagne sand, aqua glass, deep blue glass.
+    vec3 pearl = vec3(0.97, 0.94, 0.89);
+    vec3 skyg  = vec3(0.78, 0.80, 0.92);
+    vec3 sand  = vec3(0.96, 0.84, 0.62);
+    vec3 aqua  = vec3(0.82, 0.64, 0.44);
+    vec3 deep  = vec3(0.32, 0.42, 0.64);
+    float k = seed * 5.0;
+    vec3 base = pearl;
+    base = mix(base, skyg, smoothstep(0.6, 1.0, k) * (1.0 - smoothstep(1.6, 2.0, k)));
+    base = mix(base, sand, smoothstep(1.6, 2.0, k) * (1.0 - smoothstep(2.6, 3.0, k)));
+    base = mix(base, aqua, smoothstep(2.6, 3.0, k) * (1.0 - smoothstep(3.6, 4.0, k)));
+    base = mix(base, deep, smoothstep(3.6, 4.0, k));
 
-    float back = clamp(dot(N, normalize(vec3(0.15, 0.05, -1.0))), 0.0, 1.0);
-    float side = clamp(abs(N.x), 0.0, 1.0);
-    vec3 col = base + ember * (0.22 * back + 0.12 * side * (0.4 + hh));
+    // Sun from the front-right; faces away from it fall into a soft blue shade.
+    vec3 L = normalize(vec3(0.55, 0.62, 0.56));
+    float diff = clamp(dot(N, L), 0.0, 1.0);
+    vec3 shade = vec3(0.64, 0.62, 0.80);
+    vec3 col = base * mix(shade, vec3(1.10, 1.02, 0.90), 0.3 + 0.7 * diff);
 
     if (vTop > 0.5) {
-      col = mix(col, vec3(0.40, 0.36, 0.32), 0.7);
+      col = mix(col, vec3(0.97, 0.98, 1.0), 0.75);
     } else {
       vec2 g = vFace / vec2(2.4, 3.8);
       vec2 id = floor(g);
       vec2 f = fract(g);
-      float win = step(0.16, f.x) * step(f.x, 0.84) * step(0.22, f.y) * step(f.y, 0.78);
+      float win = step(0.14, f.x) * step(f.x, 0.86) * step(0.2, f.y) * step(f.y, 0.8);
       float r = hash(id + seed * 57.3);
       float r2 = hash(id.yx + seed * 13.7);
-      float litProb = mix(0.28, 0.78, fract(seed * 7.31));
-      float t = floor(uTime * 0.12 + r * 20.0);
-      float tog = hash(id + t * 0.37 + seed);
-      float lit = step(1.0 - litProb, r) * step(0.05, tog);
-      vec3 warm = vec3(1.0, 0.74, 0.42);
-      vec3 cool = vec3(0.66, 0.96, 0.84);
-      vec3 wc = mix(warm, cool, step(0.72, r2));
-      float tw = 0.86 + 0.14 * sin(uTime * (0.6 + r * 2.0) + r * 40.0);
-      col += wc * win * lit * tw * 1.4;
-      col += vec3(0.05, 0.07, 0.1) * win * (1.0 - lit) * (0.4 + 0.6 * hh);
+      // Glass reflects the sky: deeper blue low down, brighter with height.
+      vec3 glass = mix(vec3(0.22, 0.30, 0.52), vec3(0.94, 0.74, 0.50), 0.3 + 0.7 * hh);
+      glass = mix(glass, glass * vec3(1.15, 1.1, 0.95), step(0.8, r2));
+      float tw = 0.5 + 0.5 * sin(uTime * (0.35 + r * 0.9) + r * 40.0);
+      float glint = step(0.9, r) * (0.35 + 0.65 * tw);
+      vec3 pane = mix(glass, vec3(1.0, 0.97, 0.88), glint * 0.85);
+      col = mix(col, pane * (0.55 + 0.6 * diff), win * 0.82);
       float mull = step(f.x, 0.03) + step(0.97, f.x);
-      col *= 1.0 - 0.25 * mull;
+      col *= 1.0 - 0.12 * mull;
     }
 
     float fres = pow(1.0 - clamp(abs(dot(N, V)), 0.0, 1.0), 3.0);
-    col += ember * 0.4 * fres * (0.5 + 0.5 * hh);
-    col = mix(col, vec3(1.0, 0.84, 0.66) * 1.5, beacon * 0.9);
+    col += vec3(1.0, 0.84, 0.60) * 0.3 * fres * (0.4 + 0.6 * hh);
+    col = mix(col, vec3(1.0, 0.82, 0.38), beacon * 0.95);
 
     float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
     float hf = exp(-max(vWorld.y, 0.0) * 0.011);
@@ -146,27 +154,42 @@ const SKY_FRAG = /* glsl */ `
     p3 += dot(p3, p3.yzx + 33.33);
     return fract((p3.x + p3.y) * p3.z);
   }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+               mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+  }
+  float fbm(vec2 p) {
+    float a = 0.5, s = 0.0;
+    for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
+    return s;
+  }
   void main() {
     vec3 d = normalize(vDir);
     float y = d.y;
-    vec3 top = vec3(0.07, 0.11, 0.15);
-    vec3 mid = vec3(0.40, 0.20, 0.20);
-    vec3 hor = vec3(1.0, 0.62, 0.30);
-    vec3 col = mix(hor, mid, smoothstep(0.0, 0.18, y));
-    col = mix(col, top, smoothstep(0.12, 0.68, y));
-    float az = dot(normalize(vec3(d.x, 0.0001, d.z)), vec3(0.0, 0.0, -1.0));
-    float glow = pow(max(az, 0.0), 3.0) * exp(-max(y, 0.0) * 7.0);
-    col += vec3(1.0, 0.55, 0.22) * glow * 0.62;
-    col = mix(col, vec3(0.2, 0.14, 0.14), smoothstep(0.0, -0.25, y));
-    vec3 sunDir = normalize(vec3(0.18, 0.07, -1.0));
+    vec3 zenith = vec3(0.46, 0.60, 0.86);
+    vec3 mid    = vec3(0.80, 0.76, 0.88);
+    vec3 hor    = vec3(1.0, 0.86, 0.66);
+    vec3 col = mix(hor, mid, smoothstep(0.0, 0.2, y));
+    col = mix(col, zenith, smoothstep(0.16, 0.8, y));
+
+    // Warm sun glow low in front of the camera, behind the skyline.
+    vec3 sunDir = normalize(vec3(0.22, 0.16, -1.0));
     float sd = dot(d, sunDir);
-    col += vec3(1.0, 0.76, 0.42) * smoothstep(0.9986, 0.9996, sd) * 0.8;
-    col += vec3(1.0, 0.55, 0.28) * pow(max(sd, 0.0), 160.0) * 0.35;
-    vec3 sp = d * 240.0;
-    float h = hash(floor(sp.xy) + floor(sp.zy) * 1.7);
-    float star = step(0.9972, h) * smoothstep(0.08, 0.32, y);
-    star *= 0.6 + 0.4 * sin(uTime * 1.3 + h * 600.0);
-    col += vec3(0.85, 0.9, 1.0) * star;
+    col += vec3(1.0, 0.78, 0.42) * pow(max(sd, 0.0), 6.0) * 0.36 * exp(-max(y - 0.05, 0.0) * 3.0);
+    col += vec3(1.0, 0.9, 0.62) * pow(max(sd, 0.0), 60.0) * 0.8;
+    col += vec3(1.0, 0.97, 0.88) * smoothstep(0.9990, 0.9997, sd) * 1.6;
+
+    // Soft drifting cumulus on a plane above the camera.
+    vec2 cuv = d.xz / (max(y, 0.0) + 0.22) * 0.9 + vec2(uTime * 0.012, 0.0);
+    float c = fbm(cuv * 1.3);
+    float cm = smoothstep(0.52, 0.78, c) * smoothstep(0.02, 0.2, y);
+    vec3 cloud = mix(vec3(1.0, 0.96, 0.92), vec3(0.93, 0.76, 0.76), smoothstep(0.55, 0.9, c));
+    cloud += vec3(1.0, 0.85, 0.55) * pow(max(sd, 0.0), 4.0) * 0.25;
+    col = mix(col, cloud, cm * 0.92);
+
+    col = mix(col, vec3(0.96, 0.85, 0.72), smoothstep(0.0, -0.2, y));
     gl_FragColor = vec4(col, 1.0);
   }
 `;
@@ -191,16 +214,18 @@ const GROUND_FRAG = /* glsl */ `
   void main() {
     float ax = abs(vWorld.x);
     float road = 1.0 - smoothstep(7.0, 8.0, ax);
-    vec3 plaza = mix(vec3(0.20, 0.18, 0.17), vec3(0.28, 0.21, 0.17), smoothstep(10.0, 140.0, ax));
+    // Warm sandstone plaza either side of a cool asphalt boulevard.
+    float far = smoothstep(10.0, 150.0, ax);
+    vec3 plaza = mix(vec3(0.95, 0.91, 0.83), vec3(0.88, 0.87, 0.84), far * 0.55);
+    // Thin paving joints, faded with distance so they never band.
     float joint = max(smoothstep(0.0, 0.05, abs(fract(vWorld.z / 12.0) - 0.5) - 0.45),
                       smoothstep(0.0, 0.05, abs(fract(vWorld.x / 12.0) - 0.5) - 0.45));
-    plaza += vec3(0.05, 0.04, 0.03) * joint * (1.0 - smoothstep(30.0, 170.0, vFogDepth));
-    vec3 col = mix(plaza, vec3(0.26, 0.26, 0.28), road);
+    plaza *= 1.0 - joint * 0.05 * (1.0 - smoothstep(30.0, 160.0, vFogDepth));
+    vec3 col = mix(plaza, vec3(0.56, 0.53, 0.55), road);
     float dash = step(0.5, fract(vWorld.z / 8.0)) * (1.0 - smoothstep(0.12, 0.22, ax));
-    col += vec3(0.55, 0.48, 0.36) * dash * road * 0.32;
+    col = mix(col, vec3(1.0, 0.98, 0.92), dash * road * 0.9);
     float edge = smoothstep(6.5, 6.75, ax) * (1.0 - smoothstep(6.75, 7.0, ax));
-    col += vec3(0.86, 0.66, 0.28) * edge * 0.5;
-    col += vec3(0.5, 0.15, 0.08) * pow(clamp(-vWorld.z / 520.0, 0.0, 1.0), 1.5) * 0.3 * road;
+    col = mix(col, vec3(0.95, 0.74, 0.25), edge * 0.95);
     float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
     col = mix(col, uFogColor, clamp(ff * 1.05, 0.0, 1.0));
     gl_FragColor = vec4(col, 1.0);
@@ -234,11 +259,15 @@ const CAR_FRAG = /* glsl */ `
   varying float vFade;
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.0, d);
-    vec3 head = vec3(1.0, 0.9, 0.7);
-    vec3 tail = vec3(1.0, 0.16, 0.1);
-    vec3 c = mix(tail, head, step(0.0, vDir));
-    gl_FragColor = vec4(c * a * 2.2 * vFade, a * vFade);
+    float a = smoothstep(0.5, 0.22, d);
+    // Mostly pearl and navy cars with the odd gold, teal or red one.
+    float k = fract(gl_FragCoord.x * 0.013 + gl_FragCoord.y * 0.007);
+    vec3 c = vec3(0.96, 0.97, 0.99);
+    c = mix(c, vec3(0.10, 0.20, 0.42), step(0.4, k));
+    c = mix(c, vec3(0.95, 0.70, 0.18), step(0.7, k));
+    c = mix(c, vec3(0.06, 0.62, 0.60), step(0.84, k));
+    c = mix(c, vec3(0.86, 0.20, 0.14), step(0.94, k));
+    gl_FragColor = vec4(c, a * vFade);
   }
 `;
 
@@ -271,8 +300,8 @@ const DUST_FRAG = /* glsl */ `
   void main() {
     float d = length(gl_PointCoord - 0.5);
     float a = smoothstep(0.5, 0.05, d);
-    vec3 c = mix(vec3(1.0, 0.62, 0.38), vec3(1.0, 0.92, 0.74), vMix);
-    gl_FragColor = vec4(c * a * vA * 0.9, a * vA);
+    vec3 c = mix(vec3(0.98, 0.76, 0.28), vec3(1.0, 0.98, 0.92), vMix);
+    gl_FragColor = vec4(c, a * vA * 0.55);
   }
 `;
 
@@ -295,7 +324,7 @@ const BEACON_FRAG = /* glsl */ `
   void main() {
     float d = length(gl_PointCoord - 0.5);
     float a = smoothstep(0.5, 0.0, d);
-    gl_FragColor = vec4(vec3(1.0, 0.12, 0.08) * a * 1.8 * vA, a * vA);
+    gl_FragColor = vec4(vec3(0.92, 0.14, 0.10), a * vA);
   }
 `;
 
@@ -307,7 +336,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     stencil: false,
     powerPreference: 'high-performance',
   });
-  renderer.setClearColor(0x2a1f1d, 1);
+  renderer.setClearColor(0xf1ddc0, 1);
   let pixelRatio = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 1.75);
   renderer.setPixelRatio(pixelRatio);
 
@@ -481,7 +510,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
       uniforms: { uTime: uniforms.uTime, uPx: uniforms.uPx },
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
     })
   );
   cars.frustumCulled = false;
@@ -514,7 +543,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
       uniforms: { uTime: uniforms.uTime, uPx: uniforms.uPx },
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
     })
   );
   dust.frustumCulled = false;
@@ -535,7 +564,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
       uniforms: { uTime: uniforms.uTime, uPx: uniforms.uPx },
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
     })
   );
   beaconPts.frustumCulled = false;

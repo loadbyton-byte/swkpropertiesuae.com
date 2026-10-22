@@ -1,85 +1,82 @@
 /* ==========================================================================
    SWK Properties — Design Tokens
-   An indirect nod to the UAE: graphite black, flag crimson and flag emerald
-   used in measured doses, desert gold and sand for luxury detail, pearl white
-   type. Serif display type for editorial weight, General Sans for UI and body.
+   Warm light theme: cream canvas, deep navy ink, tan/gold accents. Navy is kept
+   for call-to-action bands, the newsletter card, stats and the lightbox by
+   re-scoping the semantic tokens (see ".on-dark" at the end of this file).
+   Serif display type for editorial weight, General Sans for UI and body.
    All fonts are self-hosted.
    ========================================================================== */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ---- Color: Graphite (structure) ---- */
-  --navy-950: #161b22;
-  --navy-900: #1d232c;
-  --navy-800: #262d38;
-  --navy-700: #333c48;
-  --navy-600: #444f5d;
+  /* ---- Ink: deep navy (text, dark bands) ---- */
+  --navy-950: #0f2244;
+  --navy-900: #14305c;
+  --navy-800: #1b3a6b;
+  --navy-700: #2a4a7d;
+  --navy-600: #44618f;
 
-  /* ---- Color: Flag crimson (CTAs, highlights) ---- */
-  --ember-600: #a8121f;
-  --ember-500: #dc2338;
-  --ember-400: #f04758;
-  --ember-100: #ffdadd;
+  /* ---- Paper: warm cream canvas ---- */
+  --paper-0: #ffffff;
+  --paper-50: #faf7f2;
+  --paper-100: #f4efe6;
+  --paper-200: #ebe3d5;
 
-  /* ---- Color: Flag emerald (bands, secondary accents) ---- */
-  --green-900: #0b2a20;
-  --green-800: #0f3a2b;
-  --green-700: #145238;
-  --green-600: #0c7a4d;
-  --green-500: #139a62;
-  --green-400: #3bc58a;
+  /* ---- Tan / gold (accents) ---- */
+  --gold-700: #94652c;
+  --gold-600: #b07a38;
+  --gold-500: #c99a63;
+  --gold-400: #dcb888;
+  --gold-100: #f6ead7;
 
-  /* ---- Color: Desert gold and sand ---- */
-  --gold-700: #8a6a24;
-  --gold-500: #cfa24a;
-  --gold-400: #e6c77a;
-  --gold-100: #f8ecc9;
-  --sand-100: #f3e9d3;
-  --sand-200: #e7d9b8;
-
-  /* ---- Color: Pearl / warm grey (text on dark) ---- */
-  --cream-50: #f8f4ea;
-  --cream-100: #efe9da;
-
-  --slate-900: #17191e;
-  --slate-700: #4a4a44;
-  --slate-500: #a39d8d;
-  --slate-300: #d0cabb;
-  --slate-100: #ebe6d9;
+  /* ---- Legacy aliases (kept so older rules still resolve) ---- */
+  --ember-600: #7a5224;
+  --ember-500: #94652c;
+  --ember-400: #b07a38;
+  --ember-100: #f6ead7;
+  --cream-50: #faf7f2;
+  --cream-100: #f4efe6;
+  --sand-200: #ebe3d5;
+  --slate-900: #0f2244;
+  --slate-700: #33415c;
+  --slate-500: #5f6a82;
+  --slate-300: #4f5b70;
+  --slate-100: #e6dfd2;
 
   --white: #ffffff;
-  --success: #3bc58a;
-  --danger: #ff6b6b;
+  --success: #1f7a52;
+  --danger: #b3261e;
 
   /* ---- Gradients ---- */
-  --grad-brand: linear-gradient(90deg, var(--green-500), var(--gold-400) 50%, var(--ember-500));
-  --grad-cta: linear-gradient(135deg, #dc2338 0%, #b5121f 100%);
-  --grad-gold: linear-gradient(135deg, #f1dc9c 0%, #cfa24a 58%, #aa7f2f 100%);
-  --grad-page: radial-gradient(1000px 520px at 8% -6%, rgba(207, 162, 74, 0.14), transparent 62%),
-               radial-gradient(900px 520px at 100% 2%, rgba(220, 35, 56, 0.12), transparent 60%),
-               radial-gradient(900px 600px at 72% 100%, rgba(19, 154, 98, 0.12), transparent 60%);
+  --grad-brand: linear-gradient(90deg, var(--navy-800), var(--gold-500) 60%, var(--gold-400));
+  --grad-cta: linear-gradient(135deg, #1b3a6b 0%, #0f2244 100%);
+  --grad-gold: linear-gradient(135deg, #e2c295 0%, #c99a63 60%, #b07a38 100%);
+  --grad-page: radial-gradient(1000px 520px at 100% -4%, rgba(201, 154, 99, 0.16), transparent 62%),
+               radial-gradient(900px 520px at 0% 12%, rgba(27, 58, 107, 0.06), transparent 60%);
 
   /* ---- Semantic tokens ---- */
-  --color-bg: var(--navy-950);
-  --color-surface: var(--navy-900);
-  --color-surface-alt: var(--navy-800);
-  --color-text: var(--cream-50);
-  --color-text-muted: var(--slate-300);
-  --color-text-subtle: var(--slate-500);
-  --color-text-on-dark: var(--cream-50);
-  --color-text-on-dark-muted: var(--slate-300);
-  --color-accent: var(--ember-400);
-  --color-accent-hover: var(--gold-400);
-  --color-border: rgba(230, 210, 160, 0.2);
+  --color-bg: var(--paper-50);
+  --color-surface: var(--paper-0);
+  --color-surface-alt: var(--paper-100);
+  --color-text: var(--navy-950);
+  --color-text-muted: #4f5b70;
+  --color-text-subtle: #5f6a82;
+  --color-text-on-dark: #ffffff;
+  --color-text-on-dark-muted: #cdd6e6;
+  --color-accent: var(--gold-700);
+  --color-accent-hover: #7a5224;
+  --color-border: #e6dfd2;
   --color-dark-surface: var(--navy-950);
   --color-dark-surface-alt: var(--navy-900);
+  --on-accent: #ffffff;
+  --tint-hover: rgba(15, 34, 68, 0.06);
 
-  /* ---- Glassmorphism (frosted glass over graphite) ---- */
-  --glass-bg-dark: rgba(22, 27, 34, 0.64);
-  --glass-bg-light: rgba(255, 255, 255, 0.07);
-  --glass-border-dark: rgba(255, 255, 255, 0.15);
-  --glass-border-light: rgba(255, 255, 255, 0.18);
+  /* ---- Glass (frosted white over the hero; dark glass over photography) ---- */
+  --glass-bg-dark: rgba(15, 34, 68, 0.62);
+  --glass-bg-light: rgba(255, 255, 255, 0.82);
+  --glass-border-dark: rgba(255, 255, 255, 0.18);
+  --glass-border-light: rgba(255, 255, 255, 0.95);
   --glass-blur: 18px;
 
   /* ---- Typography ---- */
@@ -120,11 +117,11 @@
   --radius-lg: 24px;
   --radius-full: 999px;
 
-  /* ---- Shadow (dark-on-dark: lean on borders/lighter surfaces for elevation, shadows stay subtle) ---- */
-  --shadow-sm: 0 2px 10px rgba(6, 8, 10, 0.35);
-  --shadow-md: 0 14px 34px rgba(6, 8, 10, 0.45);
-  --shadow-lg: 0 26px 64px rgba(6, 8, 10, 0.55);
-  --shadow-accent-glow: 0 8px 28px rgba(220, 35, 56, 0.42);
+  /* ---- Shadow (soft, navy-tinted depth on a warm canvas) ---- */
+  --shadow-sm: 0 2px 10px rgba(15, 34, 68, 0.08);
+  --shadow-md: 0 14px 34px rgba(15, 34, 68, 0.12);
+  --shadow-lg: 0 28px 64px rgba(15, 34, 68, 0.16);
+  --shadow-accent-glow: 0 10px 28px rgba(15, 34, 68, 0.28);
 
   /* ---- Motion ---- */
   --ease-luxury: cubic-bezier(0.22, 1, 0.36, 1);
@@ -136,18 +133,38 @@
   --container-max: 1280px;
   /* Clearance below the fixed top brand mark + floating dock (both small,
      overlaid elements now — there's no full-width navbar bar to size against). */
-  --header-h: 104px;
-  --header-h-scrolled: 104px;
+  --header-h: 88px;
+  --header-h-scrolled: 88px;
 }
 
 /* The brand mark is enlarged on mobile (see .site-brand .brand-logo) —
    still taller than desktop's compact single row, so this needs bumping. */
 @media (max-width: 767px) {
   :root {
-    --header-h: 120px;
-    --header-h-scrolled: 120px;
+    --header-h: 68px;
+    --header-h-scrolled: 68px;
   }
 }
 
 /* Breakpoints (documented, used via raw px in media queries):
    sm: 480px | md: 768px | lg: 1024px | xl: 1280px | 2xl: 1440px */
+
+/* ---- Dark islands: same components on a navy surface, light text ---- */
+.on-dark,
+.cta-band,
+.section--dark,
+.lightbox,
+.footer-news {
+  --color-text: #ffffff;
+  --color-text-muted: #cdd6e6;
+  --color-text-subtle: #a9b6cf;
+  --color-accent: #e2c295;
+  --color-accent-hover: #f0dcbc;
+  --color-border: rgba(255, 255, 255, 0.18);
+  --color-surface: rgba(255, 255, 255, 0.07);
+  --color-surface-alt: rgba(255, 255, 255, 0.1);
+  --tint-hover: rgba(255, 255, 255, 0.1);
+  --glass-bg-light: rgba(255, 255, 255, 0.08);
+  --glass-border-light: rgba(255, 255, 255, 0.18);
+  --on-accent: #0f2244;
+}
