@@ -1,62 +1,64 @@
 /* ==========================================================================
    SWK Properties — Design Tokens
-   Deep midnight-blue structure (not black) lit by coral, gold, teal, azure and
-   violet accents. Serif display type for editorial weight, General Sans for
-   UI and body copy. All fonts are self-hosted.
+   An indirect nod to the UAE: graphite black, flag crimson and flag emerald
+   used in measured doses, desert gold and sand for luxury detail, pearl white
+   type. Serif display type for editorial weight, General Sans for UI and body.
+   All fonts are self-hosted.
    ========================================================================== */
 
 :root {
   color-scheme: dark;
 
-  /* ---- Color: Midnight (structure) ---- */
-  --navy-950: #0a1233;
-  --navy-900: #0f1a4a;
-  --navy-800: #15236a;
-  --navy-700: #24398a;
-  --navy-600: #3a52a8;
+  /* ---- Color: Graphite (structure) ---- */
+  --navy-950: #161b22;
+  --navy-900: #1d232c;
+  --navy-800: #262d38;
+  --navy-700: #333c48;
+  --navy-600: #444f5d;
 
-  /* ---- Color: Accents ---- */
-  --ember-600: #d94324;
-  --ember-500: #ff5a3c;
-  --ember-400: #ff8062;
-  --ember-100: #ffe0d6;
+  /* ---- Color: Flag crimson (CTAs, highlights) ---- */
+  --ember-600: #a8121f;
+  --ember-500: #dc2338;
+  --ember-400: #f04758;
+  --ember-100: #ffdadd;
 
-  --gold-500: #ffb92e;
-  --gold-400: #ffcf5c;
-  --gold-100: #fff1cc;
+  /* ---- Color: Flag emerald (bands, secondary accents) ---- */
+  --green-900: #0b2a20;
+  --green-800: #0f3a2b;
+  --green-700: #145238;
+  --green-600: #0c7a4d;
+  --green-500: #139a62;
+  --green-400: #3bc58a;
 
-  --teal-500: #26d0bd;
-  --teal-400: #5eead8;
+  /* ---- Color: Desert gold and sand ---- */
+  --gold-700: #8a6a24;
+  --gold-500: #cfa24a;
+  --gold-400: #e6c77a;
+  --gold-100: #f8ecc9;
+  --sand-100: #f3e9d3;
+  --sand-200: #e7d9b8;
 
-  --azure-500: #4c8dff;
-  --azure-400: #7fb0ff;
+  /* ---- Color: Pearl / warm grey (text on dark) ---- */
+  --cream-50: #f8f4ea;
+  --cream-100: #efe9da;
 
-  --violet-500: #8f73ff;
-  --violet-400: #b3a0ff;
-
-  /* ---- Color: Cream / Sand (primary text on dark) ---- */
-  --cream-50: #f8f9ff;
-  --cream-100: #eef1ff;
-  --sand-200: #ece2cf;
-
-  /* ---- Color: Slate (muted text on dark) ---- */
-  --slate-900: #141c3c;
-  --slate-700: #3c4668;
-  --slate-500: #9aa8d8;
-  --slate-300: #c3cdf0;
-  --slate-100: #e6ebfb;
+  --slate-900: #17191e;
+  --slate-700: #4a4a44;
+  --slate-500: #a39d8d;
+  --slate-300: #d0cabb;
+  --slate-100: #ebe6d9;
 
   --white: #ffffff;
-  --success: #3ecf8e;
-  --danger: #ff7a7a;
+  --success: #3bc58a;
+  --danger: #ff6b6b;
 
   /* ---- Gradients ---- */
-  --grad-brand: linear-gradient(90deg, var(--azure-500), var(--violet-500) 40%, var(--ember-500) 75%, var(--gold-400));
-  --grad-cta: linear-gradient(135deg, #ff6a45 0%, #ff4d3a 55%, #f0392f 100%);
-  --grad-gold: linear-gradient(135deg, #ffe08a 0%, #ffb92e 60%, #f29b12 100%);
-  --grad-page: radial-gradient(1100px 560px at 12% -6%, rgba(143, 115, 255, 0.28), transparent 62%),
-               radial-gradient(900px 520px at 100% 4%, rgba(255, 90, 60, 0.18), transparent 60%),
-               radial-gradient(900px 600px at 70% 100%, rgba(38, 208, 189, 0.12), transparent 60%);
+  --grad-brand: linear-gradient(90deg, var(--green-500), var(--gold-400) 50%, var(--ember-500));
+  --grad-cta: linear-gradient(135deg, #dc2338 0%, #b5121f 100%);
+  --grad-gold: linear-gradient(135deg, #f1dc9c 0%, #cfa24a 58%, #aa7f2f 100%);
+  --grad-page: radial-gradient(1000px 520px at 8% -6%, rgba(207, 162, 74, 0.14), transparent 62%),
+               radial-gradient(900px 520px at 100% 2%, rgba(220, 35, 56, 0.12), transparent 60%),
+               radial-gradient(900px 600px at 72% 100%, rgba(19, 154, 98, 0.12), transparent 60%);
 
   /* ---- Semantic tokens ---- */
   --color-bg: var(--navy-950);
@@ -67,17 +69,17 @@
   --color-text-subtle: var(--slate-500);
   --color-text-on-dark: var(--cream-50);
   --color-text-on-dark-muted: var(--slate-300);
-  --color-accent: var(--ember-500);
-  --color-accent-hover: var(--ember-400);
-  --color-border: rgba(150, 170, 255, 0.22);
+  --color-accent: var(--ember-400);
+  --color-accent-hover: var(--gold-400);
+  --color-border: rgba(230, 210, 160, 0.2);
   --color-dark-surface: var(--navy-950);
   --color-dark-surface-alt: var(--navy-900);
 
-  /* ---- Glassmorphism (frosted glass over the midnight canvas) ---- */
-  --glass-bg-dark: rgba(10, 18, 51, 0.62);
-  --glass-bg-light: rgba(255, 255, 255, 0.09);
-  --glass-border-dark: rgba(255, 255, 255, 0.16);
-  --glass-border-light: rgba(255, 255, 255, 0.2);
+  /* ---- Glassmorphism (frosted glass over graphite) ---- */
+  --glass-bg-dark: rgba(22, 27, 34, 0.64);
+  --glass-bg-light: rgba(255, 255, 255, 0.07);
+  --glass-border-dark: rgba(255, 255, 255, 0.15);
+  --glass-border-light: rgba(255, 255, 255, 0.18);
   --glass-blur: 18px;
 
   /* ---- Typography ---- */
@@ -119,10 +121,10 @@
   --radius-full: 999px;
 
   /* ---- Shadow (dark-on-dark: lean on borders/lighter surfaces for elevation, shadows stay subtle) ---- */
-  --shadow-sm: 0 2px 10px rgba(4, 8, 30, 0.35);
-  --shadow-md: 0 14px 34px rgba(4, 8, 30, 0.45);
-  --shadow-lg: 0 26px 64px rgba(4, 8, 30, 0.55);
-  --shadow-accent-glow: 0 8px 28px rgba(255, 90, 60, 0.4);
+  --shadow-sm: 0 2px 10px rgba(6, 8, 10, 0.35);
+  --shadow-md: 0 14px 34px rgba(6, 8, 10, 0.45);
+  --shadow-lg: 0 26px 64px rgba(6, 8, 10, 0.55);
+  --shadow-accent-glow: 0 8px 28px rgba(220, 35, 56, 0.42);
 
   /* ---- Motion ---- */
   --ease-luxury: cubic-bezier(0.22, 1, 0.36, 1);
@@ -483,12 +485,12 @@ img.is-broken {
 .btn:active { transform: translateY(0); }
 
 .btn-primary {
-  background: var(--color-accent);
-  color: var(--navy-950);
-  box-shadow: var(--shadow-sm);
+  background: var(--grad-cta);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(181, 18, 31, 0.32);
 }
 .btn-primary:hover {
-  background: var(--color-accent-hover);
+  background: linear-gradient(135deg, #ee3347 0%, #c8182a 100%);
   box-shadow: var(--shadow-accent-glow);
 }
 
@@ -518,7 +520,7 @@ img.is-broken {
   color: var(--color-accent);
   border: 1.5px solid var(--color-accent);
 }
-.btn-primary-outline:hover { background: rgba(232, 69, 44, 0.1); }
+.btn-primary-outline:hover { background: rgba(220, 35, 56, 0.1); }
 
 .btn-outline-dark {
   background: transparent;
@@ -1168,7 +1170,7 @@ img.is-broken {
 .community-card__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(10, 18, 51, 0.88) 0%, rgba(10, 18, 51, 0.15) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(22, 27, 34, 0.88) 0%, rgba(22, 27, 34, 0.15) 55%, transparent 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1193,7 +1195,7 @@ img.is-broken {
 .icon-tile {
   width: 52px; height: 52px;
   border-radius: var(--radius-sm);
-  background: rgba(232, 69, 44, 0.14);
+  background: rgba(220, 35, 56, 0.14);
   color: var(--color-accent);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: var(--space-4);
@@ -1956,9 +1958,9 @@ img.is-broken {
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(900px 420px at 8% 0%, rgba(143, 115, 255, 0.22), transparent 60%),
-    radial-gradient(800px 420px at 100% 100%, rgba(255, 90, 60, 0.16), transparent 60%),
-    linear-gradient(180deg, var(--navy-900) 0%, #0b1440 100%);
+    radial-gradient(900px 420px at 8% 0%, rgba(207, 162, 74, 0.14), transparent 60%),
+    radial-gradient(800px 420px at 100% 100%, rgba(220, 35, 56, 0.14), transparent 60%),
+    linear-gradient(180deg, var(--navy-900) 0%, #0c1f19 100%);
   color: var(--color-text-muted);
   padding-block: var(--space-8) var(--space-6);
 }
@@ -1975,8 +1977,8 @@ img.is-broken {
 
 .footer-glow { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .footer-glow__blob { position: absolute; width: 360px; height: 360px; border-radius: 50%; filter: blur(100px); }
-.footer-glow__blob--a { top: -160px; left: 6%; background: hsl(250 90% 66% / 0.22); }
-.footer-glow__blob--b { bottom: -180px; right: 8%; background: hsl(14 100% 62% / 0.18); }
+.footer-glow__blob--a { top: -160px; left: 6%; background: hsl(155 80% 36% / 0.22); }
+.footer-glow__blob--b { bottom: -180px; right: 8%; background: hsl(352 80% 50% / 0.16); }
 
 .footer-inner { position: relative; }
 
@@ -1988,7 +1990,7 @@ img.is-broken {
   padding: var(--space-6);
   margin-bottom: var(--space-8);
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, rgba(76, 141, 255, 0.2), rgba(143, 115, 255, 0.16) 55%, rgba(255, 90, 60, 0.16));
+  background: linear-gradient(135deg, rgba(20, 82, 56, 0.6), rgba(24, 28, 35, 0.6) 58%, rgba(168, 18, 31, 0.26));
   border: 1px solid var(--glass-border-dark);
   box-shadow: var(--shadow-md);
 }
@@ -2187,7 +2189,7 @@ img.is-broken {
 
 .dock__item:hover,
 .dock__item[aria-current='page'] {
-  background: rgba(232, 69, 44, 0.16);
+  background: rgba(220, 35, 56, 0.16);
   color: var(--color-accent);
 }
 
@@ -2270,7 +2272,7 @@ img.is-broken {
 .dock-mobile__item:hover,
 .dock-mobile__item[aria-current='page'] {
   color: var(--color-accent);
-  background: rgba(232, 69, 44, 0.16);
+  background: rgba(220, 35, 56, 0.16);
 }
 
 .dock-mobile__toggle {
@@ -2520,7 +2522,7 @@ img.is-broken {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(10, 18, 51, 0.94);
+  background: rgba(22, 27, 34, 0.94);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2726,7 +2728,7 @@ img.is-broken {
 /* ---- Page hero (interior pages, non full-screen) ---- */
 
 .page-hero {
-  background: linear-gradient(180deg, #17256f 0%, var(--navy-950) 100%);
+  background: linear-gradient(180deg, #123f30 0%, var(--navy-950) 100%);
   color: var(--cream-50);
   padding-top: calc(var(--header-h) + var(--space-8));
   padding-bottom: calc(var(--space-8) + 110px);
@@ -2742,9 +2744,9 @@ img.is-broken {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 90% 6%, rgba(255, 90, 60, 0.3), transparent 44%),
-    radial-gradient(circle at 6% 0%, rgba(143, 115, 255, 0.34), transparent 46%),
-    radial-gradient(circle at 55% 100%, rgba(38, 208, 189, 0.18), transparent 50%);
+    radial-gradient(circle at 90% 6%, rgba(220, 35, 56, 0.26), transparent 44%),
+    radial-gradient(circle at 6% 0%, rgba(207, 162, 74, 0.24), transparent 46%),
+    radial-gradient(circle at 55% 100%, rgba(19, 154, 98, 0.22), transparent 50%);
   pointer-events: none;
 }
 
@@ -2908,7 +2910,7 @@ img.is-broken {
   left: 4%;
   width: 320px;
   height: 320px;
-  background: hsl(250 90% 66% / 0.24);
+  background: hsl(155 70% 36% / 0.22);
 }
 
 .ambient-glow__blob--b {
@@ -2916,7 +2918,7 @@ img.is-broken {
   right: 6%;
   width: 300px;
   height: 300px;
-  background: hsl(14 100% 62% / 0.2);
+  background: hsl(42 70% 52% / 0.16);
   animation-delay: -19s;
 }
 
@@ -3027,7 +3029,7 @@ img.is-broken {
   display: flex;
   align-items: flex-end;
   padding: var(--space-4);
-  background: linear-gradient(to top, rgba(10, 18, 51, 0.85) 0%, rgba(10, 18, 51, 0.15) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(22, 27, 34, 0.85) 0%, rgba(22, 27, 34, 0.15) 55%, transparent 100%);
   opacity: 0;
   transition: opacity var(--duration-base) var(--ease-luxury);
 }
@@ -3468,8 +3470,8 @@ img.is-broken {
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(90deg, rgba(10, 18, 51, 0.5) 0%, rgba(10, 18, 51, 0.18) 38%, rgba(10, 18, 51, 0) 62%),
-    linear-gradient(to top, rgba(10, 18, 51, 0.78) 0%, rgba(10, 18, 51, 0.32) 30%, rgba(10, 18, 51, 0) 58%);
+    linear-gradient(90deg, rgba(22, 27, 34, 0.5) 0%, rgba(22, 27, 34, 0.18) 38%, rgba(22, 27, 34, 0) 62%),
+    linear-gradient(to top, rgba(22, 27, 34, 0.78) 0%, rgba(22, 27, 34, 0.32) 30%, rgba(22, 27, 34, 0) 58%);
   /* Only needed while the headline is on screen; fades as the camera starts to fly. */
   opacity: clamp(0, calc(1.1 - var(--p, 0) * 3), 1);
   pointer-events: none;
@@ -3503,7 +3505,7 @@ img.is-broken {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(10, 18, 51, 0.38) 100%);
+  background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(22, 27, 34, 0.38) 100%);
 }
 
 /* Anamorphic light streak across the horizon, fades as the camera climbs. */
@@ -3517,7 +3519,7 @@ img.is-broken {
   opacity: calc(0.75 - var(--p, 0) * 1.4);
   background: linear-gradient(90deg, transparent, rgba(255, 140, 90, 0.0) 12%, rgba(255, 140, 90, 0.55) 50%, rgba(255, 140, 90, 0.0) 88%, transparent);
   filter: blur(1.2px);
-  box-shadow: 0 0 22px 3px rgba(255, 107, 71, 0.28);
+  box-shadow: 0 0 22px 3px rgba(255, 184, 96, 0.3);
 }
 
 /* Chapter captions — shown in turn as the camera flies through the skyline. */
@@ -3964,11 +3966,14 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
 
 ::selection { background: var(--gold-400); color: var(--navy-950); }
 
+.badge-gold { background: var(--gold-100); color: var(--gold-700); }
+.property-card--feature .badge-gold { background: var(--gold-100); color: var(--gold-700); }
+
 .eyebrow { color: var(--gold-400); }
 .eyebrow::before { height: 2px; width: 30px; border-radius: 2px; background: var(--grad-gold); }
 
 .section--alt {
-  background: linear-gradient(to bottom, var(--color-bg) 0, rgba(36, 57, 138, 0.55) 90px, rgba(36, 57, 138, 0.55) calc(100% - 90px), var(--color-bg) 100%);
+  background: linear-gradient(to bottom, var(--color-bg) 0, rgba(15, 58, 43, 0.82) 90px, rgba(15, 58, 43, 0.82) calc(100% - 90px), var(--color-bg) 100%);
 }
 
 /* ---- Type details ---- */
@@ -4046,15 +4051,15 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
 
 /* ---- Cards: lighter, colourful depth ---- */
 
-.property-card { border: 1px solid var(--color-border); background: linear-gradient(180deg, rgba(36, 57, 138, 0.55), var(--navy-900)); }
-.property-card:hover { box-shadow: 0 28px 60px rgba(4, 8, 40, 0.6), 0 0 0 1px rgba(255, 185, 46, 0.35); }
+.property-card { border: 1px solid var(--color-border); background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), var(--navy-900)); }
+.property-card:hover { box-shadow: 0 28px 60px rgba(4, 6, 8, 0.6), 0 0 0 1px rgba(230, 199, 122, 0.4); }
 .blog-card, .developer-card, .service-card, .benefit-card { border: 1px solid var(--color-border); }
-.blog-card { background: linear-gradient(180deg, rgba(36, 57, 138, 0.5), var(--navy-900)); }
+.blog-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), var(--navy-900)); }
 .marquee__item { border-color: var(--color-border); }
 
 /* ---- Interior page headers ---- */
 
-.page-hero .breadcrumbs a { color: var(--azure-400); }
+.page-hero .breadcrumbs a { color: var(--gold-400); }
 .page-hero .breadcrumbs a:hover { color: var(--gold-400); }
 .page-hero p { color: var(--slate-300); }
 
@@ -4068,3 +4073,8 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
 /* ---- Focus ---- */
 
 :focus-visible { outline: 3px solid var(--gold-400); outline-offset: 3px; }
+
+/* Section heading rows stack on phones so the title keeps its full width. */
+@media (max-width: 767px) {
+  .section-head-row { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+}

@@ -225,7 +225,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(10, 18, 51, 0.94);
+  background: rgba(22, 27, 34, 0.94);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -431,7 +431,7 @@
 /* ---- Page hero (interior pages, non full-screen) ---- */
 
 .page-hero {
-  background: linear-gradient(180deg, #17256f 0%, var(--navy-950) 100%);
+  background: linear-gradient(180deg, #123f30 0%, var(--navy-950) 100%);
   color: var(--cream-50);
   padding-top: calc(var(--header-h) + var(--space-8));
   padding-bottom: calc(var(--space-8) + 110px);
@@ -447,9 +447,9 @@
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 90% 6%, rgba(255, 90, 60, 0.3), transparent 44%),
-    radial-gradient(circle at 6% 0%, rgba(143, 115, 255, 0.34), transparent 46%),
-    radial-gradient(circle at 55% 100%, rgba(38, 208, 189, 0.18), transparent 50%);
+    radial-gradient(circle at 90% 6%, rgba(220, 35, 56, 0.26), transparent 44%),
+    radial-gradient(circle at 6% 0%, rgba(207, 162, 74, 0.24), transparent 46%),
+    radial-gradient(circle at 55% 100%, rgba(19, 154, 98, 0.22), transparent 50%);
   pointer-events: none;
 }
 

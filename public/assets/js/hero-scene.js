@@ -13,7 +13,7 @@
 
 import * as THREE from '/assets/vendor/three.module.min.js';
 
-const FOG_COLOR = new THREE.Color(0.31, 0.2, 0.46);
+const FOG_COLOR = new THREE.Color(0.30, 0.20, 0.19);
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -87,16 +87,16 @@ const BUILDING_FRAG = /* glsl */ `
     float seed = fract(sv);
     float hh = clamp(vWorld.y / 230.0, 0.0, 1.0);
 
-    vec3 base = mix(vec3(0.12, 0.16, 0.36), vec3(0.24, 0.28, 0.54), seed);
-    base += vec3(0.10, 0.05, 0.09) * hh;
-    vec3 ember = vec3(1.0, 0.36, 0.2);
+    vec3 base = mix(vec3(0.14, 0.16, 0.18), vec3(0.28, 0.30, 0.31), seed);
+    base += vec3(0.12, 0.07, 0.03) * hh;
+    vec3 ember = vec3(1.0, 0.62, 0.28);
 
     float back = clamp(dot(N, normalize(vec3(0.15, 0.05, -1.0))), 0.0, 1.0);
     float side = clamp(abs(N.x), 0.0, 1.0);
     vec3 col = base + ember * (0.22 * back + 0.12 * side * (0.4 + hh));
 
     if (vTop > 0.5) {
-      col = mix(col, vec3(0.38, 0.32, 0.55), 0.7);
+      col = mix(col, vec3(0.40, 0.36, 0.32), 0.7);
     } else {
       vec2 g = vFace / vec2(2.4, 3.8);
       vec2 id = floor(g);
@@ -109,7 +109,7 @@ const BUILDING_FRAG = /* glsl */ `
       float tog = hash(id + t * 0.37 + seed);
       float lit = step(1.0 - litProb, r) * step(0.05, tog);
       vec3 warm = vec3(1.0, 0.74, 0.42);
-      vec3 cool = vec3(0.62, 0.8, 1.0);
+      vec3 cool = vec3(0.66, 0.96, 0.84);
       vec3 wc = mix(warm, cool, step(0.72, r2));
       float tw = 0.86 + 0.14 * sin(uTime * (0.6 + r * 2.0) + r * 40.0);
       col += wc * win * lit * tw * 1.4;
@@ -149,19 +149,19 @@ const SKY_FRAG = /* glsl */ `
   void main() {
     vec3 d = normalize(vDir);
     float y = d.y;
-    vec3 top = vec3(0.05, 0.09, 0.34);
-    vec3 mid = vec3(0.32, 0.17, 0.56);
-    vec3 hor = vec3(1.0, 0.5, 0.33);
+    vec3 top = vec3(0.07, 0.11, 0.15);
+    vec3 mid = vec3(0.40, 0.20, 0.20);
+    vec3 hor = vec3(1.0, 0.62, 0.30);
     vec3 col = mix(hor, mid, smoothstep(0.0, 0.18, y));
     col = mix(col, top, smoothstep(0.12, 0.68, y));
     float az = dot(normalize(vec3(d.x, 0.0001, d.z)), vec3(0.0, 0.0, -1.0));
     float glow = pow(max(az, 0.0), 3.0) * exp(-max(y, 0.0) * 7.0);
-    col += vec3(1.0, 0.45, 0.3) * glow * 0.62;
-    col = mix(col, vec3(0.2, 0.13, 0.34), smoothstep(0.0, -0.25, y));
+    col += vec3(1.0, 0.55, 0.22) * glow * 0.62;
+    col = mix(col, vec3(0.2, 0.14, 0.14), smoothstep(0.0, -0.25, y));
     vec3 sunDir = normalize(vec3(0.18, 0.07, -1.0));
     float sd = dot(d, sunDir);
-    col += vec3(1.0, 0.66, 0.45) * smoothstep(0.9986, 0.9996, sd) * 0.8;
-    col += vec3(1.0, 0.45, 0.32) * pow(max(sd, 0.0), 160.0) * 0.35;
+    col += vec3(1.0, 0.76, 0.42) * smoothstep(0.9986, 0.9996, sd) * 0.8;
+    col += vec3(1.0, 0.55, 0.28) * pow(max(sd, 0.0), 160.0) * 0.35;
     vec3 sp = d * 240.0;
     float h = hash(floor(sp.xy) + floor(sp.zy) * 1.7);
     float star = step(0.9972, h) * smoothstep(0.08, 0.32, y);
@@ -191,15 +191,15 @@ const GROUND_FRAG = /* glsl */ `
   void main() {
     float ax = abs(vWorld.x);
     float road = 1.0 - smoothstep(7.0, 8.0, ax);
-    vec3 plaza = mix(vec3(0.12, 0.13, 0.31), vec3(0.17, 0.15, 0.36), smoothstep(10.0, 140.0, ax));
+    vec3 plaza = mix(vec3(0.20, 0.18, 0.17), vec3(0.28, 0.21, 0.17), smoothstep(10.0, 140.0, ax));
     float joint = max(smoothstep(0.0, 0.05, abs(fract(vWorld.z / 12.0) - 0.5) - 0.45),
                       smoothstep(0.0, 0.05, abs(fract(vWorld.x / 12.0) - 0.5) - 0.45));
-    plaza += vec3(0.032, 0.04, 0.09) * joint * (1.0 - smoothstep(30.0, 170.0, vFogDepth));
-    vec3 col = mix(plaza, vec3(0.17, 0.19, 0.37), road);
+    plaza += vec3(0.05, 0.04, 0.03) * joint * (1.0 - smoothstep(30.0, 170.0, vFogDepth));
+    vec3 col = mix(plaza, vec3(0.26, 0.26, 0.28), road);
     float dash = step(0.5, fract(vWorld.z / 8.0)) * (1.0 - smoothstep(0.12, 0.22, ax));
     col += vec3(0.55, 0.48, 0.36) * dash * road * 0.32;
     float edge = smoothstep(6.5, 6.75, ax) * (1.0 - smoothstep(6.75, 7.0, ax));
-    col += vec3(0.8, 0.38, 0.2) * edge * 0.45;
+    col += vec3(0.86, 0.66, 0.28) * edge * 0.5;
     col += vec3(0.5, 0.15, 0.08) * pow(clamp(-vWorld.z / 520.0, 0.0, 1.0), 1.5) * 0.3 * road;
     float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
     col = mix(col, uFogColor, clamp(ff * 1.05, 0.0, 1.0));
@@ -271,7 +271,7 @@ const DUST_FRAG = /* glsl */ `
   void main() {
     float d = length(gl_PointCoord - 0.5);
     float a = smoothstep(0.5, 0.05, d);
-    vec3 c = mix(vec3(1.0, 0.62, 0.38), vec3(0.75, 0.85, 1.0), vMix);
+    vec3 c = mix(vec3(1.0, 0.62, 0.38), vec3(1.0, 0.92, 0.74), vMix);
     gl_FragColor = vec4(c * a * vA * 0.9, a * vA);
   }
 `;
@@ -307,7 +307,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     stencil: false,
     powerPreference: 'high-performance',
   });
-  renderer.setClearColor(0x1a1a44, 1);
+  renderer.setClearColor(0x2a1f1d, 1);
   let pixelRatio = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 1.75);
   renderer.setPixelRatio(pixelRatio);
 
