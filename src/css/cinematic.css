@@ -14,7 +14,7 @@
   z-index: 97;
   transform-origin: 0 50%;
   transform: scaleX(var(--scroll-p, 0));
-  background: linear-gradient(90deg, var(--ember-600), var(--ember-400), #ffcf5c);
+  background: var(--grad-brand);
   pointer-events: none;
 }
 
@@ -75,8 +75,10 @@
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(90deg, rgba(7, 9, 13, 0.66) 0%, rgba(7, 9, 13, 0.3) 36%, rgba(7, 9, 13, 0) 62%),
-    linear-gradient(to top, rgba(7, 9, 13, 0.92) 0%, rgba(7, 9, 13, 0.5) 38%, rgba(7, 9, 13, 0.1) 66%, rgba(7, 9, 13, 0.4) 100%);
+    linear-gradient(90deg, rgba(10, 18, 51, 0.5) 0%, rgba(10, 18, 51, 0.18) 38%, rgba(10, 18, 51, 0) 62%),
+    linear-gradient(to top, rgba(10, 18, 51, 0.78) 0%, rgba(10, 18, 51, 0.32) 30%, rgba(10, 18, 51, 0) 58%);
+  /* Only needed while the headline is on screen; fades as the camera starts to fly. */
+  opacity: clamp(0, calc(1.1 - var(--p, 0) * 3), 1);
   pointer-events: none;
 }
 
@@ -92,34 +94,23 @@
   opacity: clamp(0, calc((var(--p, 0) - 0.82) * 5.5), 1);
 }
 
+/* Soft sunset bloom where the street meets the horizon (hides the hard canyon edge). */
+.hero__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(ellipse 20% 15% at 50% 61%, rgba(255, 150, 110, 0.6), rgba(255, 120, 150, 0.22) 55%, transparent 80%);
+  opacity: clamp(0, calc(1 - var(--p, 0) * 5), 1);
+}
+
 .hero__vignette {
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(0, 0, 0, 0.6) 100%);
-}
-
-.hero__grain {
-  position: absolute;
-  inset: -50%;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.075;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  background-size: 240px 240px;
-  animation: grain-shift 0.9s steps(6) infinite;
-}
-
-@keyframes grain-shift {
-  0%   { transform: translate(0, 0); }
-  17%  { transform: translate(-3%, 2%); }
-  34%  { transform: translate(2%, -3%); }
-  51%  { transform: translate(-2%, -1%); }
-  68%  { transform: translate(3%, 3%); }
-  85%  { transform: translate(-1%, 2%); }
-  100% { transform: translate(0, 0); }
+  background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(10, 18, 51, 0.38) 100%);
 }
 
 /* Anamorphic light streak across the horizon, fades as the camera climbs. */
@@ -136,22 +127,6 @@
   box-shadow: 0 0 22px 3px rgba(255, 107, 71, 0.28);
 }
 
-/* Letterbox bars that retract on load for the "film opening" feel. */
-.hero__bar {
-  position: absolute;
-  left: 0; right: 0;
-  height: 12vh;
-  z-index: 5;
-  background: #000;
-  pointer-events: none;
-  transition: transform 1.8s var(--ease-luxury) 0.15s;
-}
-.hero__bar--top { top: 0; transform-origin: 50% 0; }
-.hero__bar--bottom { bottom: 0; transform-origin: 50% 100%; }
-.hero:not(.is-gl) .hero__bar { transform: scaleY(0); transition: none; }
-.hero.is-gl .hero__bar { transform: scaleY(0); }
-.hero.is-gl-pending .hero__bar { transform: scaleY(1); transition: none; }
-
 /* Chapter captions — shown in turn as the camera flies through the skyline. */
 .hero__captions {
   position: absolute;
@@ -167,7 +142,7 @@
 .hero__caption {
   grid-area: 1 / 1;
   font-family: var(--font-feature);
-  font-weight: 600;
+  font-weight: 400;
   font-size: clamp(2rem, 5.2vw, 4.6rem);
   line-height: 1.08;
   letter-spacing: -0.01em;
@@ -179,14 +154,14 @@
 }
 
 .hero__caption em {
-  font-style: normal;
-  color: var(--ember-400);
+  font-style: italic;
+  color: var(--gold-400);
 }
 
 .hero__content {
   position: relative;
   z-index: 4;
-  padding-block: var(--space-9) var(--space-8);
+  padding-block: var(--space-9) calc(var(--space-8) + var(--space-5));
   transform: translate3d(0, calc(var(--p, 0) * -9vh), 0);
   opacity: clamp(0, calc(1.1 - var(--p, 0) * 5), 1);
 }
@@ -204,31 +179,28 @@
   gap: var(--space-2);
   font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ember-400);
+  color: var(--gold-400);
   margin-bottom: var(--space-4);
 }
 
-.hero__title {
-  max-width: 20ch;
-  color: var(--white);
-  text-shadow: 0 4px 34px rgba(0, 0, 0, 0.55);
+.hero__eyebrow::before {
+  content: '';
+  width: 36px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--grad-gold);
 }
 
-.hero__title em {
-  font-style: normal;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  display: inline-block;
-  padding: 0.1em 0.5em 0.16em;
-  border-radius: var(--radius-md);
-  background: var(--glass-bg-light);
-  border: 1px solid var(--glass-border-light);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--shadow-md);
+.hero__title {
+  max-width: 16ch;
+  color: var(--white);
+  font-size: clamp(3.1rem, 6.4vw + 0.5rem, 7rem);
+  line-height: 1;
+  letter-spacing: -0.012em;
+  word-spacing: 0.06em;
+  text-shadow: 0 6px 44px rgba(6, 10, 36, 0.5);
 }
 
 .hero__subtitle {
@@ -306,7 +278,7 @@
 @media (prefers-reduced-motion: reduce) {
   .js .hero-cine { height: auto; }
   .js .hero-cine .hero { position: relative; }
-  .hero__grain, .hero__scroll-cue .line { animation: none; }
+  .hero__scroll-cue .line { animation: none; }
   .hero__content { transform: none; opacity: 1; }
   .hero__captions { display: none; }
 }
@@ -476,8 +448,6 @@
 .form-check a { text-decoration: underline; text-underline-offset: 2px; }
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .form-field .form-error { margin-top: 2px; }
-.footer-newsletter-wrap .form-check { margin-top: var(--space-3); }
-.footer-newsletter-wrap .form-status { font-size: var(--fs-xs); padding: var(--space-3) var(--space-4); }
 .contact-cards { display: grid; gap: var(--space-4); }
 .contact-info-card h4 { margin-bottom: 2px; }
 .contact-info-card a:hover { color: var(--ember-400); }
@@ -492,8 +462,6 @@
 /* ---- Misc ---- */
 
 .stat-strip .stat-num { font-variant-numeric: tabular-nums; }
-.footer-bottom a { text-decoration: underline; text-underline-offset: 2px; }
-.footer-bottom a:hover { color: var(--color-accent); }
 .not-found { min-height: 70vh; display: grid; place-items: center; text-align: center; padding-top: var(--header-h); }
 .btn[disabled] { opacity: 0.6; cursor: wait; }
 .post-meta { color: var(--slate-300); font-size: var(--fs-xs); margin-bottom: var(--space-5); }
@@ -506,22 +474,12 @@
 .js .hero-cine.is-flat .hero { position: relative; }
 .hero-cine.is-flat .hero__captions,
 .hero-cine.is-flat .hero__gl,
-.hero-cine.is-flat .hero__bar,
 .hero-cine.is-flat .hero__streak { display: none; }
 .hero-cine.is-flat .hero__content { transform: none; opacity: 1; }
 .hero-cine.is-flat .hero__scroll-cue { opacity: 1; }
 
 /* Hide the headline's plain text only while JS is about to split it. */
 .js [data-typewriter]:not([data-tw-init]) { visibility: hidden; }
-
-@keyframes cv-gold {
-  0%   { color: #ffd23f; }
-  33%  { color: #ff9d3a; }
-  66%  { color: #ffe27a; }
-  100% { color: #ffd23f; }
-}
-.cv-char { animation: cv-gold 3.6s linear infinite; animation-delay: var(--cvd, 0s); }
-@media (prefers-reduced-motion: reduce) { .cv-char { animation: none; color: #ffd23f; } }
 
 /* ---- Fan carousel motion ---- */
 
@@ -557,16 +515,7 @@
 .community-card__overlay h3 { font-size: var(--fs-md); font-weight: 600; color: var(--cream-50); }
 .developer-card h3 { font-size: var(--fs-md); }
 .contact-info-card h3 { font-size: var(--fs-md); margin-bottom: 2px; }
-.footer-col .footer-title {
-  color: var(--color-accent-hover);
-  font-family: var(--font-body);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-4);
-}
-.pd-agent-name { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; color: var(--color-text); margin-top: var(--space-3); }
+.pd-agent-name { font-family: var(--font-body); font-size: var(--fs-md); font-weight: 600; color: var(--color-text); margin-top: var(--space-3); }
 .pd-price { font-family: var(--font-display); font-size: var(--fs-2xl); color: var(--white); line-height: 1.15; }
 .pd-price small { display: block; font-family: var(--font-body); font-size: var(--fs-xs); color: var(--slate-300); font-weight: 500; }
 

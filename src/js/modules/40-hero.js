@@ -1,4 +1,4 @@
-// Hero: headline typewriter, colourful "UAE", scroll-scrubbed WebGL fly-through.
+// Hero: headline reveal and the scroll-scrubbed WebGL fly-through.
 (function () {
   'use strict';
   var SWK = window.SWK;
@@ -37,18 +37,6 @@
       if (SWK.reduced) return;
       splitChars(el, { i: 0 });
       setTimeout(function () { el.classList.add('is-typing'); }, 30);
-    });
-    SWK.$$('[data-colorful-text]').forEach(function (el) {
-      var chars = SWK.$$('.tw-char', el);
-      chars.forEach(function (c, i) { c.classList.add('cv-char'); c.style.setProperty('--cvd', (-i * 0.55).toFixed(2) + 's'); });
-      if (!SWK.reduced && chars.length) {
-        setInterval(function () {
-          var c = chars[(Math.random() * chars.length) | 0];
-          c.classList.remove('cv-pulse');
-          void c.offsetWidth;
-          c.classList.add('cv-pulse');
-        }, 1400);
-      }
     });
   }
 
@@ -128,7 +116,7 @@
     var src = (window.SWK_ASSETS || '/assets/js/') + 'hero-scene.js' + (window.SWK_V ? '?v=' + window.SWK_V : '');
     import(src).then(function (mod) {
       try {
-        scene = mod.createHeroScene(canvas, { mobile: mobile });
+        scene = mod.createHeroScene(canvas, { mobile: mobile, hold: /[?&]hold\b/.test(location.search) });
       } catch (err) {
         console.warn('[swk] WebGL hero unavailable, using the photo hero.', err && err.message);
         clearTimeout(giveUp);
