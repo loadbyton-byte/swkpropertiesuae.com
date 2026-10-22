@@ -22,6 +22,7 @@
       ]
     },
     { "source": "/assets/(css|js|vendor)/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/assets/(fonts|images)/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=2592000" }] },
     {
       "source": "/(.*)",
       "has": [{ "type": "host", "value": ".*\\.vercel\\.app" }],
