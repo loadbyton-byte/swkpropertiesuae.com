@@ -87,23 +87,26 @@ const BUILDING_FRAG = /* glsl */ `
     float seed = fract(sv);
     float hh = clamp(vWorld.y / 230.0, 0.0, 1.0);
 
-    // Facade palette: pearl white, sky glass, champagne sand, aqua glass, deep blue glass.
-    vec3 pearl = vec3(0.97, 0.94, 0.89);
-    vec3 skyg  = vec3(0.78, 0.80, 0.92);
-    vec3 sand  = vec3(0.96, 0.84, 0.62);
-    vec3 aqua  = vec3(0.82, 0.64, 0.44);
-    vec3 deep  = vec3(0.32, 0.42, 0.64);
-    float k = seed * 5.0;
-    vec3 base = pearl;
-    base = mix(base, skyg, smoothstep(0.6, 1.0, k) * (1.0 - smoothstep(1.6, 2.0, k)));
-    base = mix(base, sand, smoothstep(1.6, 2.0, k) * (1.0 - smoothstep(2.6, 3.0, k)));
-    base = mix(base, aqua, smoothstep(2.6, 3.0, k) * (1.0 - smoothstep(3.6, 4.0, k)));
-    base = mix(base, deep, smoothstep(3.6, 4.0, k));
+    // Facade palette: real Dubai materials - limestone, steel-blue, deep blue, bronze and teal glass, white concrete.
+    vec3 lime  = vec3(0.84, 0.75, 0.62);
+    vec3 steel = vec3(0.40, 0.52, 0.66);
+    vec3 deep  = vec3(0.17, 0.27, 0.46);
+    vec3 bronz = vec3(0.64, 0.52, 0.42);
+    vec3 teal  = vec3(0.18, 0.46, 0.52);
+    vec3 white = vec3(0.93, 0.91, 0.87);
+    float k = seed * 6.0;
+    vec3 base = white;
+    base = mix(base, lime,  step(1.0, k));
+    base = mix(base, steel, step(2.0, k));
+    base = mix(base, deep,  step(3.0, k));
+    base = mix(base, bronz, step(4.0, k));
+    base = mix(base, teal,  step(5.0, k));
+    float glassy = step(2.0, k);
 
     // Sun from the front-right; faces away from it fall into a soft blue shade.
     vec3 L = normalize(vec3(0.55, 0.62, 0.56));
     float diff = clamp(dot(N, L), 0.0, 1.0);
-    vec3 shade = vec3(0.64, 0.62, 0.80);
+    vec3 shade = vec3(0.50, 0.50, 0.66);
     vec3 col = base * mix(shade, vec3(1.10, 1.02, 0.90), 0.3 + 0.7 * diff);
 
     if (vTop > 0.5) {
@@ -112,16 +115,17 @@ const BUILDING_FRAG = /* glsl */ `
       vec2 g = vFace / vec2(2.4, 3.8);
       vec2 id = floor(g);
       vec2 f = fract(g);
-      float win = step(0.14, f.x) * step(f.x, 0.86) * step(0.2, f.y) * step(f.y, 0.8);
+      float win = mix(step(0.14, f.x) * step(f.x, 0.86) * step(0.2, f.y) * step(f.y, 0.8), step(0.04, f.x) * step(f.x, 0.96) * step(0.12, f.y) * step(f.y, 0.88), glassy);
       float r = hash(id + seed * 57.3);
       float r2 = hash(id.yx + seed * 13.7);
       // Glass reflects the sky: deeper blue low down, brighter with height.
-      vec3 glass = mix(vec3(0.22, 0.30, 0.52), vec3(0.94, 0.74, 0.50), 0.3 + 0.7 * hh);
+      vec3 glass = mix(base * 0.55, mix(base, vec3(0.95, 0.72, 0.52), 0.55), 0.25 + 0.75 * hh);
+      glass = mix(glass, vec3(0.30, 0.34, 0.50), (1.0 - glassy) * 0.7);
       glass = mix(glass, glass * vec3(1.15, 1.1, 0.95), step(0.8, r2));
       float tw = 0.5 + 0.5 * sin(uTime * (0.35 + r * 0.9) + r * 40.0);
-      float glint = step(0.9, r) * (0.35 + 0.65 * tw);
+      float glint = step(0.955, r) * (0.35 + 0.65 * tw);
       vec3 pane = mix(glass, vec3(1.0, 0.97, 0.88), glint * 0.85);
-      col = mix(col, pane * (0.55 + 0.6 * diff), win * 0.82);
+      col = mix(col, pane * (0.6 + 0.6 * diff), win * 0.9);
       float mull = step(f.x, 0.03) + step(0.97, f.x);
       col *= 1.0 - 0.12 * mull;
     }
@@ -132,7 +136,7 @@ const BUILDING_FRAG = /* glsl */ `
 
     float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
     float hf = exp(-max(vWorld.y, 0.0) * 0.011);
-    ff = clamp(ff * (0.62 + 0.6 * hf), 0.0, 1.0);
+    ff = clamp(ff * (0.5 + 0.5 * hf), 0.0, 1.0);
     col = mix(col, uFogColor, ff);
     gl_FragColor = vec4(col, 1.0);
   }
@@ -343,12 +347,12 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(52, 1, 0.5, 1400);
   const rand = mulberry32(20160607);
-  scene.fog = new THREE.FogExp2(FOG_COLOR.getHex(), 0.0034);
+  scene.fog = new THREE.FogExp2(FOG_COLOR.getHex(), 0.0023);
 
   const uniforms = {
     uTime: { value: 0 },
     uFogColor: { value: FOG_COLOR },
-    uFogDensity: { value: 0.0034 },
+    uFogDensity: { value: 0.0023 },
     uPx: { value: pixelRatio },
   };
 
@@ -488,13 +492,35 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   {
     const trunkGeo = new THREE.CylinderGeometry(0.28, 0.5, 1, 6);
     trunkGeo.translate(0, 0.5, 0);
-    const crownGeo = new THREE.ConeGeometry(3.3, 2.4, 7);
-    crownGeo.translate(0, 1.3, 0);
+    // Crown: 9 drooping, tapered fronds merged into one geometry.
+    const crownGeo = (() => {
+      const pos = [];
+      const FR = 9, SEG = 4;
+      for (let f = 0; f < FR; f++) {
+        const a = (f / FR) * Math.PI * 2 + (f % 2) * 0.2;
+        const ca = Math.cos(a), sa = Math.sin(a);
+        const len = 4.6 + (f % 3) * 0.5;
+        for (let sIdx = 0; sIdx < SEG; sIdx++) {
+          const t0 = sIdx / SEG, t1 = (sIdx + 1) / SEG;
+          const pt = (t, side) => {
+            const r = t * len;
+            const w = (1 - t) * 0.9 * side + (t > 0.97 ? 0 : 0);
+            const y = 0.7 * Math.sin(t * 2.2) * 1.2 - t * t * 2.6 + 0.8;
+            return [ca * r - sa * w, y, sa * r + ca * w];
+          };
+          const A = pt(t0, 1), B = pt(t0, -1), C = pt(t1, 1), D = pt(t1, -1);
+          pos.push(...A, ...B, ...C, ...B, ...D, ...C);
+        }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
+      return g;
+    })();
     const lampGeo = new THREE.CylinderGeometry(0.12, 0.16, 1, 5);
     lampGeo.translate(0, 0.5, 0);
     const bulbGeo = new THREE.SphereGeometry(0.55, 8, 6);
     const trunkMat = new THREE.MeshBasicMaterial({ color: 0x8a6a4c });
-    const crownMat = new THREE.MeshBasicMaterial({ color: 0x4f8a52 });
+    const crownMat = new THREE.MeshBasicMaterial({ color: 0x3f7a42, side: THREE.DoubleSide });
     const lampMat = new THREE.MeshBasicMaterial({ color: 0x2b3750 });
     const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffd58a });
     const N = mobile ? 26 : 44;
@@ -619,7 +645,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   // ---- Camera rig
   const state = { p: 0, px: 0, py: 0 };
   const cur = { p: 0, px: 0, py: 0 };
-  let introT = 0;
+  let introT = 1;
   let running = false;
   let raf = 0;
   let last = 0;
