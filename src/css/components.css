@@ -177,7 +177,7 @@
 }
 
 @media (max-width: 767px) {
-  .site-brand .brand-logo { height: 70px; }
+  .site-brand .brand-logo { height: 38px; }
 }
 
 /* ---- Preloader ---- */
@@ -251,12 +251,23 @@
 
 .site-brand {
   position: fixed;
-  top: var(--space-5);
+  top: var(--space-4);
   left: var(--space-5);
   z-index: 96;
   display: flex;
   align-items: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-md);
+  transition: transform var(--duration-base) var(--ease-luxury);
 }
+
+.site-brand:hover { transform: translateY(-2px); }
+.site-brand .brand-logo { height: 40px; }
 
 /* ---- Glass panels ---- */
 
@@ -700,7 +711,7 @@
 .community-card__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(7, 9, 13, 0.88) 0%, rgba(7, 9, 13, 0.15) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(10, 18, 51, 0.88) 0%, rgba(10, 18, 51, 0.15) 55%, transparent 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1021,7 +1032,7 @@
   gap: var(--space-4);
   padding: var(--space-5) 0;
   text-align: left;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: var(--fs-md);
   font-weight: 600;
 }
@@ -1259,7 +1270,7 @@
 .calc-donut__amount {
   display: inline-block;
   max-width: 84px;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1.15;
@@ -1486,143 +1497,148 @@
 .site-footer {
   position: relative;
   overflow: hidden;
-  background: var(--navy-950);
-  color: var(--slate-300);
+  isolation: isolate;
+  background:
+    radial-gradient(900px 420px at 8% 0%, rgba(143, 115, 255, 0.22), transparent 60%),
+    radial-gradient(800px 420px at 100% 100%, rgba(255, 90, 60, 0.16), transparent 60%),
+    linear-gradient(180deg, var(--navy-900) 0%, #0b1440 100%);
+  color: var(--color-text-muted);
   padding-block: var(--space-8) var(--space-6);
 }
 
-/* ---- Footer glow (glassmorphic floating card + ambient blobs) ----
-   Ported from a React "FooterGlow" component — same idea (blurred colour
-   blobs drifting behind a frosted-glass card), recoloured to the site's
-   ember/gold accents instead of the original's rose, and layered behind
-   the existing footer content instead of a rebuilt link structure. */
-
-.footer-glow {
+/* Brand-colour hairline along the top edge. */
+.site-footer::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  background: var(--grad-brand);
+  z-index: 2;
 }
 
-.footer-glow__blob {
-  position: absolute;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  filter: blur(90px);
-}
+.footer-glow { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.footer-glow__blob { position: absolute; width: 360px; height: 360px; border-radius: 50%; filter: blur(100px); }
+.footer-glow__blob--a { top: -160px; left: 6%; background: hsl(250 90% 66% / 0.22); }
+.footer-glow__blob--b { bottom: -180px; right: 8%; background: hsl(14 100% 62% / 0.18); }
 
-.footer-glow__blob--a {
-  top: -120px;
-  left: 8%;
-  background: hsl(14 78% 55% / 0.24);
-}
+.footer-inner { position: relative; }
 
-.footer-glow__blob--b {
-  bottom: -140px;
-  right: 10%;
-  background: hsl(38 75% 50% / 0.2);
-}
-
-.footer-card {
-  position: relative;
-  z-index: 1;
-  background: var(--glass-bg-dark);
-  border: 1px solid var(--glass-border-dark);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+/* Newsletter band */
+.footer-news {
+  display: grid;
+  gap: var(--space-5);
+  align-items: center;
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding-block: var(--space-7);
+  background: linear-gradient(135deg, rgba(76, 141, 255, 0.2), rgba(143, 115, 255, 0.16) 55%, rgba(255, 90, 60, 0.16));
+  border: 1px solid var(--glass-border-dark);
+  box-shadow: var(--shadow-md);
 }
 
-@media (min-width: 768px) {
-  .footer-card { padding-block: var(--space-8); }
+@media (min-width: 900px) {
+  .footer-news { grid-template-columns: 1fr 1.1fr; gap: var(--space-8); padding: var(--space-7) var(--space-8); }
 }
 
+.footer-news__title {
+  font-size: clamp(1.9rem, 2.2vw + 1rem, 2.75rem);
+  color: var(--white);
+  margin-bottom: var(--space-2);
+}
+
+.footer-news__copy p { max-width: 42ch; }
+
+.footer-newsletter { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
+
+.footer-newsletter__row { display: flex; gap: var(--space-2); }
+
+.footer-newsletter__row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.95rem 1.2rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border-dark);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+}
+
+.footer-newsletter__row input::placeholder { color: var(--slate-500); }
+.footer-newsletter__row input:focus-visible { outline-offset: 1px; }
+.footer-newsletter__row .btn { flex: 0 0 auto; }
+
+.footer-newsletter .form-check { align-items: flex-start; }
+.footer-newsletter .form-check input { flex: 0 0 16px; margin-top: 3px; }
+.footer-newsletter .form-status { margin-top: 0; }
+
+/* Link grid */
 .footer-grid {
   display: grid;
-  gap: var(--space-7);
-  grid-template-columns: 1fr;
+  gap: var(--space-7) var(--space-6);
+  grid-template-columns: 1fr 1fr;
 }
 
-/* Brand and Stay Updated stay full-width; Explore and Communities (2nd and
-   3rd columns, in that fixed order across every page) pair up side by side
-   instead of stacking into two more full-width rows. */
-@media (max-width: 767px) {
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-  .footer-col:first-child,
-  .footer-col:last-child {
-    grid-column: 1 / -1;
-  }
+.footer-col--brand, .footer-col:last-child { grid-column: 1 / -1; }
+
+@media (min-width: 900px) {
+  .footer-grid { grid-template-columns: 1.5fr 1fr 1fr 1.4fr; gap: var(--space-7); }
+  .footer-col--brand, .footer-col:last-child { grid-column: auto; }
 }
 
-@media (min-width: 768px) {
-  .footer-grid { grid-template-columns: 1.4fr repeat(3, 1fr); }
-}
+.footer-logo { display: inline-block; margin-bottom: var(--space-4); }
+.footer-logo img { height: 58px; width: auto; }
+.footer-col--brand p { max-width: 34ch; font-size: var(--fs-sm); }
 
-.footer-col h4 {
-  color: var(--color-accent-hover);
+.footer-col .footer-title {
+  color: var(--white);
   font-family: var(--font-body);
   font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.footer-col ul { display: flex; flex-direction: column; gap: var(--space-3); }
-.footer-col a:hover { color: var(--color-accent); }
+.footer-col ul { display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--fs-sm); }
+.footer-col ul a { transition: color var(--duration-fast) var(--ease-luxury), transform var(--duration-fast) var(--ease-luxury); display: inline-block; }
+.footer-col ul a:hover { color: var(--gold-400); transform: translateX(3px); }
 
-.footer-newsletter {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-4);
-}
-
-.footer-newsletter input {
-  flex: 1;
-  padding: var(--space-3);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--glass-border-dark);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--cream-50);
-}
+.footer-contact li { display: flex; gap: var(--space-3); align-items: flex-start; line-height: 1.45; }
+.footer-contact svg { flex: 0 0 18px; margin-top: 2px; color: var(--gold-400); }
 
 .social-row { display: flex; gap: var(--space-3); margin-top: var(--space-5); }
 
 .social-row a {
-  width: 38px; height: 38px;
+  width: 42px; height: 42px;
   border-radius: var(--radius-full);
   border: 1px solid var(--glass-border-dark);
+  background: rgba(255, 255, 255, 0.05);
   display: flex; align-items: center; justify-content: center;
-  transition: background var(--duration-fast) var(--ease-luxury);
+  transition: background var(--duration-fast) var(--ease-luxury), transform var(--duration-fast) var(--ease-luxury), border-color var(--duration-fast) var(--ease-luxury);
 }
 
-.social-row a:hover { background: var(--color-accent); color: var(--navy-950); }
+.social-row a:hover { background: var(--gold-400); border-color: var(--gold-400); color: var(--navy-950); transform: translateY(-3px); }
 
+/* Bottom bar */
 .footer-bottom {
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  text-align: center;
+  gap: var(--space-3);
   font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
 }
 
-@media (min-width: 640px) {
-  .footer-bottom { flex-direction: row; justify-content: center; gap: var(--space-4); }
+@media (min-width: 760px) {
+  .footer-bottom { flex-direction: row; justify-content: space-between; align-items: center; }
 }
 
-/* Bump this on every deploy so a quick glance at the live footer confirms
-   whether a given device is actually showing the latest upload, or just a
-   stale cached copy from before it. */
-.footer-version {
-  opacity: 0.35;
-  font-size: 0.7rem;
-}
+.footer-legal { display: flex; gap: var(--space-5); }
+.footer-bottom a { text-decoration: none; }
+.footer-bottom a:hover { color: var(--gold-400); }
 
 /* ---- Filter bar (Properties page) ---- */
 

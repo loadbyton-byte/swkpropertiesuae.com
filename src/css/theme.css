@@ -1,0 +1,135 @@
+/* ==========================================================================
+   SWK Properties — Polish layer (loaded last)
+   Ambient colour, loading states, page transitions and scroll-driven 3D depth.
+   Everything degrades gracefully: with JS off, or prefers-reduced-motion, the
+   page is the plain, fully visible layout.
+   ========================================================================== */
+
+/* ---- Smooth page-to-page transitions (cross-document View Transitions) ---- */
+
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) { animation: vt-out 0.22s ease both; }
+::view-transition-new(root) { animation: vt-in 0.45s var(--ease-luxury) both; }
+
+@keyframes vt-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(12px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ---- Canvas: midnight blue lit with colour, never flat black ---- */
+
+body { background: var(--grad-page), var(--color-bg); background-repeat: no-repeat; }
+
+@media (hover: hover) and (min-width: 900px) {
+  body { background-attachment: fixed, scroll; }
+}
+
+::selection { background: var(--gold-400); color: var(--navy-950); }
+
+.eyebrow { color: var(--gold-400); }
+.eyebrow::before { height: 2px; width: 30px; border-radius: 2px; background: var(--grad-gold); }
+
+.section--alt {
+  background: linear-gradient(to bottom, var(--color-bg) 0, rgba(36, 57, 138, 0.55) 90px, rgba(36, 57, 138, 0.55) calc(100% - 90px), var(--color-bg) 100%);
+}
+
+/* ---- Type details ---- */
+
+.section-header h2, .section-head-row h2 { font-size: clamp(2.4rem, 3.2vw + 1rem, 4rem); }
+.page-hero__title { font-size: clamp(2.8rem, 4.6vw + 1rem, 5.2rem); letter-spacing: -0.025em; line-height: 1.02; }
+.property-card__price, .pd-price, .stat-strip .stat-num, .benefit-card .stat { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
+.property-card__price { font-size: var(--fs-2xl); line-height: 1.1; }
+.property-card__feature-price { font-size: var(--fs-xl); font-weight: 400; line-height: 1.1; }
+.property-card__title, .property-card__body h3 { font-weight: 600; }
+.stat-strip .stat-num { font-size: clamp(2.6rem, 4vw, 4rem); line-height: 1; }
+.tc-quote { font-family: var(--font-display); font-size: clamp(1.25rem, 1vw + 1rem, 1.6rem); line-height: 1.4; }
+.hero__subtitle { font-size: var(--fs-md); }
+
+/* ---- Loading: skeleton shimmer behind images, then a soft fade-in ---- */
+
+.property-card__media,
+.community-card,
+.blog-card__media,
+.pd-bento-gallery__item,
+.fan-card,
+.tc-photo,
+.split-block > img,
+.marquee__item {
+  background-color: rgba(255, 255, 255, 0.05);
+  background-image: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.12) 50%, transparent 70%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  0% { background-position: 160% 0; }
+  100% { background-position: -60% 0; }
+}
+
+.property-card__media:has(img.is-loaded),
+.community-card:has(img.is-loaded),
+.blog-card__media:has(img.is-loaded),
+.pd-bento-gallery__item:has(img.is-loaded),
+.fan-card:has(img.is-loaded),
+.tc-photo:has(img.is-loaded),
+.marquee__item:has(img.is-loaded) { animation: none; background-image: none; }
+
+.js img[loading='lazy'] { transform: scale(1.02); transition: opacity 0.6s var(--ease-luxury), transform 0.9s var(--ease-luxury); }
+.js img[loading='lazy'].is-loaded, .js img[loading='lazy'].is-broken { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .property-card__media, .community-card, .blog-card__media, .pd-bento-gallery__item, .fan-card, .tc-photo, .split-block > img, .marquee__item { animation: none; background-image: none; }
+}
+
+/* ---- Scroll-scrubbed 3D depth (set up by js/35-scroll3d.js) ---- */
+
+.js .scrub {
+  --dp: 0;
+  transform: perspective(1100px) translate3d(0, calc((1 - var(--dp)) * 54px), calc((1 - var(--dp)) * -80px)) rotateX(calc((1 - var(--dp)) * 11deg));
+  transform-origin: 50% 100%;
+  opacity: calc(0.12 + var(--dp) * 0.88);
+  will-change: transform, opacity;
+}
+
+.js .scrub.scrub-done { transform: none; opacity: 1; will-change: auto; }
+
+/* The existing reveal gets deeper perspective and a gentle depth push. */
+.js [data-reveal] {
+  transform: translate3d(0, 34px, 0) perspective(900px) rotateX(11deg) translateZ(-40px);
+  transition-duration: 0.9s;
+}
+.js [data-reveal].is-visible { transform: translate3d(0, 0, 0) perspective(900px) rotateX(0deg) translateZ(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .js .scrub { transform: none; opacity: 1; }
+  .js [data-reveal] { transform: none; }
+}
+
+/* ---- Cards: lighter, colourful depth ---- */
+
+.property-card { border: 1px solid var(--color-border); background: linear-gradient(180deg, rgba(36, 57, 138, 0.55), var(--navy-900)); }
+.property-card:hover { box-shadow: 0 28px 60px rgba(4, 8, 40, 0.6), 0 0 0 1px rgba(255, 185, 46, 0.35); }
+.blog-card, .developer-card, .service-card, .benefit-card { border: 1px solid var(--color-border); }
+.blog-card { background: linear-gradient(180deg, rgba(36, 57, 138, 0.5), var(--navy-900)); }
+.marquee__item { border-color: var(--color-border); }
+
+/* ---- Interior page headers ---- */
+
+.page-hero .breadcrumbs a { color: var(--azure-400); }
+.page-hero .breadcrumbs a:hover { color: var(--gold-400); }
+.page-hero p { color: var(--slate-300); }
+
+/* Location pin etc. sit inline with the text, not above it. */
+.page-hero p svg { display: inline-block; width: 16px; height: 16px; vertical-align: -2px; margin-right: 4px; color: var(--gold-400); }
+
+/* Decorative service icons stay behind the copy. */
+.service-card__decor { opacity: 0.22; }
+.service-card--themed:hover .service-card__decor { opacity: 0.5; }
+
+/* ---- Focus ---- */
+
+:focus-visible { outline: 3px solid var(--gold-400); outline-offset: 3px; }

@@ -1,64 +1,89 @@
 /* ==========================================================================
    SWK Properties — Design Tokens
-   Dark theme: near-black structure + vivid ember/red-orange accent.
-   Serif display type for editorial weight, clean sans for UI/body.
+   Deep midnight-blue structure (not black) lit by coral, gold, teal, azure and
+   violet accents. Serif display type for editorial weight, General Sans for
+   UI and body copy. All fonts are self-hosted.
    ========================================================================== */
 
 :root {
-  /* ---- Color: Navy (structure — now the site's default background, not just hero/footer) ---- */
-  --navy-950: #07090d;
-  --navy-900: #0d1117;
-  --navy-800: #141a23;
-  --navy-700: #212a38;
-  --navy-600: #333f52;
+  color-scheme: dark;
 
-  /* ---- Color: Ember (accent, CTAs, highlights) ---- */
-  --ember-600: #c23a20;
-  --ember-500: #e8452c;
-  --ember-400: #ff6b47;
-  --ember-100: #ffd9cc;
+  /* ---- Color: Midnight (structure) ---- */
+  --navy-950: #0a1233;
+  --navy-900: #0f1a4a;
+  --navy-800: #15236a;
+  --navy-700: #24398a;
+  --navy-600: #3a52a8;
+
+  /* ---- Color: Accents ---- */
+  --ember-600: #d94324;
+  --ember-500: #ff5a3c;
+  --ember-400: #ff8062;
+  --ember-100: #ffe0d6;
+
+  --gold-500: #ffb92e;
+  --gold-400: #ffcf5c;
+  --gold-100: #fff1cc;
+
+  --teal-500: #26d0bd;
+  --teal-400: #5eead8;
+
+  --azure-500: #4c8dff;
+  --azure-400: #7fb0ff;
+
+  --violet-500: #8f73ff;
+  --violet-400: #b3a0ff;
 
   /* ---- Color: Cream / Sand (primary text on dark) ---- */
-  --cream-50: #faf8f4;
-  --cream-100: #f4efe6;
+  --cream-50: #f8f9ff;
+  --cream-100: #eef1ff;
   --sand-200: #ece2cf;
 
   /* ---- Color: Slate (muted text on dark) ---- */
-  --slate-900: #1a2130;
-  --slate-700: #3c4657;
-  --slate-500: #8a92a3;
-  --slate-300: #aab2c0;
-  --slate-100: #e4e8ee;
+  --slate-900: #141c3c;
+  --slate-700: #3c4668;
+  --slate-500: #9aa8d8;
+  --slate-300: #c3cdf0;
+  --slate-100: #e6ebfb;
 
   --white: #ffffff;
-  --success: #3ea373;
-  --danger: #ff6b6b;
+  --success: #3ecf8e;
+  --danger: #ff7a7a;
 
-  /* ---- Semantic tokens (dark-first: every surface defaults to near-black) ---- */
+  /* ---- Gradients ---- */
+  --grad-brand: linear-gradient(90deg, var(--azure-500), var(--violet-500) 40%, var(--ember-500) 75%, var(--gold-400));
+  --grad-cta: linear-gradient(135deg, #ff6a45 0%, #ff4d3a 55%, #f0392f 100%);
+  --grad-gold: linear-gradient(135deg, #ffe08a 0%, #ffb92e 60%, #f29b12 100%);
+  --grad-page: radial-gradient(1100px 560px at 12% -6%, rgba(143, 115, 255, 0.28), transparent 62%),
+               radial-gradient(900px 520px at 100% 4%, rgba(255, 90, 60, 0.18), transparent 60%),
+               radial-gradient(900px 600px at 70% 100%, rgba(38, 208, 189, 0.12), transparent 60%);
+
+  /* ---- Semantic tokens ---- */
   --color-bg: var(--navy-950);
   --color-surface: var(--navy-900);
   --color-surface-alt: var(--navy-800);
   --color-text: var(--cream-50);
   --color-text-muted: var(--slate-300);
+  --color-text-subtle: var(--slate-500);
   --color-text-on-dark: var(--cream-50);
   --color-text-on-dark-muted: var(--slate-300);
   --color-accent: var(--ember-500);
   --color-accent-hover: var(--ember-400);
-  --color-border: var(--navy-700);
+  --color-border: rgba(150, 170, 255, 0.22);
   --color-dark-surface: var(--navy-950);
   --color-dark-surface-alt: var(--navy-900);
 
-  /* ---- Glassmorphism (frosted dark glass — used for the hero search bar) ---- */
-  --glass-bg-dark: rgba(7, 9, 13, 0.55);
-  --glass-bg-light: rgba(255, 255, 255, 0.06);
-  --glass-border-dark: rgba(255, 255, 255, 0.12);
-  --glass-border-light: rgba(255, 255, 255, 0.14);
+  /* ---- Glassmorphism (frosted glass over the midnight canvas) ---- */
+  --glass-bg-dark: rgba(10, 18, 51, 0.62);
+  --glass-bg-light: rgba(255, 255, 255, 0.09);
+  --glass-border-dark: rgba(255, 255, 255, 0.16);
+  --glass-border-light: rgba(255, 255, 255, 0.2);
   --glass-blur: 18px;
 
   /* ---- Typography ---- */
-  --font-display: 'General Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-feature: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
+  --font-display: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'General Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-feature: var(--font-display);
 
   --fs-xs: 0.8125rem;
   --fs-sm: 0.9375rem;
@@ -94,10 +119,10 @@
   --radius-full: 999px;
 
   /* ---- Shadow (dark-on-dark: lean on borders/lighter surfaces for elevation, shadows stay subtle) ---- */
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 26px 64px rgba(0, 0, 0, 0.55);
-  --shadow-accent-glow: 0 8px 28px rgba(232, 69, 44, 0.4);
+  --shadow-sm: 0 2px 10px rgba(4, 8, 30, 0.35);
+  --shadow-md: 0 14px 34px rgba(4, 8, 30, 0.45);
+  --shadow-lg: 0 26px 64px rgba(4, 8, 30, 0.55);
+  --shadow-accent-glow: 0 8px 28px rgba(255, 90, 60, 0.4);
 
   /* ---- Motion ---- */
   --ease-luxury: cubic-bezier(0.22, 1, 0.36, 1);
