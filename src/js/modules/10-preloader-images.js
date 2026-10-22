@@ -9,22 +9,8 @@
       var el = SWK.$('.preloader');
       if (!el) return;
       if (el.classList.contains('is-visible')) {
-        // The loader only shows on a slow load. Before lifting it, make sure the first paint
-        // is clean: web fonts settled and the hero picture decoded, never longer than 1.5s,
-        // and never shown for less than 450ms (no flicker).
-        var hero = SWK.$('.hero__bg img');
-        var parts = [
-          document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve(),
-          hero && hero.decode ? hero.decode().catch(function () {}) : Promise.resolve()
-        ];
-        var cap = new Promise(function (r) { setTimeout(r, 1500); });
-        Promise.race([Promise.all(parts), cap]).then(function () {
-          var wait = Math.max(0, 450 - (Date.now() - (window.__swkShownAt || 0)));
-          setTimeout(function () {
-            el.classList.add('is-hidden');
-            setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 700);
-          }, wait);
-        });
+        el.classList.add('is-hidden');
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 700);
       } else if (el.parentNode) {
         el.parentNode.removeChild(el);
       }

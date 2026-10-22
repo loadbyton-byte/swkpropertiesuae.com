@@ -92,52 +92,10 @@ def count_in(community):
     return sum(1 for p in PROPS if p["community"] == community)
 
 
-_SIZES = {}
-
-
-def img_size(src):
-    """Intrinsic (width, height) of a PNG/JPEG under src/assets, read from its header (stdlib only)."""
-    rel = src.lstrip("/")
-    if rel in _SIZES:
-        return _SIZES[rel]
-    size = None
-    f = SRC / rel
-    try:
-        with open(f, "rb") as fh:
-            head = fh.read(26)
-            if head[:8] == b"\x89PNG\r\n\x1a\n":
-                size = (int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big"))
-            elif head[:2] == b"\xff\xd8":
-                fh.seek(2)
-                while True:
-                    b = fh.read(1)
-                    while b and b != b"\xff":
-                        b = fh.read(1)
-                    m = fh.read(1)
-                    while m == b"\xff":
-                        m = fh.read(1)
-                    if not m:
-                        break
-                    if m[0] in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
-                        fh.read(3)
-                        h, w = int.from_bytes(fh.read(2), "big"), int.from_bytes(fh.read(2), "big")
-                        size = (w, h)
-                        break
-                    if m[0] in (0xD8, 0x01) or 0xD0 <= m[0] <= 0xD7:
-                        continue
-                    fh.seek(int.from_bytes(fh.read(2), "big") - 2, 1)
-    except (OSError, ValueError):
-        size = None
-    _SIZES[rel] = size
-    return size
-
-
 def img(src, alt="", cls="", lazy=True, extra=""):
     c = f' class="{cls}"' if cls else ""
     l = ' loading="lazy"' if lazy else ""
-    s = img_size(src)
-    dims = f' width="{s[0]}" height="{s[1]}"' if s else ""
-    return f'<img src="{asset(src)}" alt="{e(alt)}"{c}{l}{dims} decoding="async"{extra}>'
+    return f'<img src="{asset(src)}" alt="{e(alt)}"{c}{l} decoding="async"{extra}>'
 
 
 def cascade(text):
@@ -203,7 +161,7 @@ ASSET_V = ""
 def build_assets():
     """Concatenate CSS and JS, fingerprint them, and copy vendor files."""
     global ASSET_V
-    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme"]
+    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic"]
     css = "\n".join((SRC / "css" / f"{n}.css").read_text(encoding="utf-8") for n in css_order)
     css = css.replace("../assets/", "/assets/")
     mods = sorted((SRC / "js" / "modules").glob("*.js"))
@@ -231,12 +189,6 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&fa
          "&family=Bodoni+Moda:wght@600;700&display=swap")
 
 
-# The two self-hosted faces used above the fold are preloaded; Google Fonts load without blocking render.
-FONT_PRELOADS = "".join(
-    f'<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/{f}.woff2" crossorigin>\n'
-    for f in ("general-sans/general-sans-400", "general-sans/general-sans-600", "clash-display/clash-display-600"))
-
-
 def dock(path):
     items = []
     for href, label, d in DOCK:
@@ -250,32 +202,18 @@ def dock(path):
 
 
 PRELOADER = """<div class="preloader" role="status" aria-live="polite">
-<img src="/assets/images/brand/swk-logo-dark.png" alt="" class="preloader__logo" width="338" height="275" fetchpriority="high">
+<img src="/assets/images/brand/swk-logo.png" alt="" class="preloader__logo">
 <div class="preloader__spinner" aria-hidden="true"></div><span class="preloader__text">Loading...</span></div>
 <script>
 (function () {
   var el = document.querySelector('.preloader');
   if (!el) return;
   // Only reveal the loader if the page hasn't finished within 300ms, so it never flashes on a fast connection.
-  window.__swkPreloaderTimer = setTimeout(function () { window.__swkShownAt = Date.now(); el.classList.add('is-visible'); }, 300);
+  window.__swkPreloaderTimer = setTimeout(function () { el.classList.add('is-visible'); }, 300);
   // Safety net independent of main.js: the loader can never trap a visitor.
   setTimeout(function () { var x = document.querySelector('.preloader'); if (x && x.parentNode) x.parentNode.removeChild(x); }, 8000);
 })();
 </script>"""
-
-
-STATS = [("10", "+", "Years in Dubai"), ("100", "+", "Homes Sold"), ("40", "+", "Consultants"), ("100", "%", "Client Satisfaction")]
-STAT_HUES = [("214 88% 52%", "214 80% 32%"), ("40 92% 50%", "34 90% 30%"), ("176 80% 38%", "176 90% 21%"), ("12 82% 54%", "10 80% 36%")]
-RIBBON = ('<section class="container stat-ribbon" aria-label="SWK Properties at a glance">' + "".join(
-    f'<div class="stat-ribbon__card" style="--tc:{STAT_HUES[i][0]};--tc-ink:{STAT_HUES[i][1]}"><div class="stat-ribbon__num" data-count="{n}" data-suffix="{s}">{n}{s}</div>'
-    f'<div class="stat-ribbon__label">{l}</div></div>' for i, (n, s, l) in enumerate(STATS)) + "</section>")
-
-SKYLINE = """<div class="skyline" aria-hidden="true" data-parallax-group>
-<div class="skyline__sun"></div>
-<div class="skyline__layer skyline__layer--back" data-depth="0.22"></div>
-<div class="skyline__layer skyline__layer--mid" data-depth="0.12"></div>
-<div class="skyline__layer skyline__layer--front" data-depth="0.04"></div>
-</div>"""
 
 
 def footer():
@@ -291,7 +229,7 @@ def footer():
 <a href="{WA_DEFAULT}" class="whatsapp-float" aria-label="Chat with SWK Properties on WhatsApp" target="_blank" rel="noopener noreferrer">{WHATSAPP}</a>
 <div class="footer-glow" aria-hidden="true"><div class="footer-glow__blob footer-glow__blob--a"></div><div class="footer-glow__blob footer-glow__blob--b"></div></div>
 <div class="container footer-card"><div class="footer-grid">
-<div class="footer-col"><a href="/" class="brand" style="color:var(--cream-50)"><img src="/assets/images/brand/swk-logo.png" alt="SWK Properties" class="brand-logo" width="44" height="44" loading="lazy" decoding="async"></a>
+<div class="footer-col"><a href="/" class="brand" style="color:var(--cream-50)"><img src="/assets/images/brand/swk-logo.png" alt="SWK Properties" class="brand-logo" loading="lazy" decoding="async"></a>
 <p style="margin-top:var(--space-4); max-width:34ch">A premium Dubai real estate agency helping investors and homeowners buy, sell and manage property with confidence.</p>
 <div class="social-row">
 <a href="{SITE['instagram']}" target="_blank" rel="noopener noreferrer" aria-label="SWK Properties on Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
@@ -328,8 +266,8 @@ def head(path, title, desc, image, ld, og_type, robots, preload):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
-<meta name="theme-color" content="#f7faff">
-<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#07090d">
+<meta name="color-scheme" content="dark">
 <link rel="canonical" href="{url}">
 {rb}<meta property="og:type" content="{og_type}">
 <meta property="og:site_name" content="{SITE['name']}">
@@ -342,14 +280,12 @@ def head(path, title, desc, image, ld, og_type, robots, preload):
 <meta name="twitter:title" content="{e(title)}">
 <meta name="twitter:description" content="{e(desc)}">
 <meta name="twitter:image" content="{og}">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/images/brand/favicon-32.png">
-<link rel="apple-touch-icon" href="/assets/images/brand/favicon-app.png">
+<link rel="icon" type="image/png" href="/assets/images/brand/favicon.png">
 <script>document.documentElement.classList.add('js');</script>
-{pre}{FONT_PRELOADS}<link rel="preconnect" href="https://fonts.googleapis.com/">
+{pre}<link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link href="{FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/site.css?v={ASSET_V}">
-<link href="{FONTS}" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="{FONTS}" rel="stylesheet"></noscript>
 {ld_json}</head>"""
 
 
@@ -359,7 +295,7 @@ def page(path, title, desc, body, *, image=PAGE_HERO_IMG, ld=None, og_type="webs
 <div class="scroll-progress" aria-hidden="true"></div>
 {PRELOADER}
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header-bar"><a href="/" class="site-brand" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-dark.png" alt="SWK Properties" class="brand-logo" width="47" height="38" decoding="async" fetchpriority="high"></a></header>
+<header class="site-header-bar"><a href="/" class="site-brand" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo.png" alt="SWK Properties" class="brand-logo" decoding="async"></a></header>
 {dock(path)}
 <main id="main">
 {body}
@@ -503,7 +439,7 @@ def cta_section(title="Ready to find your next address in Dubai?", text="Tell us
 
 def org_ld():
     return {"@context": "https://schema.org", "@type": "RealEstateAgent", "@id": BASE + "/#org", "name": SITE["name"], "url": BASE + "/",
-            "logo": f"{BASE}/assets/images/brand/swk-logo-dark.png", "image": f"{BASE}/assets/images/{PAGE_HERO_IMG}",
+            "logo": f"{BASE}/assets/images/brand/swk-logo.png", "image": f"{BASE}/assets/images/{PAGE_HERO_IMG}",
             "telephone": SITE["phone"], "email": SITE["email"], "areaServed": "Dubai, United Arab Emirates", "foundingDate": str(SITE["founded"]),
             "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "addressLocality": "Dubai", "addressCountry": "AE"},
             "geo": {"@type": "GeoCoordinates", "latitude": SITE["geo"][0], "longitude": SITE["geo"][1]},
@@ -558,11 +494,11 @@ def build_home():
 <script type="application/json" id="team-data">{json.dumps([{"name": t["name"], "role": t["role"], "bio": t["bio"]} for t in TEAM], ensure_ascii=False).replace("</", "<\\/")}</script>"""
 
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-day-mobile.jpg">
-<img src="/assets/images/hero/dubai-day.jpg" alt="Dubai skyline on a clear day" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
+<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/city-sparkles-static-mobile.jpg">
+<img src="/assets/images/hero/city-sparkles-static.jpg" alt="Dubai city lights at night" fetchpriority="high" decoding="async"></picture></div>
 <canvas class="hero__gl" aria-hidden="true"></canvas>
 <div class="hero__scrim"></div><div class="hero__vignette"></div><div class="hero__grain" aria-hidden="true"></div><div class="hero__streak" aria-hidden="true"></div>
-<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In full light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
+<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>After dark.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__bar hero__bar--top" aria-hidden="true"></div><div class="hero__bar hero__bar--bottom" aria-hidden="true"></div>
 <div class="hero__content container">
 <span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>
@@ -573,9 +509,6 @@ def build_home():
 </div>
 <div class="hero__scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section></div>
-
-{SKYLINE}
-{RIBBON}
 
 <section class="section container arc-gallery ambient-glow-host" data-arc-gallery>{GLOW}
 <div class="section-header center"><span class="eyebrow">Portfolio</span>{h2_cascade("A closer look at our listings")}
@@ -623,8 +556,8 @@ def build_home():
     write("/", page("/", "SWK Properties | Luxury Real Estate in Dubai",
                     "SWK Properties is a premium Dubai real estate agency — off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.",
                     body, ld=ld,
-                    preload=[("/assets/images/hero/dubai-day-mobile.jpg", ' media="(max-width: 767px)" fetchpriority="high"'),
-                             ("/assets/images/hero/dubai-day.jpg", ' media="(min-width: 768px)" fetchpriority="high"')]))
+                    preload=[("/assets/images/hero/city-sparkles-static-mobile.jpg", ' media="(max-width: 767px)" fetchpriority="high"'),
+                             ("/assets/images/hero/city-sparkles-static.jpg", ' media="(min-width: 768px)" fetchpriority="high"')]))
 
 
 def build_properties():
@@ -709,7 +642,7 @@ def build_about():
               ("One Point of Contact", "The consultant who takes your first call is the one who sees your deal through to handover."),
               ("Long-Term Relationships", "Most of our new business comes from repeat clients and referrals — that's the metric we optimise for.")]
     steps = "".join(f'<div class="step-item" data-reveal data-reveal-delay="{i * 80}"><div class="num">{i + 1:02d}</div><div><h3>{e(t)}</h3><p>{e(d)}</p></div></div>' for i, (t, d) in enumerate(values))
-    stats = STATS
+    stats = [("10", "+", "Years in Dubai"), ("100", "+", "Homes Sold"), ("40", "+", "Consultants"), ("100", "%", "Client Satisfaction")]
     stat_html = "".join(f'<div><div class="stat-num" data-count="{n}" data-suffix="{s}">{n}{s}</div><div class="stat-label">{l}</div></div>' for n, s, l in stats)
     trail = [("Home", "/"), ("About", None)]
     body = f"""{page_hero("Ten years of getting Dubai property right", "SWK Properties was founded on a simple idea: buying a home in Dubai — whether you live down the road or on the other side of the world — should feel transparent, not transactional.", trail)}
@@ -825,7 +758,7 @@ def build_blog():
         ld = [breadcrumb_ld(tr), {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "datePublished": p["date"], "dateModified": p["date"],
               "description": p["excerpt"], "image": f"{BASE}/{p['image']}", "mainEntityOfPage": f"{BASE}/blog/{p['slug']}/",
               "author": {"@type": "Organization", "name": SITE["name"]},
-              "publisher": {"@type": "Organization", "name": SITE["name"], "logo": {"@type": "ImageObject", "url": f"{BASE}/assets/images/brand/swk-logo-dark.png"}}}]
+              "publisher": {"@type": "Organization", "name": SITE["name"], "logo": {"@type": "ImageObject", "url": f"{BASE}/assets/images/brand/swk-logo.png"}}}]
         long_title = f"{p['title']} | SWK Properties"
         write(f"/blog/{p['slug']}/", page(f"/blog/{p['slug']}/", long_title if len(long_title) <= 70 else p["title"], p["excerpt"], b,
                                            image=p["image"].replace("assets/images/", ""), ld=ld, og_type="article"))

@@ -114,7 +114,7 @@
 
 @media (min-width: 560px) { .pd-facts { grid-template-columns: repeat(4, 1fr); } }
 
-.pd-facts .fact .label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-subtle); }
+.pd-facts .fact .label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em; color: var(--slate-500); }
 .pd-facts .fact .value { font-family: var(--font-display); font-size: var(--fs-lg); margin-top: 4px; }
 
 .pd-sidebar {
