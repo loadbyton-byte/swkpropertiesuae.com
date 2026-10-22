@@ -22,7 +22,7 @@
 
 .hero-cine { position: relative; }
 
-.js .hero-cine { height: 230vh; height: 230svh; }
+.js .hero-cine { height: 175vh; height: 175svh; }
 @media (max-width: 767px) {
   .js .hero-cine { height: 200vh; height: 200svh; }
 }

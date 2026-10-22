@@ -168,9 +168,9 @@ const SKY_FRAG = /* glsl */ `
   void main() {
     vec3 d = normalize(vDir);
     float y = d.y;
-    vec3 zenith = vec3(0.46, 0.60, 0.86);
-    vec3 mid    = vec3(0.80, 0.76, 0.88);
-    vec3 hor    = vec3(1.0, 0.86, 0.66);
+    vec3 zenith = vec3(0.30, 0.50, 0.90);
+    vec3 mid    = vec3(0.90, 0.66, 0.80);
+    vec3 hor    = vec3(1.0, 0.74, 0.44);
     vec3 col = mix(hor, mid, smoothstep(0.0, 0.2, y));
     col = mix(col, zenith, smoothstep(0.16, 0.8, y));
 
@@ -182,7 +182,7 @@ const SKY_FRAG = /* glsl */ `
     col += vec3(1.0, 0.97, 0.88) * smoothstep(0.9990, 0.9997, sd) * 1.6;
 
     // Soft drifting cumulus on a plane above the camera.
-    vec2 cuv = d.xz / (max(y, 0.0) + 0.22) * 0.9 + vec2(uTime * 0.012, 0.0);
+    vec2 cuv = d.xz / (max(y, 0.0) + 0.22) * 0.9 + vec2(uTime * 0.03, uTime * 0.004);
     float c = fbm(cuv * 1.3);
     float cm = smoothstep(0.52, 0.78, c) * smoothstep(0.02, 0.2, y);
     vec3 cloud = mix(vec3(1.0, 0.96, 0.92), vec3(0.93, 0.76, 0.76), smoothstep(0.55, 0.9, c));
@@ -343,6 +343,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(52, 1, 0.5, 1400);
   const rand = mulberry32(20160607);
+  scene.fog = new THREE.FogExp2(FOG_COLOR.getHex(), 0.0034);
 
   const uniforms = {
     uTime: { value: 0 },
@@ -482,6 +483,51 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   buildings.frustumCulled = false;
   scene.add(buildings);
 
+
+  // ---- Street furniture: date palms and lamp posts along the boulevard
+  {
+    const trunkGeo = new THREE.CylinderGeometry(0.28, 0.5, 1, 6);
+    trunkGeo.translate(0, 0.5, 0);
+    const crownGeo = new THREE.ConeGeometry(3.3, 2.4, 7);
+    crownGeo.translate(0, 1.3, 0);
+    const lampGeo = new THREE.CylinderGeometry(0.12, 0.16, 1, 5);
+    lampGeo.translate(0, 0.5, 0);
+    const bulbGeo = new THREE.SphereGeometry(0.55, 8, 6);
+    const trunkMat = new THREE.MeshBasicMaterial({ color: 0x8a6a4c });
+    const crownMat = new THREE.MeshBasicMaterial({ color: 0x4f8a52 });
+    const lampMat = new THREE.MeshBasicMaterial({ color: 0x2b3750 });
+    const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffd58a });
+    const N = mobile ? 26 : 44;
+    const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, N * 2);
+    const crowns = new THREE.InstancedMesh(crownGeo, crownMat, N * 2);
+    const lamps = new THREE.InstancedMesh(lampGeo, lampMat, N * 2);
+    const bulbs = new THREE.InstancedMesh(bulbGeo, bulbMat, N * 2);
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const v = new THREE.Vector3();
+    const sv = new THREE.Vector3();
+    let k = 0;
+    for (let i = 0; i < N; i++) {
+      for (const side of [-1, 1]) {
+        const z = 70 - i * 15;
+        const jitter = (rand() - 0.5) * 1.2;
+        const hT = 9 + rand() * 3.5;
+        q.setFromAxisAngle(axisY, rand() * 6.28);
+        v.set(side * (10.5 + jitter), 0, z); sv.set(1, hT, 1);
+        m.compose(v, q, sv); trunks.setMatrixAt(k, m);
+        v.set(side * (10.5 + jitter), hT, z); sv.set(1, 1, 1);
+        m.compose(v, q, sv); crowns.setMatrixAt(k, m);
+        const lz = z - 7.5;
+        v.set(side * 8.2, 0, lz); sv.set(1, 7.5, 1);
+        m.compose(v, q, sv); lamps.setMatrixAt(k, m);
+        v.set(side * 8.2, 7.7, lz); sv.set(1, 1, 1);
+        m.compose(v, q, sv); bulbs.setMatrixAt(k, m);
+        k++;
+      }
+    }
+    [trunks, crowns, lamps, bulbs].forEach((o) => { o.frustumCulled = false; scene.add(o); });
+  }
+
   // ---- Traffic light streaks
   const carCount = mobile ? 150 : 260;
   const carGeo = new THREE.BufferGeometry();
@@ -594,11 +640,11 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   }
 
   function placeCamera(dt) {
-    const k = 1 - Math.exp(-dt * 4.5);
+    const k = 1 - Math.exp(-dt * 7.5);
     cur.p += (state.p - cur.p) * k;
     cur.px += (state.px - cur.px) * (1 - Math.exp(-dt * 3));
     cur.py += (state.py - cur.py) * (1 - Math.exp(-dt * 3));
-    introT = Math.min(1, introT + dt / 3.4);
+    introT = Math.min(1, introT + dt / 2.2);
     const ie = easeOutCubic(introT);
     const p = clamp(cur.p, 0, 1);
     const e = easeInOutSine(p);
@@ -608,7 +654,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     camera.position.set(clamp(x, -9.5, 9.5), y, z);
     const lookY = lerp(52, 12, Math.pow(p, 0.9)) + cur.py * 2;
     camera.lookAt(clamp(x * 0.35 + cur.px * 7, -14, 14), lookY, z - 220);
-    camera.rotation.z += Math.sin(p * Math.PI * 2) * 0.03 + cur.px * -0.012;
+    camera.rotation.z += Math.sin(p * Math.PI * 2) * 0.03 + cur.px * -0.012 + Math.sin(clock * 0.9) * 0.0025;
     const baseFov = camera.userData.portrait ? 70 : 56;
     const fov = baseFov + 12 * p - 5 * (1 - ie);
     if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }

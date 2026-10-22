@@ -47,9 +47,9 @@ BUDGETS = [
     ("6000000-10000000", "AED 6M - 10M"),
     ("10000000", "AED 10M+"),
 ]
-FEATURE_THEMES = ["215 62% 22%", "30 50% 32%", "205 48% 25%", "24 44% 29%", "222 52% 27%"]
-SERVICE_THEMES = ["215 52% 32%", "32 56% 42%", "205 46% 34%", "24 46% 38%", "222 44% 36%", "215 12% 42%"]
-PAGE_HERO_IMG = "hero/dubai-skyline-hero.jpg"
+FEATURE_THEMES = ["215 70% 34%", "16 72% 46%", "180 62% 31%", "38 86% 44%", "276 40% 40%"]
+SERVICE_THEMES = ["215 70% 38%", "16 72% 48%", "180 62% 32%", "38 86% 46%", "276 40% 44%", "150 48% 33%"]
+PAGE_HERO_IMG = "og/default.jpg"
 
 
 def money(n):
@@ -96,7 +96,7 @@ _SIZES = {}
 
 
 def img_size(src):
-    """Intrinsic (width, height) of a PNG/JPEG under src/assets, read from its header (stdlib only)."""
+    """Intrinsic (width, height) of a PNG/JPEG/WebP under src/assets, read from its header (stdlib only)."""
     rel = src.lstrip("/")
     if rel in _SIZES:
         return _SIZES[rel]
@@ -104,9 +104,18 @@ def img_size(src):
     f = SRC / rel
     try:
         with open(f, "rb") as fh:
-            head = fh.read(26)
+            head = fh.read(32)
             if head[:8] == b"\x89PNG\r\n\x1a\n":
                 size = (int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big"))
+            elif head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+                kind = head[12:16]
+                if kind == b"VP8 ":
+                    size = (int.from_bytes(head[26:28], "little") & 0x3FFF, int.from_bytes(head[28:30], "little") & 0x3FFF)
+                elif kind == b"VP8L":
+                    bits = int.from_bytes(head[21:25], "little")
+                    size = ((bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1)
+                elif kind == b"VP8X":
+                    size = (int.from_bytes(head[24:27], "little") + 1, int.from_bytes(head[27:30], "little") + 1)
             elif head[:2] == b"\xff\xd8":
                 fh.seek(2)
                 while True:
@@ -132,12 +141,19 @@ def img_size(src):
     return size
 
 
-def img(src, alt="", cls="", lazy=True, extra=""):
+SIZES_CARD = "(min-width: 1100px) 380px, (min-width: 640px) 50vw, 100vw"
+
+
+def img(src, alt="", cls="", lazy=True, extra="", sizes=SIZES_CARD):
     c = f' class="{cls}"' if cls else ""
     l = ' loading="lazy"' if lazy else ""
     s = img_size(src)
     dims = f' width="{s[0]}" height="{s[1]}"' if s else ""
-    return f'<img src="{asset(src)}" alt="{e(alt)}"{c}{l}{dims} decoding="async"{extra}>'
+    srcset = ""
+    small = src.rsplit(".", 1)[0] + "-640.webp"
+    if src.endswith(".webp") and (SRC / small.lstrip("/")).is_file() and s and s[0] > 700:
+        srcset = f' srcset="{asset(small)} 640w, {asset(src)} {s[0]}w" sizes="{sizes}"'
+    return f'<img src="{asset(src)}" alt="{e(alt)}"{c}{l}{dims}{srcset} decoding="async"{extra}>'
 
 
 def cascade(text):
@@ -292,7 +308,7 @@ VALUES = ('<section class="value-strip" aria-labelledby="values-title"><h2 id="v
 
 STATS = [("10", "+", "Years in Dubai"), ("100", "+", "Homes Sold"), ("40", "+", "Consultants"), ("100", "%", "Client Satisfaction")]
 STORY = ('<section class="section container story ambient-glow-host">' + GLOW + '<div class="story__grid">'
-         '<div class="story__media" data-reveal>' + img("assets/images/about/swk-office.jpg", "SWK Properties office overlooking Business Bay") + '</div>'
+         '<div class="story__media" data-reveal>' + img("assets/images/about/swk-office.webp", "SWK Properties office overlooking Business Bay", sizes="(min-width: 900px) 600px, 100vw") + '</div>'
          '<div class="story__copy" data-reveal><span class="eyebrow">Why SWK</span><h2>Built by agents, run for clients</h2>'
          '<p>SWK Properties was started in 2016 by a small team of agents frustrated with how opaque property buying in Dubai could feel for outsiders. '
          'Every fee, every payment plan clause and every ROI figure gets explained in plain language before you sign anything.</p>'
@@ -347,7 +363,7 @@ def footer():
 
 def head(path, title, desc, image, ld, og_type, robots, preload):
     url = BASE + path
-    og = f"{BASE}/assets/images/{image}"
+    og = f"{BASE}/assets/{image}"
     ld_json = "".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>\n' for x in (ld or []))
     rb = f'<meta name="robots" content="{robots}">\n' if robots else ""
     pre = "".join(f'<link rel="preload" as="image" href="{u}"{a}>\n' for u, a in (preload or []))
@@ -529,7 +545,7 @@ def cta_section(title="Ready to find your next address in Dubai?", text="Tell us
 
 def org_ld():
     return {"@context": "https://schema.org", "@type": "RealEstateAgent", "@id": BASE + "/#org", "name": SITE["name"], "url": BASE + "/",
-            "logo": f"{BASE}/assets/images/brand/swk-logo.png", "image": f"{BASE}/assets/images/{PAGE_HERO_IMG}",
+            "logo": f"{BASE}/assets/images/brand/swk-logo.png", "image": f"{BASE}/assets/{PAGE_HERO_IMG}",
             "telephone": SITE["phone"], "email": SITE["email"], "areaServed": "Dubai, United Arab Emirates", "foundingDate": str(SITE["founded"]),
             "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "addressLocality": "Dubai", "addressCountry": "AE"},
             "geo": {"@type": "GeoCoordinates", "latitude": SITE["geo"][0], "longitude": SITE["geo"][1]},
@@ -549,7 +565,7 @@ def build_home():
               + select("s-status", "status", "Status", status_opts, "Any status"))
     gallery = "".join(
         f'<button type="button" class="fan-card" data-fan-card="{i}" aria-label="Open photo {i + 1} of 25">'
-        f'{img(f"assets/images/gallery/image{i + 1}.jpg", "", "", lazy=i >= 7)}</button>' for i in range(25))
+        f'{img(f"assets/images/gallery/image{i + 1}.webp", "", "", lazy=i >= 7, sizes="(min-width: 700px) 20vw, 45vw")}</button>' for i in range(25))
     dots = "".join(f'<span class="fan-dot" data-fan-dot="{i}"></span>' for i in range(25))
     featured = [p for p in PROPS if p["featured"]][:6] or PROPS[:6]
     feat_cards = "".join(feature_card(p, i) for i, p in enumerate(featured))
@@ -564,7 +580,7 @@ def build_home():
         n = count_in(c["name"])
         label = f"{n} listing{'s' if n != 1 else ''}" if n else "Ask about availability"
         comm_cards += f"""<a class="community-card" data-reveal data-reveal-delay="{(i % 4) * 70}" href="/properties/?community={quote(c['name'])}" aria-label="View properties in {e(c['name'])}">
-{img(c['image'], f"{c['name']}, Dubai")}<div class="community-card__overlay"><h3>{e(c['name'])}</h3><span class="community-card__count">{label}</span></div></a>"""
+{img(c['image'], f"{c['name']}, Dubai", sizes="(min-width: 1100px) 290px, (min-width: 640px) 25vw, 50vw")}<div class="community-card__overlay"><h3>{e(c['name'])}</h3><span class="community-card__count">{label}</span></div></a>"""
 
     svc_cards = ""
     for i, s in enumerate(SERVICES):
@@ -584,8 +600,8 @@ def build_home():
 <script type="application/json" id="team-data">{json.dumps([{"name": t["name"], "role": t["role"], "bio": t["bio"]} for t in TEAM], ensure_ascii=False).replace("</", "<\\/")}</script>"""
 
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-golden-mobile.jpg">
-<img src="/assets/images/hero/dubai-golden.jpg" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
+<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-golden-mobile.webp">
+<img src="/assets/images/hero/dubai-golden.webp" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
 <canvas class="hero__gl" aria-hidden="true"></canvas>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
@@ -650,8 +666,8 @@ def build_home():
     write("/", page("/", "SWK Properties | Luxury Real Estate in Dubai",
                     "SWK Properties is a premium Dubai real estate agency — off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.",
                     body, ld=ld,
-                    preload=[("/assets/images/hero/dubai-golden-mobile.jpg", ' media="(max-width: 767px)" fetchpriority="high"'),
-                             ("/assets/images/hero/dubai-golden.jpg", ' media="(min-width: 768px)" fetchpriority="high"')]))
+                    preload=[("/assets/images/hero/dubai-golden-mobile.webp", ' media="(max-width: 767px)" fetchpriority="high"'),
+                             ("/assets/images/hero/dubai-golden.webp", ' media="(min-width: 768px)" fetchpriority="high"')]))
 
 
 def build_properties():
@@ -692,7 +708,7 @@ def build_property(p):
     for i, src in enumerate(images):
         alt = f"{p['title']} — photo {i + 1}"
         tiles += (f'<button type="button" class="pd-bento-gallery__item" data-lightbox-index="{i}" data-full="{asset(src)}" aria-label="Open photo {i + 1} of {len(images)}">'
-                  f'{img(src, alt, lazy=i > 2)}<span class="pd-bento-gallery__overlay"><span class="pd-bento-gallery__caption">Photo {i + 1}</span></span></button>')
+                  f'{img(src, alt, lazy=i > 2, sizes="(min-width: 1024px) 50vw, 100vw")}<span class="pd-bento-gallery__overlay"><span class="pd-bento-gallery__caption">Photo {i + 1}</span></span></button>')
     facts = [("Type", p["type"]), ("Bedrooms", p["bedrooms"]), ("Bathrooms", str(p["bathrooms"])), ("Area", f"{num(p['areaSqft'])} sqft"),
              ("Payment plan", p["paymentPlan"]), ("Handover", p["handover"]), ("Developer", p["developer"]), ("Est. ROI", f"{p['roiPercent']:g}%")]
     facts_html = "".join(f'<div class="fact"><div class="label">{k}</div><div class="value">{e(v)}</div></div>' for k, v in facts)
@@ -714,7 +730,7 @@ def build_property(p):
 <div class="pd-agent-card"><div class="pd-price"><small>Starting price</small><br>{money(p['price'])}</div>
 <div class="pd-cta" style="margin-top:var(--space-5)"><a href="/contact/?property={p['id']}" class="btn btn-primary btn-block">Request details</a>
 <a href="{wa(f"Hello SWK Properties, I'd like details on {p['title']}.")}" class="btn btn-whatsapp btn-block" target="_blank" rel="noopener noreferrer">Ask on WhatsApp</a></div></div>
-<div class="pd-agent-card">{img("assets/images/team/mohd-shahid-khan.jpg", "Mohd Shahid Khan")}<p class="pd-agent-name">Mohd Shahid Khan</p><p>Your point of contact for this listing</p></div>
+<div class="pd-agent-card">{img("assets/images/team/mohd-shahid-khan.webp", "Mohd Shahid Khan")}<p class="pd-agent-name">Mohd Shahid Khan</p><p>Your point of contact for this listing</p></div>
 </aside></div></section>
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header"><span class="eyebrow">You may also like</span><h2>Similar properties</h2></div>
 <div class="property-grid">{"".join(prop_card(q) for q in similar)}</div></div></section>"""
@@ -723,7 +739,7 @@ def build_property(p):
           "url": f"{BASE}/properties/{p['id']}/", "image": f"{BASE}/assets/images/{cover}",
           "offers": {"@type": "Offer", "price": p["price"], "priceCurrency": p["currency"]}}]
     desc = f"{p['title']} in {location(p)} by {p['developer']} — {money(p['price'])}, {p['bedrooms']} bed, {p['status']}. {p['paymentPlan']} payment plan, handover {p['handover']}."
-    write(f"/properties/{p['id']}/", page(f"/properties/{p['id']}/", f"{p['title']} | SWK Properties", desc, body, image=cover, ld=ld))
+    write(f"/properties/{p['id']}/", page(f"/properties/{p['id']}/", f"{p['title']} | SWK Properties", desc, body, image=f"og/{p['id']}.jpg", ld=ld))
 
 
 def build_about():
@@ -740,7 +756,7 @@ def build_about():
     stat_html = "".join(f'<div><div class="stat-num" data-count="{n}" data-suffix="{s}">{n}{s}</div><div class="stat-label">{l}</div></div>' for n, s, l in stats)
     trail = [("Home", "/"), ("About", None)]
     body = f"""{page_hero("Ten years of getting Dubai property right", "SWK Properties was founded on a simple idea: buying a home in Dubai — whether you live down the road or on the other side of the world — should feel transparent, not transactional.", trail)}
-<section class="section container ambient-glow-host">{GLOW}<div class="split-block">{img("assets/images/about/swk-office.jpg", "SWK Properties office overlooking Business Bay")}
+<section class="section container ambient-glow-host">{GLOW}<div class="split-block">{img("assets/images/about/swk-office.webp", "SWK Properties office overlooking Business Bay", sizes="(min-width: 900px) 600px, 100vw")}
 <div data-reveal><span class="eyebrow">Our Story</span><h2>Built by agents, run for clients</h2>
 <p>SWK Properties was started in 2016 by a small team of agents frustrated with how opaque property buying in Dubai could feel for outsiders. Today we're a full-service brokerage of over 40 consultants, but the founding principle hasn't changed: every fee, every payment plan clause, and every ROI figure gets explained in plain language before you sign anything.</p>
 <p style="margin-top:var(--space-4)">We work across off-plan and secondary sales, mortgage arrangement, and long-term property management — so the relationship doesn't end at handover.</p>
@@ -752,7 +768,7 @@ def build_about():
 {cta_section("Let's find your next Dubai address", "Book a no-obligation consultation and we'll come prepared with listings matched to your budget.")}"""
     write("/about/", page("/about/", "About Us | SWK Properties",
                           "SWK Properties is a Dubai-based real estate agency built on ten years of local market expertise, transparent advice, and full-service support for buyers and investors.",
-                          body, image="about/swk-office.jpg", ld=[breadcrumb_ld(trail), org_ld()]))
+                          body, image="og/about.jpg", ld=[breadcrumb_ld(trail), org_ld()]))
 
 
 def build_services():
@@ -855,7 +871,7 @@ def build_blog():
               "publisher": {"@type": "Organization", "name": SITE["name"], "logo": {"@type": "ImageObject", "url": f"{BASE}/assets/images/brand/swk-logo.png"}}}]
         long_title = f"{p['title']} | SWK Properties"
         write(f"/blog/{p['slug']}/", page(f"/blog/{p['slug']}/", long_title if len(long_title) <= 70 else p["title"], p["excerpt"], b,
-                                           image=p["image"].replace("assets/images/", ""), ld=ld, og_type="article"))
+                                           image=f"og/blog-{p['slug']}.jpg", ld=ld, og_type="article"))
 
 
 def legal(path, title, desc, sections):

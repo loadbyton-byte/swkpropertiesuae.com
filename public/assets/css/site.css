@@ -3413,7 +3413,7 @@ img.is-broken {
 
 .hero-cine { position: relative; }
 
-.js .hero-cine { height: 230vh; height: 230svh; }
+.js .hero-cine { height: 175vh; height: 175svh; }
 @media (max-width: 767px) {
   .js .hero-cine { height: 200vh; height: 200svh; }
 }
@@ -4245,7 +4245,7 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
   z-index: -1;
   background:
     linear-gradient(90deg, #0f2244 0%, rgba(15, 34, 68, 0.55) 40%, rgba(15, 34, 68, 0) 100%),
-    url('/assets/images/hero/dubai-skyline-hero.jpg') center / cover;
+    url('/assets/images/hero/dubai-skyline-hero.webp') center / cover;
 }
 
 @media (max-width: 767px) { .cta-band__art { inset: 0; opacity: 0.28; } }
@@ -4273,3 +4273,14 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
 /* Hero secondary button reads over the scene. */
 .hero__ctas .btn-outline-dark { background: rgba(255, 255, 255, 0.78); border-color: rgba(15, 34, 68, 0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .hero__ctas .btn-outline-dark:hover { background: #ffffff; border-color: var(--navy-950); }
+
+/* ---- Colour: richer accents inside the cream / navy / tan palette ---- */
+.service-card--themed { border-top: 3px solid hsl(var(--theme-color)); }
+.service-card--themed .service-card__decor { color: hsl(var(--theme-color)); }
+.service-card--themed .service-card__link { color: hsl(var(--theme-color)); }
+.stat-strip { background: linear-gradient(120deg, #fff4df 0%, #ffe9d6 40%, #e8f3f1 100%); }
+.stat-strip .stat-num { background: linear-gradient(120deg, #1a3a6e, #b3541f 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.section--alt { background: linear-gradient(to bottom, var(--color-bg) 0, #fbf1e1 90px, #f6ead6 calc(100% - 90px), var(--color-bg) 100%); }
+.value-strip { background: linear-gradient(100deg, #fff7e8, #fdeede 50%, #eaf4f2); }
+.eyebrow::before { background: linear-gradient(90deg, #c8892a, #c0562a); }
+.property-card__badge, .badge { box-shadow: 0 4px 12px rgba(179, 84, 31, 0.18); }
