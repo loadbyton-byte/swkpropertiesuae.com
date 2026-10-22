@@ -473,13 +473,18 @@ def csp_for(html_text):
     if fb:
         connect += ["https://www.facebook.com", "https://connect.facebook.net"]
     return ("default-src 'self'; script-src " + " ".join(script_src) + "; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; "
-            "font-src 'self'; media-src 'self' https://videos.pexels.com; connect-src " + " ".join(connect) + "; frame-src https://www.google.com https://maps.google.com; worker-src 'self' blob:; "
+            "font-src 'self'; connect-src " + " ".join(connect) + "; frame-src https://www.google.com https://maps.google.com; worker-src 'self' blob:; "
             "object-src 'none'; base-uri 'self'; form-action 'self' mailto:")
 
 
-HERO_POSTER = "https://images.pexels.com/videos/31383779/4k-aerial-ascend-building-31383779.jpeg?auto=compress&cs=tinysrgb&h=720&w=1280"
-HERO_VIDEO_HD = "https://videos.pexels.com/video-files/31383779/13391463_1280_720_60fps.mp4"
-HERO_VIDEO_SD = "https://videos.pexels.com/video-files/31383779/13391462_960_540_60fps.mp4"
+HERO_POSTER = "/assets/images/hero/dubai-skyline-hero.webp"
+
+# Real photographs used as textured planes for the boulevard fly-through (left wall, right wall).
+WALL_L = ["properties/rise-by-athlon-1", "properties/jvc-boulevard-residences-1", "properties/business-bay-executive-tower-1", "communities/business-bay",
+          "properties/marina-sky-penthouse-1", "properties/golf-fields-1", "communities/downtown-dubai", "properties/hills-estate-golf-mansion-1"]
+WALL_R = ["properties/river-cove-residences-1", "properties/palm-garden-homes-1", "properties/raw-district-2-1", "communities/sheikh-zayed-road",
+          "properties/villa-sanctuary-1", "communities/dubai-marina", "properties/islands-2-1", "communities/dubai-creek-harbour"]
+AD_AT = {1: 0, 3: 1, 5: 2, 7: 3, 9: 4, 11: 5}   # wall index -> developer index
 
 
 def head(path, title, desc, image, ld, og_type, robots, preload):
@@ -787,15 +792,30 @@ def build_home():
 
     devs = []
     for q in PROPS:
-        d = q["developer"]
-        if d not in devs:
-            devs.append(d)
-    ad_html = "".join(f'<div class="ad ad--{i + 1}" data-ad><span class="ad__tag">Master developer</span><strong>{e(d)}</strong><i></i></div>' for i, d in enumerate(devs[:5]))
+        if q["developer"] not in devs:
+            devs.append(q["developer"])
+
+    def wall_src(path):
+        small = f"assets/images/{path}-640.webp"
+        return "/" + (small if (SRC / small).is_file() else f"assets/images/{path}.webp")
+
+    wall_parts = []
+    for side, lst in ((-1, WALL_L), (1, WALL_R)):
+        for i in range(12):
+            ph = lst[i % len(lst)] if i < len(lst) else lst[(i * 3 + 1) % len(lst)]
+            z = -260 - i * 640
+            ad = ""
+            if (i + (0 if side < 0 else 1)) % 2 == 1 and devs:
+                ad = f'<div class="wall__ad"><span>Master developer</span><strong>{e(devs[(i // 2 + (0 if side < 0 else 3)) % len(devs)])}</strong></div>'
+            wall_parts.append(f'<div class="wall" data-pz="{z}" style="--z:{z}px;--side:{side}"><img src="{wall_src(ph)}" alt="" decoding="async"><span class="wall__shade"></span>{ad}</div>')
+    wall_html = "".join(wall_parts)
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><img src="{HERO_POSTER}" alt="" width="1280" height="720" fetchpriority="high" decoding="async" referrerpolicy="no-referrer"></div>
-<video class="hero__video" muted playsinline preload="auto" aria-hidden="true" tabindex="-1" data-video-desktop="{HERO_VIDEO_HD}" data-video-mobile="{HERO_VIDEO_SD}" poster="{HERO_POSTER}" crossorigin="anonymous"></video>
+<div class="hero__bg"><img src="{HERO_POSTER}" alt="" width="1600" height="1067" fetchpriority="high" decoding="async"></div>
+<div class="hero__flight" aria-hidden="true"><div class="flight__back"><img src="{HERO_POSTER}" alt="" decoding="async"></div><div class="flight" data-flight>
+<div class="flight__road"><i></i></div>
+{wall_html}
+</div></div>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
-<div class="hero__ads" aria-hidden="true">{ad_html}</div>
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>Built to rise.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__content container">
 <span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>

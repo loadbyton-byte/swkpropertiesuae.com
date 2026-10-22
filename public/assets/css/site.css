@@ -4883,10 +4883,6 @@ a { color: inherit; }
 
 /* ---- Hero (video) ---- */
 .hero { background: #0a0908; }
-.hero__bg img, .hero__video { width: 100%; height: 100%; object-fit: cover; }
-.hero__video { position: absolute; inset: 0; z-index: 0; opacity: 0; transition: opacity .8s ease; will-change: transform;
-  transform: perspective(1600px) translate3d(calc(var(--tx, 0px) * -1), calc(var(--ty, 0px) * -1), 0) rotateX(calc(var(--p, 0) * 5deg)) scale(calc(1.04 + var(--p, 0) * 0.14)); filter: saturate(.95) contrast(1.05) brightness(.9); }
-.hero.is-gl .hero__video { opacity: 1; }
 .hero.is-gl .hero__bg { opacity: 1; }
 .hero__scrim { background:
   linear-gradient(90deg, rgba(8,7,6,.94) 0%, rgba(8,7,6,.78) 32%, rgba(8,7,6,.25) 62%, rgba(8,7,6,.05) 100%),
@@ -5118,7 +5114,6 @@ hr, .divider { border-color: var(--lx-line); }
 /* ==========================================================================
    Revision: flat (non-3D) footage push-in, developer "ad" signs, calmer headline
    ========================================================================== */
-.hero__video { transform: scale(calc(1.04 + var(--p, 0) * 0.2)) translate3d(0, calc(var(--p, 0) * -3%), 0); transform-origin: 62% 55%; }
 
 /* Headline: soft ivory with only a whisper of sheen */
 .hero__title .tw-char, .hero__title [data-typewriter]:not(:has(.tw-char)) {
@@ -5128,21 +5123,44 @@ hr, .divider { border-color: var(--lx-line); }
 .hero__title em, .hero__title em .tw-char { background-image: linear-gradient(180deg, #e8cba0 0%, #b98a57 100%); background-size: 100% 100%; background-position: 0 0; animation: none; }
 .page-hero__title { background-image: linear-gradient(180deg, #fffaf1 0%, #efe4d1 100%); background-size: 100% 100%; animation: none; filter: drop-shadow(0 3px 14px rgba(0, 0, 0, 0.5)); }
 
-/* Developer signs that light up along the scroll, as if mounted on the towers */
-.hero__ads { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-.ad { position: absolute; display: grid; gap: .15rem; padding: .7rem 1.1rem .8rem; min-width: 190px; text-align: center; border-radius: 6px;
-  background: linear-gradient(180deg, rgba(14, 18, 28, .88), rgba(8, 10, 16, .92)); border: 1px solid rgba(236, 211, 174, .55);
-  box-shadow: 0 0 0 3px rgba(8, 8, 8, .55), 0 0 38px rgba(236, 190, 120, .35), inset 0 0 22px rgba(236, 190, 120, .1);
-  opacity: var(--o, 0); transform: translate3d(0, var(--y, 0px), 0) scale(calc(.94 + var(--o, 0) * .06)); will-change: opacity, transform; }
-.ad strong { font-family: 'Inter', sans-serif; font-weight: 750; font-size: clamp(1.05rem, 1.1vw + .6rem, 1.55rem); letter-spacing: .08em; text-transform: uppercase; color: #fff7e8; text-shadow: 0 0 16px rgba(255, 214, 150, .75); }
-.ad__tag { font-family: var(--font-ui); font-size: .58rem; letter-spacing: .24em; text-transform: uppercase; color: var(--bz-2); }
-.ad i { position: absolute; left: 50%; top: 100%; width: 2px; height: 46px; transform: translateX(-50%); background: linear-gradient(180deg, rgba(236, 211, 174, .7), transparent); }
-.ad--1 { right: 9%; top: 19%; } .ad--2 { right: 32%; top: 34%; } .ad--3 { right: 6%; top: 49%; } .ad--4 { right: 27%; top: 14%; } .ad--5 { right: 15%; top: 61%; }
-@media (max-width: 767px) {
-  .ad { min-width: 0; padding: .45rem .75rem .5rem; }
-  .ad strong { font-size: .95rem; } .ad__tag { font-size: .5rem; } .ad i { height: 28px; }
-  .ad--1 { right: 5%; top: 22%; } .ad--2 { right: 8%; top: 40%; } .ad--3 { right: 5%; top: 30%; } .ad--4 { right: 10%; top: 24%; } .ad--5 { right: 6%; top: 44%; }
-}
-@media (prefers-reduced-motion: reduce) { .ad { display: none; } }
+
 .hero__title [data-typewriter] .tw-char, .hero__title .tw-char { filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.55)); }
 .hero__title em .tw-char { filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.5)); }
+
+
+/* ==========================================================================
+   Boulevard fly-through built from real photographs (textured planes in CSS 3D)
+   ========================================================================== */
+.hero__bg img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.9) brightness(.8); }
+.hero__flight { position: absolute; inset: 0; z-index: 1; overflow: hidden; perspective: 900px; perspective-origin: 50% 47%; opacity: 0; transition: opacity .9s ease;
+  background: linear-gradient(180deg, #05070c 0%, #14100d 50%, #0a0908 100%); }
+.hero.is-gl .hero__flight { opacity: 1; }
+.flight { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform;
+  transform: translate3d(var(--sway, 0px), 0, calc(var(--p, 0) * 3300px)) rotateZ(calc(var(--sway, 0px) * 0.012)); --ww: 720px; --wx: 520px; }
+.flight__back { position: absolute; left: 50%; top: 47%; width: 150%; height: 150%; margin: -37% 0 0 -75%; transform: scale(calc(1 + var(--p, 0) * 1.3)); will-change: transform; }
+.flight__back img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.95) contrast(1.05) brightness(.85);
+  -webkit-mask-image: radial-gradient(ellipse 58% 58% at 50% 50%, #000 40%, transparent 78%); mask-image: radial-gradient(ellipse 58% 58% at 50% 50%, #000 40%, transparent 78%); }
+.flight__road { position: absolute; left: 50%; top: 50%; width: 840px; height: 12000px; margin-left: -420px; transform-origin: 50% 0; transform: translate3d(0, 190px, 800px) rotateX(-90deg);
+  background: linear-gradient(90deg, #1b1713 0, #1b1713 8%, #26211b 8%, #26211b 92%, #1b1713 92%); }
+.flight__road::before { content: ''; position: absolute; inset: 0; background:
+  repeating-linear-gradient(180deg, transparent 0 90px, rgba(236, 211, 174, .75) 90px 150px) 50% 0 / 6px 100% no-repeat,
+  linear-gradient(90deg, transparent 8.5%, rgba(201, 160, 110, .65) 8.5% 9%, transparent 9% 91%, rgba(201, 160, 110, .65) 91% 91.5%, transparent 91.5%); }
+.flight__road i { position: absolute; left: 0; right: 0; top: -360px; bottom: 0; will-change: transform; background:
+  linear-gradient(180deg, transparent 0 30px, rgba(255, 244, 220, .95) 30px 54px, transparent 54px) 28% 0 / 12px 360px repeat-y,
+  linear-gradient(180deg, transparent 0 190px, rgba(255, 236, 200, .9) 190px 218px, transparent 218px) 40% 0 / 12px 360px repeat-y,
+  linear-gradient(180deg, transparent 0 110px, rgba(255, 70, 50, .95) 110px 136px, transparent 136px) 62% 0 / 12px 360px repeat-y,
+  linear-gradient(180deg, transparent 0 270px, rgba(255, 90, 60, .9) 270px 300px, transparent 300px) 75% 0 / 12px 360px repeat-y;
+  animation: traffic 3.2s linear infinite; }
+@keyframes traffic { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 360px, 0); } }
+.wall { position: absolute; left: calc(50% - var(--ww) / 2); top: calc(50% - 840px); width: var(--ww); height: 1030px; overflow: hidden; background: #14110e;
+  transform: translate3d(calc(var(--wx) * var(--side)), 0, var(--z)) rotateY(calc(90deg * var(--side) * -1)); backface-visibility: hidden; will-change: opacity; opacity: 0; }
+.wall img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wall__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 9, 8, .55) 0%, rgba(10, 9, 8, 0) 24%, rgba(10, 9, 8, 0) 66%, rgba(10, 9, 8, .75) 100%), linear-gradient(90deg, rgba(10, 9, 8, .25), rgba(10, 9, 8, 0) 40%, rgba(10, 9, 8, .25)); }
+.wall__ad { position: absolute; left: 50%; top: 13%; transform: translateX(-50%); min-width: 440px; padding: 22px 36px 26px; text-align: center; display: grid; gap: 6px; border-radius: 10px;
+  background: linear-gradient(180deg, rgba(14, 18, 28, .9), rgba(8, 10, 16, .94)); border: 2px solid rgba(236, 211, 174, .7);
+  box-shadow: 0 0 0 6px rgba(8, 8, 8, .6), 0 0 70px rgba(236, 190, 120, .5), inset 0 0 40px rgba(236, 190, 120, .12); }
+.wall__ad span { font-family: var(--font-ui); font-size: 15px; letter-spacing: .3em; text-transform: uppercase; color: var(--bz-2); }
+.wall__ad strong { font-family: 'Inter', sans-serif; font-weight: 750; font-size: 54px; line-height: 1; letter-spacing: .06em; text-transform: uppercase; color: #fff7e8; text-shadow: 0 0 28px rgba(255, 214, 150, .8); }
+.hero__flight::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 52% 30% at 50% 49%, rgba(236, 190, 130, .28), transparent 70%), linear-gradient(0deg, rgba(10, 9, 8, .7), transparent 28%); }
+@media (max-width: 767px) { .hero__flight { perspective: 620px; } .flight { --wx: 400px; --ww: 640px; } .wall__ad { min-width: 360px; } .wall__ad strong { font-size: 44px; } }
+@media (prefers-reduced-motion: reduce) { .flight__road i { animation: none; } }

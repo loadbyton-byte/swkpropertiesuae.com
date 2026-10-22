@@ -68,9 +68,8 @@ Add new files under `src/assets/`, never directly in `public/` (the build delete
 - Generated: `sitemap.xml` (with images), `robots.txt`, `feed.xml`, `manifest.webmanifest`, `.well-known/security.txt`, `/cookies/`.
 - `python3 tools/make-icons.py` rebuilds favicon/PWA icons. Hero poster is saved as `src/assets/images/hero/hero-scene(.webp|-mobile.webp)`.
 
-## Luxe theme, video hero, reviews
+## Luxe theme, photo fly-through hero, reviews
 
 - Theme: near-black + bronze gradients, Inter (headings/body) and Montserrat (nav, buttons, labels), all self-hosted. Tokens and overrides: `src/css/luxe.css` (loaded last).
-- Home hero is a scroll-scrubbed stock video (Pexels, Rasmus Carlin, hot-linked; URLs in `build.py` as `HERO_VIDEO_*`/`HERO_POSTER`). `?novideo` forces the poster. CSP `media-src` allows `videos.pexels.com`.
+- Home hero is a scroll-driven boulevard fly-through built from real property/community photos as CSS-3D wall panels (`WALL_L`/`WALL_R` in `build.py`), with developer-name LED signs on alternating panels, traffic-light streaks on the road and a skyline backdrop. No video, no WebGL. `?novideo` (or reduced motion / save-data) falls back to the flat poster. Logic: `src/js/modules/40-hero.js`; styles: `.flight*`/`.wall*` in `src/css/luxe.css`.
 - Reviews: `data/testimonials.json` (replace with real client reviews before launch). Team: `data/team.json`.
-- QA stubs the video with `tools/fixtures/hero-test.webm` (Playwright's Chromium has no H.264).
