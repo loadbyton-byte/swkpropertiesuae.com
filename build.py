@@ -253,13 +253,27 @@ FONT_PRELOADS = "".join(
 NAV = [("/", "Home"), ("/properties/", "Properties"), ("/about/", "About"), ("/services/", "Services"), ("/mortgage/", "Mortgage"), ("/blog/", "Journal"), ("/contact/", "Contact")]
 
 
+def bell_html():
+    items = list(SITE.get("notifications", []))
+    if POSTS:
+        items.insert(1, {"id": "n-post-" + POSTS[0]["slug"], "tag": "Journal", "title": POSTS[0]["title"], "text": POSTS[0]["excerpt"], "href": f"/blog/{POSTS[0]['slug']}/", "date": POSTS[0]["date"]})
+    if not items:
+        return ""
+    rows = "".join(f'<li><a href="{e(i["href"])}" data-notif-id="{e(i["id"])}"><span class="notif__tag">{e(i["tag"])}</span><strong>{e(i["title"])}</strong><span>{e(i["text"])}</span></a></li>' for i in items)
+    ids = json.dumps([i["id"] for i in items]).replace('"', "&quot;")
+    return (f'<div class="notif" data-notif data-ids="{ids}"><button type="button" class="notif__btn" data-notif-btn aria-haspopup="true" aria-expanded="false" aria-label="Notifications">'
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>'
+            '<span class="notif__badge" data-notif-badge hidden></span></button>'
+            f'<div class="notif__panel" data-notif-panel role="dialog" aria-label="Notifications" hidden><div class="notif__head"><h2>Updates</h2><button type="button" class="link-button" data-notif-readall>Mark all read</button></div><ul>{rows}</ul></div></div>')
+
+
 def site_header(path):
     links = "".join(
         f'<a href="{h}"{" aria-current=\"page\"" if (h == path or (h != "/" and path.startswith(h))) else ""}>{l}</a>' for h, l in NAV)
     return (f'<header class="site-header" data-site-header><div class="site-header__inner container">'
             f'<a href="/" class="site-brand" aria-label="SWK Properties — Home"><img src="/assets/images/brand/swk-logo-dark.png" alt="SWK Properties" class="brand-logo" width="338" height="275" decoding="async" fetchpriority="high"></a>'
             f'<nav class="site-nav" aria-label="Primary">{links}</nav>'
-            f'<a href="/contact/" class="btn btn-primary btn-sm site-header__cta">Book a consultation</a></div></header>')
+            f'<div class="site-header__tools">{bell_html()}<a href="/contact/" class="btn btn-primary btn-sm site-header__cta">Book a consultation</a></div></div></header>')
 
 
 def dock(path):
@@ -769,10 +783,11 @@ def build_home():
 <div class="tc-nav"><button type="button" class="tc-arrow" data-tc-prev aria-label="Previous team member">{PREV}</button><button type="button" class="tc-arrow" data-tc-next aria-label="Next team member">{NEXT}</button></div></div></div>
 <script type="application/json" id="team-data">{json.dumps([{"name": t["name"], "role": t["role"], "bio": t["bio"]} for t in TEAM], ensure_ascii=False).replace("</", "<\\/")}</script>"""
 
+    names_json = json.dumps([p["title"] for p in PROPS[:8]], ensure_ascii=False).replace("'", "&#39;")
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
 <div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/hero-scene-mobile.webp">
 <img src="/assets/images/hero/hero-scene.webp" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
-<canvas class="hero__gl" aria-hidden="true"></canvas>
+<canvas class="hero__gl" aria-hidden="true" data-names='{names_json}'></canvas>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__content container">
@@ -890,6 +905,7 @@ def build_property(p):
 <p>{PIN} {e(location(p))} · by {e(p['developer'])}</p></div></section>
 <section class="section container ambient-glow-host">{GLOW}
 <div class="pd-bento-gallery" data-gallery aria-label="{e(p['title'])} photo gallery">{tiles}</div>
+{f'<div class="pd-gallery-more"><button type="button" class="btn btn-outline-dark" data-gallery-more>View all {len(images)} photos</button></div>' if len(images) > 9 else ""}
 <div class="pd-layout"><div>
 <div class="pd-facts">{facts_html}</div>
 <h2 class="pd-section-title">Overview</h2><p>{e(p['description'])}</p>

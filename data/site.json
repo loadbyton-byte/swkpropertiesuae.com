@@ -42,5 +42,31 @@
   "bing": ""
  },
  "twitter": "",
- "social": []
+ "social": [],
+ "notifications": [
+  {
+   "id": "n-launches",
+   "tag": "New",
+   "title": "New off-plan launches this month",
+   "text": "Flexible payment plans from AED 680K across Dubai's top communities.",
+   "href": "/properties/",
+   "date": "2026-10-22"
+  },
+  {
+   "id": "n-calc",
+   "tag": "Tool",
+   "title": "Compare mortgage terms",
+   "text": "Try 15, 20 and 25-year terms in our calculator and see the monthly cost.",
+   "href": "/mortgage/",
+   "date": "2026-10-15"
+  },
+  {
+   "id": "n-hours",
+   "tag": "Info",
+   "title": "We're on WhatsApp 7 days a week",
+   "text": "Sun–Thu 9:00–19:00, Sat 10:00–16:00 for calls and viewings.",
+   "href": "/contact/",
+   "date": "2026-10-01"
+  }
+ ]
 }

@@ -594,6 +594,61 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   scene.add(buildings);
 
 
+  // ---- Illuminated name signs on the towers (canvas textures, lit like LED fascias)
+  {
+    let names = [];
+    try { names = JSON.parse(canvas.getAttribute('data-names') || '[]'); } catch (err) { names = []; }
+    if (!names.length) names = ['SWK Towers'];
+    function signTexture(text, accent) {
+      const c = document.createElement('canvas');
+      c.width = 1024; c.height = 256;
+      const g = c.getContext('2d');
+      const bg = g.createLinearGradient(0, 0, 0, 256);
+      bg.addColorStop(0, '#0d2147'); bg.addColorStop(1, '#07142c');
+      g.fillStyle = bg; g.fillRect(0, 0, 1024, 256);
+      g.strokeStyle = accent; g.lineWidth = 6; g.strokeRect(10, 10, 1004, 236);
+      g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 2; g.strokeRect(22, 22, 980, 212);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      let size = 118;
+      g.font = '700 ' + size + 'px "Clash Display", "General Sans", Arial, sans-serif';
+      while (g.measureText(text.toUpperCase()).width > 900 && size > 40) { size -= 6; g.font = '700 ' + size + 'px "Clash Display", "General Sans", Arial, sans-serif'; }
+      g.shadowColor = accent; g.shadowBlur = 28; g.fillStyle = '#ffffff';
+      g.fillText(text.toUpperCase(), 512, 118);
+      g.shadowBlur = 0; g.font = '600 34px "General Sans", Arial, sans-serif'; g.fillStyle = accent;
+      g.fillText('DUBAI  •  SWK PROPERTIES', 512, 212);
+      const t = new THREE.CanvasTexture(c);
+      t.anisotropy = 4; t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    }
+    const accents = ['#ffd58a', '#7fd6ff', '#ffb27a', '#9ff0c8'];
+    const towers = parts.filter((q) => q.y === 0 && q.h > 45 && q.w > 8 && Math.abs(q.x) > 18 && Math.abs(q.x) < 120 && q.z < -25 && q.z > -260)
+      .sort((x, y) => y.z - x.z);
+    const used = [];
+    let n = 0;
+    for (const q of towers) {
+      if (n >= Math.min(names.length * 2, mobile ? 6 : 10)) break;
+      if (used.some((u) => Math.hypot(u.x - q.x, u.z - q.z) < 42)) continue;
+      used.push(q);
+      const label = names[n % names.length];
+      const w = Math.min(q.w * 1.7, 44), h = w * 0.25;
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, h),
+        new THREE.MeshBasicMaterial({ map: signTexture(label, accents[n % accents.length]), toneMapped: false })
+      );
+      // On the camera-facing wall, high up the tower
+      mesh.position.set(q.x, Math.max(h, Math.min(q.h * 0.7, q.h - h)), q.z + q.d / 2 + 0.25);
+      scene.add(mesh);
+      // Soft glow halo behind the sign
+      const halo = new THREE.Mesh(
+        new THREE.PlaneGeometry(w * 1.35, h * 2.1),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color(accents[n % accents.length]), transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending })
+      );
+      halo.position.set(mesh.position.x, mesh.position.y, mesh.position.z - 0.05);
+      scene.add(halo);
+      n++;
+    }
+  }
+
   // ---- Street furniture: date palms and lamp posts along the boulevard
   {
     // Kerbs, pavements and a planted central reservation
