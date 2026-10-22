@@ -247,7 +247,7 @@ def build_assets():
 # Fonts are self-hosted (see src/css/base.css); the faces used above the fold are preloaded.
 FONT_PRELOADS = "".join(
     f'<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/{f}.woff2" crossorigin>\n'
-    for f in ("instrument-serif/instrument-serif-400", "general-sans/general-sans-400", "general-sans/general-sans-600"))
+    for f in ("instrument-serif/instrument-serif-400", "general-sans/general-sans-400", "general-sans/general-sans-600", "clash-display/clash-display-700"))
 
 
 NAV = [("/", "Home"), ("/properties/", "Properties"), ("/about/", "About"), ("/services/", "Services"), ("/mortgage/", "Mortgage"), ("/blog/", "Journal"), ("/contact/", "Contact")]
@@ -630,8 +630,25 @@ def prop_card(p, reveal=False):
 </a></article>"""
 
 
+def blog_filters():
+    cats = []
+    for p in POSTS:
+        if p["category"] not in cats:
+            cats.append(p["category"])
+    btns = '<button type="button" class="chip is-active" data-blog-filter="all" aria-pressed="true">All</button>' + "".join(
+        f'<button type="button" class="chip" data-blog-filter="{e(c)}" aria-pressed="false">{e(c)}</button>' for c in cats)
+    return f'<div class="chip-row" role="group" aria-label="Filter articles by topic">{btns}<span class="chip-count" data-blog-count aria-live="polite"></span></div>'
+
+
+def blog_feature(p):
+    return f"""<article class="blog-feature" data-reveal data-category="{e(p['category'])}"><a href="/blog/{p['slug']}/" aria-label="Read: {e(p['title'])}">
+<div class="blog-feature__media">{img(p['image'], p['title'], lazy=False, sizes="(min-width: 900px) 640px, 100vw")}</div>
+<div class="blog-feature__body"><span class="badge badge-gold">Featured &middot; {e(p['category'])}</span><h2>{e(p['title'])}</h2><p>{e(p['excerpt'])}</p>
+<span class="blog-card__date"><time datetime="{p['date']}">{nice_date(p['date'])}</time> &middot; {e(p['readTime'])}</span><span class="btn btn-primary">Read article &rarr;</span></div></a></article>"""
+
+
 def blog_card(p, i=0):
-    return f"""<article class="blog-card" data-reveal data-reveal-delay="{i * 70}">
+    return f"""<article class="blog-card" data-reveal data-reveal-delay="{i * 70}" data-category="{e(p['category'])}">
 <a href="/blog/{p['slug']}/" aria-label="Read: {e(p['title'])}"><div class="blog-card__media">{img(p['image'], p['title'])}</div>
 <div class="blog-card__body"><span class="badge badge-gold" style="align-self:flex-start">{e(p['category'])}</span>
 <h3>{e(p['title'])}</h3><p>{e(p['excerpt'])}</p>
@@ -972,26 +989,34 @@ def build_contact():
     ic = lambda d: f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">{d}</svg>'
     trail = [("Home", "/"), ("Contact", None)]
     body = f"""{page_hero("Let's talk about your next move", "Whether you're buying, selling, or just exploring the market — a consultant will get back to you within one business day.", trail, bg="contact")}
-<section class="section container ambient-glow-host">{GLOW}<div class="contact-layout">
-<div data-reveal><span class="eyebrow">Send a Message</span><h2>Tell us what you're looking for</h2>
-<form id="contact-form" data-form="contact" data-endpoint="{e(SITE['formEndpoint'])}" novalidate style="margin-top:var(--space-6)"><div class="form-grid">
-<div class="form-field"><label for="cf-name">Full name</label><input id="cf-name" name="name" autocomplete="name" required></div>
-<div class="form-grid cols-2" style="gap:var(--space-5)"><div class="form-field"><label for="cf-email">Email</label><input id="cf-email" name="email" type="email" autocomplete="email" required></div>
-<div class="form-field"><label for="cf-phone">Phone</label><input id="cf-phone" name="phone" type="tel" autocomplete="tel"></div></div>
+<section class="section container ambient-glow-host contact-page">{GLOW}
+<div class="quick-tiles" data-reveal>
+<a class="quick-tile" href="tel:{SITE['phone']}"><span class="quick-tile__icon">{ic('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>')}</span><span class="quick-tile__txt"><small>Call us</small><strong>{SITE['phoneDisplay']}</strong></span><span class="quick-tile__go" aria-hidden="true">&rarr;</span></a>
+<a class="quick-tile quick-tile--wa" href="{WA_DEFAULT}" target="_blank" rel="noopener noreferrer"><span class="quick-tile__icon">{WHATSAPP}</span><span class="quick-tile__txt"><small>WhatsApp</small><strong>Chat in minutes</strong></span><span class="quick-tile__go" aria-hidden="true">&rarr;</span></a>
+<a class="quick-tile quick-tile--mail" href="mailto:{SITE['email']}"><span class="quick-tile__icon">{ic('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/>')}</span><span class="quick-tile__txt"><small>Email</small><strong>{SITE['email']}</strong></span><span class="quick-tile__go" aria-hidden="true">&rarr;</span></a>
+<button type="button" class="quick-tile quick-tile--cb" data-open-callback><span class="quick-tile__icon">{ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}</span><span class="quick-tile__txt"><small>We call you</small><strong>Request a callback</strong></span><span class="quick-tile__go" aria-hidden="true">&rarr;</span></button>
+</div>
+<div class="contact-layout">
+<div class="ui-card" data-reveal><div class="ui-card__head"><span class="eyebrow">Send a message</span><h2>Tell us what you're looking for</h2><p>Share a few details and a consultant will reply within one business day.</p></div>
+<form id="contact-form" data-form="contact" data-endpoint="{e(SITE['formEndpoint'])}" novalidate class="ui-card__body"><div class="form-grid">
+<div class="form-field"><label for="cf-name">Full name</label><input id="cf-name" name="name" autocomplete="name" placeholder="Your full name" required></div>
+<div class="form-grid cols-2" style="gap:var(--space-5)"><div class="form-field"><label for="cf-email">Email</label><input id="cf-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+<div class="form-field"><label for="cf-phone">Phone</label><input id="cf-phone" name="phone" type="tel" autocomplete="tel" placeholder="+971 5X XXX XXXX"></div></div>
 <div class="form-field"><label for="cf-interest">I'm interested in</label><select id="cf-interest" name="interest">{opts}</select></div>
-<div class="form-field"><label for="cf-message">Message</label><textarea id="cf-message" name="message" required></textarea></div>
+<div class="form-field"><label for="cf-message">Message</label><textarea id="cf-message" name="message" placeholder="Budget, communities, timeline..." required></textarea></div>
 <label class="form-check"><input type="checkbox" name="consent" required><span>I agree that SWK Properties may contact me about my enquiry and I accept the <a href="/privacy/">Privacy Policy</a>.</span></label>
 <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
-<button type="submit" class="btn btn-primary btn-lg">Send Message</button>
+<button type="submit" class="btn btn-primary btn-lg btn-block">Send Message</button>
 <p class="form-status" role="status" aria-live="polite" hidden></p></div></form></div>
-<div data-reveal data-reveal-delay="100"><span class="eyebrow">Reach Us Directly</span><h2>Other ways to connect</h2>
-<div class="contact-cards" style="margin-top:var(--space-6)">
-<div class="contact-info-card">{ic('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>')}<div><h3>Call or WhatsApp</h3><p><a href="tel:{SITE['phone']}">{SITE['phoneDisplay']}</a></p><p><a href="{wa("Hello, I'd like to get in touch.")}" target="_blank" rel="noopener noreferrer">Message us on WhatsApp →</a></p></div></div>
-<div class="contact-info-card">{ic('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/>')}<div><h3>Email</h3><p><a href="mailto:{SITE['email']}">{SITE['email']}</a></p></div></div>
-<div class="contact-info-card">{ic('<path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>')}<div><h3>Office</h3><p>{e(SITE['address'])}</p></div></div>
-<div class="contact-info-card">{ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}<div><h3>Office Hours</h3><p>{e(SITE['hours'])}</p></div></div></div>
-<div class="map-embed" style="margin-top:var(--space-6)"><iframe title="Map showing the SWK Properties office on Sheikh Zayed Road, Dubai" src="{gm}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>
-</div></section>"""
+<div class="contact-side" data-reveal data-reveal-delay="100">
+<div class="ui-card ui-card--map"><div class="map-embed"><iframe title="Map showing the SWK Properties office on Sheikh Zayed Road, Dubai" src="{gm}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+<div class="ui-card__body"><div class="office-head"><h3>Visit our office</h3><span class="status-pill" data-open-status data-tz="Asia/Dubai">Checking hours&hellip;</span></div>
+<p class="office-addr">{PIN} {e(SITE['address'])}</p>
+<dl class="hours"><div><dt>Sunday &ndash; Thursday</dt><dd>9:00 &ndash; 19:00</dd></div><div><dt>Saturday</dt><dd>10:00 &ndash; 16:00</dd></div><div><dt>Friday</dt><dd>Closed</dd></div></dl>
+<div class="office-actions"><a class="btn btn-outline-dark btn-sm" href="https://www.google.com/maps/dir/?api=1&destination={SITE['geo'][0]},{SITE['geo'][1]}" target="_blank" rel="noopener noreferrer">Get directions</a>
+<button type="button" class="btn btn-gold btn-sm" data-open-viewing>Book a visit</button></div></div></div>
+<div class="ui-card ui-card--note"><h3>What happens next?</h3><ol class="next-steps"><li><b>Reply within one business day.</b> A consultant reads your brief.</li><li><b>A short discovery call.</b> Budget, timeline and must-haves.</li><li><b>A curated shortlist</b> matched to you, with transparent costs.</li></ol></div>
+</div></div></section>"""
     write("/contact/", page("/contact/", "Contact Us | SWK Properties",
                             "Get in touch with SWK Properties — book a consultation, ask about a listing, or reach us on WhatsApp, phone or email.", body, ld=[breadcrumb_ld(trail), org_ld()]))
 
@@ -999,15 +1024,18 @@ def build_contact():
 def build_blog():
     trail = [("Home", "/"), ("Journal", None)]
     body = f"""{page_hero("The SWK Journal", "Market insight, buyer guides and community spotlights from our consultants on the ground in Dubai.", trail, bg="blog")}
-<section class="section container ambient-glow-host">{GLOW}<h2 class="sr-only">All articles</h2><div class="blog-grid" data-blog-grid>{"".join(blog_card(p, i) for i, p in enumerate(POSTS))}</div></section>
+<section class="section container ambient-glow-host">{GLOW}<h2 class="sr-only">All articles</h2>
+{blog_filters()}
+{blog_feature(POSTS[0])}
+<div class="blog-grid" data-blog-grid>{"".join(blog_card(p, i) for i, p in enumerate(POSTS[1:]))}</div></section>
 <section class="section section--alt ambient-glow-host" style="text-align:center">{GLOW}<div class="container"><h2>Want market updates in your inbox?</h2>
 <p style="max-width:52ch; margin:var(--space-4) auto var(--space-5)">Subscribe for monthly insight on Dubai pricing trends, new launches and yield opportunities.</p>
-<form class="footer-newsletter" data-form="newsletter" data-endpoint="{e(SITE['formEndpoint'])}" aria-label="Blog newsletter signup" style="max-width:460px; margin-inline:auto; flex-wrap:wrap" novalidate>
-<label for="nl-blog" class="sr-only">Email address</label><input type="email" id="nl-blog" name="email" placeholder="Your email" autocomplete="email" required>
-<button type="submit" class="btn btn-primary btn-sm">Subscribe</button>
+<form class="nl-inline" data-form="newsletter" data-endpoint="{e(SITE['formEndpoint'])}" aria-label="Blog newsletter signup" novalidate>
+<div class="nl-inline__row"><label for="nl-blog" class="sr-only">Email address</label><input type="email" id="nl-blog" name="email" placeholder="Your email address" autocomplete="email" required>
+<button type="submit" class="btn btn-primary">Subscribe</button></div>
 <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
-<label class="form-check" style="flex-basis:100%; text-align:left"><input type="checkbox" name="consent" required><span>I agree to receive market updates and accept the <a href="/privacy/">Privacy Policy</a>.</span></label>
-<p class="form-status" role="status" aria-live="polite" hidden style="flex-basis:100%"></p></form></div></section>"""
+<label class="form-check"><input type="checkbox" name="consent" required><span>I agree to receive market updates and accept the <a href="/privacy/">Privacy Policy</a>.</span></label>
+<p class="form-status" role="status" aria-live="polite" hidden></p></form></div></section>"""
     write("/blog/", page("/blog/", "Journal | SWK Properties",
                          "Market insights, buyer guides and community spotlights from SWK Properties — everything you need to know about buying and investing in Dubai real estate.", body, ld=[breadcrumb_ld(trail)]))
     for p in POSTS:
