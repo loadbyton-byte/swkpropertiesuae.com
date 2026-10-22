@@ -8,6 +8,7 @@
   var RULES = {
     name: 'Please enter your name.',
     email: 'Please enter a valid email address.',
+    phone: 'Please enter a valid phone number, including country code.',
     message: 'Please tell us a little about what you need.',
     consent: 'Please tick the box to continue.'
   };
@@ -49,6 +50,7 @@
     el.classList.toggle('is-error', kind === 'error');
     el.classList.toggle('form-success', kind !== 'error');
     el.hidden = false;
+    if (SWK.toast) SWK.toast(msg, kind === 'error' ? 'error' : 'success');
   }
 
   SWK.reg('forms', function () {
@@ -68,15 +70,19 @@
         var endpoint = form.getAttribute('data-endpoint');
         var done = kind === 'contact'
           ? 'Thank you — your message has been received. A consultant will be in touch within one business day.'
-          : 'Thank you — you\'re subscribed.';
+          : kind === 'callback'
+            ? 'Thank you — we will call you back at your preferred time.'
+            : 'Thank you — you\'re subscribed.';
 
         if (!endpoint) {
-          var body = kind === 'contact'
+          var body = kind === 'callback'
+            ? 'Please call me back.\nName: ' + data.get('name') + '\nPhone: ' + data.get('phone') + '\nBest time: ' + (data.get('when') || '-')
+            : kind === 'contact'
             ? 'Name: ' + data.get('name') + '\nEmail: ' + data.get('email') + '\nPhone: ' + (data.get('phone') || '-') +
               '\nInterested in: ' + data.get('interest') + '\n\n' + data.get('message')
             : 'Please add ' + data.get('email') + ' to the SWK Properties market updates list.';
           status(form, 'Your email app should open with your message ready to send. Prefer WhatsApp? Message us on ' + CFG.phone + '.', 'ok');
-          window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(kind === 'contact' ? 'Website enquiry' : 'Newsletter sign-up') +
+          window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(kind === 'contact' ? 'Website enquiry' : kind === 'callback' ? 'Callback request' : 'Newsletter sign-up') +
             '&body=' + encodeURIComponent(body);
           return;
         }

@@ -7,6 +7,7 @@ Content lives in data/*.json, styles in src/css, scripts in src/js, templates
 in this file. Pages are real HTML files (no client-side rendering), so search
 engines, link previews and no-JS visitors all get the full content.
 """
+import base64
 import hashlib
 import html
 import json
@@ -47,9 +48,9 @@ BUDGETS = [
     ("6000000-10000000", "AED 6M - 10M"),
     ("10000000", "AED 10M+"),
 ]
-FEATURE_THEMES = ["215 62% 22%", "30 50% 32%", "205 48% 25%", "24 44% 29%", "222 52% 27%"]
-SERVICE_THEMES = ["215 52% 32%", "32 56% 42%", "205 46% 34%", "24 46% 38%", "222 44% 36%", "215 12% 42%"]
-PAGE_HERO_IMG = "hero/dubai-skyline-hero.jpg"
+FEATURE_THEMES = ["215 70% 34%", "16 72% 46%", "180 62% 31%", "38 86% 44%", "276 40% 40%"]
+SERVICE_THEMES = ["215 70% 38%", "16 72% 48%", "180 62% 32%", "38 86% 46%", "276 40% 44%", "150 48% 33%"]
+PAGE_HERO_IMG = "og/default.jpg"
 
 
 def money(n):
@@ -96,7 +97,7 @@ _SIZES = {}
 
 
 def img_size(src):
-    """Intrinsic (width, height) of a PNG/JPEG under src/assets, read from its header (stdlib only)."""
+    """Intrinsic (width, height) of a PNG/JPEG/WebP under src/assets, read from its header (stdlib only)."""
     rel = src.lstrip("/")
     if rel in _SIZES:
         return _SIZES[rel]
@@ -104,9 +105,18 @@ def img_size(src):
     f = SRC / rel
     try:
         with open(f, "rb") as fh:
-            head = fh.read(26)
+            head = fh.read(32)
             if head[:8] == b"\x89PNG\r\n\x1a\n":
                 size = (int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big"))
+            elif head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+                kind = head[12:16]
+                if kind == b"VP8 ":
+                    size = (int.from_bytes(head[26:28], "little") & 0x3FFF, int.from_bytes(head[28:30], "little") & 0x3FFF)
+                elif kind == b"VP8L":
+                    bits = int.from_bytes(head[21:25], "little")
+                    size = ((bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1)
+                elif kind == b"VP8X":
+                    size = (int.from_bytes(head[24:27], "little") + 1, int.from_bytes(head[27:30], "little") + 1)
             elif head[:2] == b"\xff\xd8":
                 fh.seek(2)
                 while True:
@@ -132,12 +142,19 @@ def img_size(src):
     return size
 
 
-def img(src, alt="", cls="", lazy=True, extra=""):
+SIZES_CARD = "(min-width: 1100px) 380px, (min-width: 640px) 50vw, 100vw"
+
+
+def img(src, alt="", cls="", lazy=True, extra="", sizes=SIZES_CARD):
     c = f' class="{cls}"' if cls else ""
     l = ' loading="lazy"' if lazy else ""
     s = img_size(src)
     dims = f' width="{s[0]}" height="{s[1]}"' if s else ""
-    return f'<img src="{asset(src)}" alt="{e(alt)}"{c}{l}{dims} decoding="async"{extra}>'
+    srcset = ""
+    small = src.rsplit(".", 1)[0] + "-640.webp"
+    if src.endswith(".webp") and (SRC / small.lstrip("/")).is_file() and s and s[0] > 700:
+        srcset = f' srcset="{asset(small)} 640w, {asset(src)} {s[0]}w" sizes="{sizes}"'
+    return f'<img src="{asset(src)}" alt="{e(alt)}"{c}{l}{dims}{srcset} decoding="async"{extra}>'
 
 
 def cascade(text):
@@ -203,7 +220,7 @@ ASSET_V = ""
 def build_assets():
     """Concatenate CSS and JS, fingerprint them, and copy vendor files."""
     global ASSET_V
-    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme"]
+    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme", "ui"]
     css = "\n".join((SRC / "css" / f"{n}.css").read_text(encoding="utf-8") for n in css_order)
     css = css.replace("../assets/", "/assets/")
     mods = sorted((SRC / "js" / "modules").glob("*.js"))
@@ -292,7 +309,7 @@ VALUES = ('<section class="value-strip" aria-labelledby="values-title"><h2 id="v
 
 STATS = [("10", "+", "Years in Dubai"), ("100", "+", "Homes Sold"), ("40", "+", "Consultants"), ("100", "%", "Client Satisfaction")]
 STORY = ('<section class="section container story ambient-glow-host">' + GLOW + '<div class="story__grid">'
-         '<div class="story__media" data-reveal>' + img("assets/images/about/swk-office.jpg", "SWK Properties office overlooking Business Bay") + '</div>'
+         '<div class="story__media" data-reveal>' + img("assets/images/about/swk-office.webp", "SWK Properties office overlooking Business Bay", sizes="(min-width: 900px) 600px, 100vw") + '</div>'
          '<div class="story__copy" data-reveal><span class="eyebrow">Why SWK</span><h2>Built by agents, run for clients</h2>'
          '<p>SWK Properties was started in 2016 by a small team of agents frustrated with how opaque property buying in Dubai could feel for outsiders. '
          'Every fee, every payment plan clause and every ROI figure gets explained in plain language before you sign anything.</p>'
@@ -337,19 +354,117 @@ def footer():
 <li>{ICON_PHONE}<a href="tel:{SITE['phone']}">{SITE['phoneDisplay']}</a></li>
 <li>{ICON_MAIL}<a href="mailto:{SITE['email']}">{SITE['email']}</a></li>
 <li>{ICON_PIN}<span>{e(SITE['address'])}</span></li>
-<li>{ICON_CLOCK}<span>{e(SITE['hours'])}</span></li></ul></div>
+<li>{ICON_CLOCK}<span>{e(SITE['hours'])}</span></li>
+<li><button type="button" class="btn btn-gold" data-open-callback style="margin-top:var(--space-2)">Request a callback</button></li></ul></div>
 </div>
 <div class="footer-bottom"><span>© {year} {SITE['name']}. All rights reserved. {' · '.join(e(i) for i in ids)}.</span>
-<span class="footer-legal"><a href="/privacy/">Privacy Policy</a><a href="/terms/">Terms of Use</a></span></div>
+<span class="footer-legal"><a href="/privacy/">Privacy Policy</a><a href="/terms/">Terms of Use</a><a href="/cookies/">Cookie Policy</a><button type="button" class="link-button" data-cookie-settings>Cookie settings</button><a href="/feed.xml">RSS</a></span></div>
 </div>
 </footer>"""
 
 
+
+# ---------------------------------------------------------------- site-wide UI (announcement, cookies, popups)
+
+ANN = SITE.get("announcement") or {}
+POPUP = SITE.get("popup") or {}
+ANALYTICS = SITE.get("analytics") or {}
+ICON_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
+
+
+def announce_bar():
+    if not ANN.get("enabled"):
+        return ""
+    link = f' <a href="{e(ANN["href"])}">{e(ANN["linkText"])}</a>' if ANN.get("href") else ""
+    return (f'<div class="announce" data-announce="{e(ANN["id"])}" role="region" aria-label="Announcement"><span>{e(ANN["text"])}</span>{link}'
+            '<button type="button" class="announce__close" data-announce-close aria-label="Dismiss announcement">&times;</button></div>')
+
+
+def dialog_html(attr, title_id, title, body_html, label):
+    return (f'<div class="dialog" {attr} hidden><div class="dialog__panel" role="dialog" aria-modal="true" aria-labelledby="{title_id}">'
+            f'<button type="button" class="dialog__close" data-dialog-close aria-label="Close {label}">&times;</button>'
+            f'<h2 id="{title_id}">{e(title)}</h2>{body_html}</div></div>')
+
+
+def ui_markup():
+    cfg = {"popup": {"enabled": bool(POPUP.get("enabled")), "delaySeconds": POPUP.get("delaySeconds", 30)},
+           "analytics": {k: ANALYTICS.get(k, "") for k in ("ga4", "gtm", "metaPixel")}}
+    cookie = ('<div class="cookie-banner" data-cookie-banner role="region" aria-label="Cookie consent" hidden>'
+              '<div><h2>We value your privacy</h2><p>We use essential cookies to run this site. With your permission we also use analytics to improve it. '
+              'Read our <a href="/cookies/">Cookie Policy</a>.</p></div>'
+              '<div class="cookie-banner__actions"><button type="button" class="btn btn-primary" data-cookie-accept>Accept all</button>'
+              '<button type="button" class="btn btn-outline-dark" data-cookie-reject>Essential only</button>'
+              '<button type="button" class="btn btn-outline-dark" data-cookie-customise>Customise</button></div></div>')
+    prefs = dialog_html("data-cookie-prefs", "cc-title", "Cookie preferences",
+        '<p>Choose which cookies we may use. You can change this any time from the footer.</p>'
+        '<div class="toggle-row"><div><h3>Essential</h3><p>Needed for the site to work and to remember these choices. Always on.</p></div>'
+        '<label class="switch"><input type="checkbox" checked disabled aria-label="Essential cookies (always on)"><span></span></label></div>'
+        '<div class="toggle-row"><div><h3>Analytics</h3><p>Anonymous usage statistics that help us improve pages and listings.</p></div>'
+        '<label class="switch"><input type="checkbox" name="cc-analytics" aria-label="Analytics cookies"><span></span></label></div>'
+        '<div class="toggle-row"><div><h3>Marketing</h3><p>Lets us measure the reach of our advertising.</p></div>'
+        '<label class="switch"><input type="checkbox" name="cc-marketing" aria-label="Marketing cookies"><span></span></label></div>'
+        '<div class="dialog__actions"><button type="button" class="btn btn-primary" data-cookie-save data-autofocus>Save preferences</button>'
+        '<button type="button" class="btn btn-outline-dark" data-cookie-accept-all>Accept all</button></div>', "cookie preferences")
+    lead = ""
+    if POPUP.get("enabled"):
+        lead = dialog_html("data-lead-popup", "lead-title", POPUP["title"],
+            f'<p>{e(POPUP["text"])}</p>'
+            f'<form data-form="newsletter" data-endpoint="{e(SITE["formEndpoint"])}" novalidate>'
+            '<div class="form-field"><label for="lead-email">Email address</label><input type="email" id="lead-email" name="email" autocomplete="email" placeholder="you@example.com" required data-autofocus></div>'
+            '<input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">'
+            '<label class="form-check"><input type="checkbox" name="consent" required><span>I agree to receive market updates and accept the <a href="/privacy/">Privacy Policy</a>.</span></label>'
+            '<button type="submit" class="btn btn-primary btn-block">Send me the watchlist</button>'
+            '<p class="form-status" role="status" aria-live="polite" hidden></p></form>', "newsletter popup")
+    callback = dialog_html("data-callback-modal", "cb-title", "Request a callback",
+        '<p>Leave your number and a consultant will call you at a time that suits you.</p>'
+        f'<form data-form="callback" data-endpoint="{e(SITE["formEndpoint"])}" novalidate>'
+        '<div class="form-field"><label for="cb-name">Name</label><input id="cb-name" name="name" autocomplete="name" required data-autofocus></div>'
+        '<div class="form-field"><label for="cb-phone">Phone (with country code)</label><input id="cb-phone" name="phone" type="tel" autocomplete="tel" pattern="[+0-9 ()\\-]{7,20}" required></div>'
+        '<div class="form-field"><label for="cb-when">Best time to call</label><select id="cb-when" name="when"><option>Morning (9-12)</option><option>Afternoon (12-4)</option><option>Evening (4-7)</option></select></div>'
+        '<input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">'
+        '<label class="form-check"><input type="checkbox" name="consent" required><span>I agree to be contacted and accept the <a href="/privacy/">Privacy Policy</a>.</span></label>'
+        '<button type="submit" class="btn btn-primary btn-block">Call me back</button>'
+        '<p class="form-status" role="status" aria-live="polite" hidden></p></form>', "callback form")
+    cfg_json = json.dumps(cfg).replace("</", "<\\/")
+    return (f'<script type="application/json" id="swk-config">{cfg_json}</script>\n'
+            '<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>\n'
+            f'{cookie}\n{prefs}\n{lead}\n{callback}\n'
+            f'<button type="button" class="back-top" data-back-top aria-label="Back to top">{ICON_UP}</button>')
+
+
+def csp_for(html_text):
+    hashes = []
+    for m in re.finditer(r"<script>(.*?)</script>", html_text, re.S):
+        hashes.append("'sha256-" + base64.b64encode(hashlib.sha256(m.group(1).encode("utf-8")).digest()).decode() + "'")
+    ga = bool(ANALYTICS.get("ga4") or ANALYTICS.get("gtm"))
+    fb = bool(ANALYTICS.get("metaPixel"))
+    script_src = ["'self'"] + hashes + (["https://www.googletagmanager.com"] if ga else []) + (["https://connect.facebook.net"] if fb else [])
+    connect = ["'self'"]
+    if SITE.get("formEndpoint"):
+        parts = SITE["formEndpoint"].split("/")
+        connect.append(parts[0] + "//" + parts[2])
+    if ga:
+        connect += ["https://www.google-analytics.com", "https://*.google-analytics.com", "https://*.analytics.google.com", "https://www.googletagmanager.com"]
+    if fb:
+        connect += ["https://www.facebook.com", "https://connect.facebook.net"]
+    return ("default-src 'self'; script-src " + " ".join(script_src) + "; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; "
+            "font-src 'self'; connect-src " + " ".join(connect) + "; frame-src https://www.google.com https://maps.google.com; worker-src 'self' blob:; "
+            "object-src 'none'; base-uri 'self'; form-action 'self' mailto:")
+
+
 def head(path, title, desc, image, ld, og_type, robots, preload):
     url = BASE + path
-    og = f"{BASE}/assets/images/{image}"
+    og = f"{BASE}/assets/{image}"
+    ann_js = ""
+    if ANN.get("enabled"):
+        ann_js = f"document.documentElement.classList.add('has-ann');try{{if(localStorage.getItem('swk_ann')==={json.dumps(ANN['id'])})document.documentElement.classList.add('ann-off')}}catch(e){{}}"
     ld_json = "".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>\n' for x in (ld or []))
-    rb = f'<meta name="robots" content="{robots}">\n' if robots else ""
+    rb = f'<meta name="robots" content="{robots}">\n' if robots else '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">\n'
+    vf = SITE.get("verification", {})
+    ver = "".join(f'<meta name="{n}" content="{e(v)}">\n' for n, v in (("google-site-verification", vf.get("google", "")), ("msvalidate.01", vf.get("bing", ""))) if v)
+    tw = f'<meta name="twitter:site" content="@{e(SITE["twitter"])}">\n' if SITE.get("twitter") else ""
+    alt = e(f"{title} - {SITE['name']}")
+    hreflang = "" if robots and "noindex" in robots else f'<link rel="alternate" hreflang="en-AE" href="{url}">\n<link rel="alternate" hreflang="x-default" href="{url}">\n'
     pre = "".join(f'<link rel="preload" as="image" href="{u}"{a}>\n' for u, a in (preload or []))
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -358,44 +473,57 @@ def head(path, title, desc, image, ld, og_type, robots, preload):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
+<meta name="author" content="{SITE['name']}">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#faf7f2">
 <meta name="color-scheme" content="light">
 <link rel="canonical" href="{url}">
-{rb}<meta property="og:type" content="{og_type}">
+{hreflang}{rb}{ver}<meta property="og:type" content="{og_type}">
 <meta property="og:site_name" content="{SITE['name']}">
 <meta property="og:locale" content="en_AE">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
 <meta property="og:image" content="{og}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{alt}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{e(title)}">
 <meta name="twitter:description" content="{e(desc)}">
 <meta name="twitter:image" content="{og}">
+<meta name="twitter:image:alt" content="{alt}">
+{tw}
+<link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/brand/favicon-32.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="alternate" type="application/rss+xml" title="{SITE['name']} Journal" href="/feed.xml">
 <link rel="apple-touch-icon" href="/assets/images/brand/favicon-app.png">
-<script>document.documentElement.classList.add('js');</script>
+<script>document.documentElement.classList.add('js');{ann_js}</script>
 {pre}{FONT_PRELOADS}<link rel="stylesheet" href="/assets/css/site.css?v={ASSET_V}">
 {ld_json}</head>"""
 
 
 def page(path, title, desc, body, *, image=PAGE_HERO_IMG, ld=None, og_type="website", robots=None, preload=None):
-    return head(path, title, desc, image, ld, og_type, robots, preload) + f"""
+    out = head(path, title, desc, image, ld, og_type, robots, preload) + f"""
 <body>
 <div class="scroll-progress" aria-hidden="true"></div>
 {PRELOADER}
 <a class="skip-link" href="#main">Skip to content</a>
+{announce_bar()}
 {site_header(path)}
 {dock(path)}
 <main id="main">
 {body}
 </main>
 {footer()}
+{ui_markup()}
 <script>window.SWK_V="{ASSET_V}";window.SWK_ASSETS="/assets/js/";</script>
 <script src="/assets/js/main.js?v={ASSET_V}" defer></script>
 </body>
 </html>
 """
+    return out.replace("<title>", f'<meta http-equiv="Content-Security-Policy" content="{e(csp_for(out))}">\n<title>', 1)
 
 
 def write(path, content):
@@ -529,14 +657,15 @@ def cta_section(title="Ready to find your next address in Dubai?", text="Tell us
 
 def org_ld():
     return {"@context": "https://schema.org", "@type": "RealEstateAgent", "@id": BASE + "/#org", "name": SITE["name"], "url": BASE + "/",
-            "logo": f"{BASE}/assets/images/brand/swk-logo.png", "image": f"{BASE}/assets/images/{PAGE_HERO_IMG}",
+            "logo": f"{BASE}/assets/images/brand/swk-logo.png", "image": f"{BASE}/assets/{PAGE_HERO_IMG}",
             "telephone": SITE["phone"], "email": SITE["email"], "areaServed": "Dubai, United Arab Emirates", "foundingDate": str(SITE["founded"]),
             "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "addressLocality": "Dubai", "addressCountry": "AE"},
             "geo": {"@type": "GeoCoordinates", "latitude": SITE["geo"][0], "longitude": SITE["geo"][1]},
             "openingHoursSpecification": [
                 {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], "opens": "09:00", "closes": "19:00"},
                 {"@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "10:00", "closes": "16:00"}],
-            "sameAs": [SITE["instagram"], SITE["linkedin"]]}
+            "sameAs": [SITE["instagram"], SITE["linkedin"]], "priceRange": "AED 500,000 - AED 50,000,000", "slogan": SITE.get("tagline", ""),
+            "contactPoint": {"@type": "ContactPoint", "telephone": SITE["phone"], "email": SITE["email"], "contactType": "sales", "areaServed": "AE", "availableLanguage": ["English", "Arabic"]}}
 
 
 # ---------------------------------------------------------------- pages
@@ -549,7 +678,7 @@ def build_home():
               + select("s-status", "status", "Status", status_opts, "Any status"))
     gallery = "".join(
         f'<button type="button" class="fan-card" data-fan-card="{i}" aria-label="Open photo {i + 1} of 25">'
-        f'{img(f"assets/images/gallery/image{i + 1}.jpg", "", "", lazy=i >= 7)}</button>' for i in range(25))
+        f'{img(f"assets/images/gallery/image{i + 1}.webp", "", "", lazy=i >= 7, sizes="(min-width: 700px) 20vw, 45vw")}</button>' for i in range(25))
     dots = "".join(f'<span class="fan-dot" data-fan-dot="{i}"></span>' for i in range(25))
     featured = [p for p in PROPS if p["featured"]][:6] or PROPS[:6]
     feat_cards = "".join(feature_card(p, i) for i, p in enumerate(featured))
@@ -564,7 +693,7 @@ def build_home():
         n = count_in(c["name"])
         label = f"{n} listing{'s' if n != 1 else ''}" if n else "Ask about availability"
         comm_cards += f"""<a class="community-card" data-reveal data-reveal-delay="{(i % 4) * 70}" href="/properties/?community={quote(c['name'])}" aria-label="View properties in {e(c['name'])}">
-{img(c['image'], f"{c['name']}, Dubai")}<div class="community-card__overlay"><h3>{e(c['name'])}</h3><span class="community-card__count">{label}</span></div></a>"""
+{img(c['image'], f"{c['name']}, Dubai", sizes="(min-width: 1100px) 290px, (min-width: 640px) 25vw, 50vw")}<div class="community-card__overlay"><h3>{e(c['name'])}</h3><span class="community-card__count">{label}</span></div></a>"""
 
     svc_cards = ""
     for i, s in enumerate(SERVICES):
@@ -584,8 +713,8 @@ def build_home():
 <script type="application/json" id="team-data">{json.dumps([{"name": t["name"], "role": t["role"], "bio": t["bio"]} for t in TEAM], ensure_ascii=False).replace("</", "<\\/")}</script>"""
 
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-golden-mobile.jpg">
-<img src="/assets/images/hero/dubai-golden.jpg" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
+<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-golden-mobile.webp">
+<img src="/assets/images/hero/dubai-golden.webp" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
 <canvas class="hero__gl" aria-hidden="true"></canvas>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
@@ -650,8 +779,8 @@ def build_home():
     write("/", page("/", "SWK Properties | Luxury Real Estate in Dubai",
                     "SWK Properties is a premium Dubai real estate agency — off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.",
                     body, ld=ld,
-                    preload=[("/assets/images/hero/dubai-golden-mobile.jpg", ' media="(max-width: 767px)" fetchpriority="high"'),
-                             ("/assets/images/hero/dubai-golden.jpg", ' media="(min-width: 768px)" fetchpriority="high"')]))
+                    preload=[("/assets/images/hero/dubai-golden-mobile.webp", ' media="(max-width: 767px)" fetchpriority="high"'),
+                             ("/assets/images/hero/dubai-golden.webp", ' media="(min-width: 768px)" fetchpriority="high"')]))
 
 
 def build_properties():
@@ -692,7 +821,7 @@ def build_property(p):
     for i, src in enumerate(images):
         alt = f"{p['title']} — photo {i + 1}"
         tiles += (f'<button type="button" class="pd-bento-gallery__item" data-lightbox-index="{i}" data-full="{asset(src)}" aria-label="Open photo {i + 1} of {len(images)}">'
-                  f'{img(src, alt, lazy=i > 2)}<span class="pd-bento-gallery__overlay"><span class="pd-bento-gallery__caption">Photo {i + 1}</span></span></button>')
+                  f'{img(src, alt, lazy=i > 2, sizes="(min-width: 1024px) 50vw, 100vw")}<span class="pd-bento-gallery__overlay"><span class="pd-bento-gallery__caption">Photo {i + 1}</span></span></button>')
     facts = [("Type", p["type"]), ("Bedrooms", p["bedrooms"]), ("Bathrooms", str(p["bathrooms"])), ("Area", f"{num(p['areaSqft'])} sqft"),
              ("Payment plan", p["paymentPlan"]), ("Handover", p["handover"]), ("Developer", p["developer"]), ("Est. ROI", f"{p['roiPercent']:g}%")]
     facts_html = "".join(f'<div class="fact"><div class="label">{k}</div><div class="value">{e(v)}</div></div>' for k, v in facts)
@@ -713,17 +842,19 @@ def build_property(p):
 <aside class="pd-sidebar" aria-label="Enquire about {e(p['title'])}">
 <div class="pd-agent-card"><div class="pd-price"><small>Starting price</small><br>{money(p['price'])}</div>
 <div class="pd-cta" style="margin-top:var(--space-5)"><a href="/contact/?property={p['id']}" class="btn btn-primary btn-block">Request details</a>
-<a href="{wa(f"Hello SWK Properties, I'd like details on {p['title']}.")}" class="btn btn-whatsapp btn-block" target="_blank" rel="noopener noreferrer">Ask on WhatsApp</a></div></div>
-<div class="pd-agent-card">{img("assets/images/team/mohd-shahid-khan.jpg", "Mohd Shahid Khan")}<p class="pd-agent-name">Mohd Shahid Khan</p><p>Your point of contact for this listing</p></div>
+<a href="{wa(f"Hello SWK Properties, I'd like details on {p['title']}.")}" class="btn btn-whatsapp btn-block" target="_blank" rel="noopener noreferrer">Ask on WhatsApp</a>
+<button type="button" class="btn btn-outline-dark btn-block" data-open-callback>Request a callback</button>
+<button type="button" class="btn btn-outline-dark btn-block" data-share>Share this listing</button></div></div>
+<div class="pd-agent-card">{img("assets/images/team/mohd-shahid-khan.webp", "Mohd Shahid Khan")}<p class="pd-agent-name">Mohd Shahid Khan</p><p>Your point of contact for this listing</p></div>
 </aside></div></section>
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header"><span class="eyebrow">You may also like</span><h2>Similar properties</h2></div>
 <div class="property-grid">{"".join(prop_card(q) for q in similar)}</div></div></section>"""
     cover = prop_images(p)[0].replace("assets/images/", "")
     ld = [breadcrumb_ld(trail), {"@context": "https://schema.org", "@type": "RealEstateListing", "name": p["title"], "description": p["description"],
-          "url": f"{BASE}/properties/{p['id']}/", "image": f"{BASE}/assets/images/{cover}",
+          "url": f"{BASE}/properties/{p['id']}/", "image": f"{BASE}/assets/og/{p['id']}.jpg",
           "offers": {"@type": "Offer", "price": p["price"], "priceCurrency": p["currency"]}}]
     desc = f"{p['title']} in {location(p)} by {p['developer']} — {money(p['price'])}, {p['bedrooms']} bed, {p['status']}. {p['paymentPlan']} payment plan, handover {p['handover']}."
-    write(f"/properties/{p['id']}/", page(f"/properties/{p['id']}/", f"{p['title']} | SWK Properties", desc, body, image=cover, ld=ld))
+    write(f"/properties/{p['id']}/", page(f"/properties/{p['id']}/", f"{p['title']} | SWK Properties", desc, body, image=f"og/{p['id']}.jpg", ld=ld))
 
 
 def build_about():
@@ -740,7 +871,7 @@ def build_about():
     stat_html = "".join(f'<div><div class="stat-num" data-count="{n}" data-suffix="{s}">{n}{s}</div><div class="stat-label">{l}</div></div>' for n, s, l in stats)
     trail = [("Home", "/"), ("About", None)]
     body = f"""{page_hero("Ten years of getting Dubai property right", "SWK Properties was founded on a simple idea: buying a home in Dubai — whether you live down the road or on the other side of the world — should feel transparent, not transactional.", trail)}
-<section class="section container ambient-glow-host">{GLOW}<div class="split-block">{img("assets/images/about/swk-office.jpg", "SWK Properties office overlooking Business Bay")}
+<section class="section container ambient-glow-host">{GLOW}<div class="split-block">{img("assets/images/about/swk-office.webp", "SWK Properties office overlooking Business Bay", sizes="(min-width: 900px) 600px, 100vw")}
 <div data-reveal><span class="eyebrow">Our Story</span><h2>Built by agents, run for clients</h2>
 <p>SWK Properties was started in 2016 by a small team of agents frustrated with how opaque property buying in Dubai could feel for outsiders. Today we're a full-service brokerage of over 40 consultants, but the founding principle hasn't changed: every fee, every payment plan clause, and every ROI figure gets explained in plain language before you sign anything.</p>
 <p style="margin-top:var(--space-4)">We work across off-plan and secondary sales, mortgage arrangement, and long-term property management — so the relationship doesn't end at handover.</p>
@@ -752,7 +883,7 @@ def build_about():
 {cta_section("Let's find your next Dubai address", "Book a no-obligation consultation and we'll come prepared with listings matched to your budget.")}"""
     write("/about/", page("/about/", "About Us | SWK Properties",
                           "SWK Properties is a Dubai-based real estate agency built on ten years of local market expertise, transparent advice, and full-service support for buyers and investors.",
-                          body, image="about/swk-office.jpg", ld=[breadcrumb_ld(trail), org_ld()]))
+                          body, image="og/about.jpg", ld=[breadcrumb_ld(trail), org_ld()]))
 
 
 def build_services():
@@ -843,19 +974,20 @@ def build_blog():
         tr = [("Home", "/"), ("Journal", "/blog/"), (p["title"], None)]
         b = f"""<section class="page-hero"><div class="container">{crumbs(tr)}<span class="badge badge-gold">{e(p['category'])}</span>
 <h1 class="page-hero__title" style="margin-top:var(--space-4)">{e(p['title'])}</h1>
-<p class="post-meta"><time datetime="{p['date']}">{nice_date(p['date'])}</time> · {e(p['readTime'])}</p></div></section>
+<p class="post-meta"><time datetime="{p['date']}">{nice_date(p['date'])}</time> · {e(p['readTime'])}</p>
+<div class="pd-actions"><button type="button" class="btn btn-outline-dark" data-share>Share this article</button></div></div></section>
 <article class="section container ambient-glow-host">{GLOW}<div class="prose">{img(p['image'], p['title'], lazy=False)}<p>{e(p['content'])}</p>
 <p style="font-size:var(--fs-xs)">This article is general information, not financial, legal or investment advice. Market conditions and regulations change — speak to a consultant before you decide.</p></div></article>
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header"><span class="eyebrow">Keep reading</span><h2>More from the journal</h2></div>
 <div class="blog-grid">{"".join(blog_card(q, i) for i, q in enumerate(others))}</div></div></section>
 {cta_section()}"""
         ld = [breadcrumb_ld(tr), {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "datePublished": p["date"], "dateModified": p["date"],
-              "description": p["excerpt"], "image": f"{BASE}/{p['image']}", "mainEntityOfPage": f"{BASE}/blog/{p['slug']}/",
+              "description": p["excerpt"], "image": f"{BASE}/assets/og/blog-{p['slug']}.jpg", "mainEntityOfPage": f"{BASE}/blog/{p['slug']}/",
               "author": {"@type": "Organization", "name": SITE["name"]},
               "publisher": {"@type": "Organization", "name": SITE["name"], "logo": {"@type": "ImageObject", "url": f"{BASE}/assets/images/brand/swk-logo.png"}}}]
         long_title = f"{p['title']} | SWK Properties"
         write(f"/blog/{p['slug']}/", page(f"/blog/{p['slug']}/", long_title if len(long_title) <= 70 else p["title"], p["excerpt"], b,
-                                           image=p["image"].replace("assets/images/", ""), ld=ld, og_type="article"))
+                                           image=f"og/blog-{p['slug']}.jpg", ld=ld, og_type="article"))
 
 
 def legal(path, title, desc, sections):
@@ -870,12 +1002,19 @@ def build_legal():
     legal("/privacy/", "Privacy Policy", "How SWK Properties collects, uses and protects your personal data.", [
         ("Who we are", [f"{n} ('we', 'us') is a real estate brokerage at {SITE['address']}. You can reach us at {em} or {SITE['phoneDisplay']}."]),
         ("What we collect", ["Information you give us through our contact form, newsletter sign-up, email, phone or WhatsApp: your name, email address, phone number, enquiry details and property preferences.",
-                             "This website does not use advertising or analytics cookies. The contact page embeds a Google map, which may load content from Google when displayed."]),
+                             "We only use analytics or marketing cookies if you allow them in the cookie banner; see our Cookie Policy. The contact page embeds a Google map, which may load content from Google when displayed."]),
         ("Why we use it", ["To respond to your enquiry, arrange viewings, prepare shortlists and any mortgage or legal introductions you ask for and, if you opt in, to send market updates. We rely on your consent and on our legitimate interest in running our business."]),
         ("Who we share it with", ["Only with partners needed to deliver what you asked for, such as developers, banks and legal partners, and with service providers who help us run our systems. We do not sell your personal data."]),
         ("How long we keep it", ["For as long as needed to deal with your enquiry and meet our legal and regulatory record-keeping duties. Newsletter data is kept until you unsubscribe."]),
         ("Your rights", [f"Under UAE data-protection law (Federal Decree-Law No. 45 of 2021) you may ask to access, correct or delete your data, and withdraw consent at any time. Email {em} to make a request."]),
         ("Changes", ["We may update this policy and will change the date above when we do."])])
+    legal("/cookies/", "Cookie Policy", "Which cookies and similar technologies swkpropertiesuae.com uses, and how to control them.", [
+        ("What are cookies", ["Cookies are small files stored on your device. We also use similar browser storage to remember choices you make on the site."]),
+        ("Essential", ["Needed for the site to work. We store your cookie choice, whether you dismissed the announcement bar, and whether you have already seen our newsletter pop-up. These do not identify you and cannot be switched off."]),
+        ("Analytics", ["Only if you allow it. Analytics tools such as Google Analytics tell us which pages are visited so we can improve them. IP addresses are anonymised."]),
+        ("Marketing", ["Only if you allow it. These measure how well our advertising performs. We do not sell your data."]),
+        ("Your choices", ["Use the Cookie settings link in the footer to change your choice at any time. You can also clear cookies and site data in your browser settings."]),
+        ("Contact", [f"Questions about cookies: {SITE['email']}."])])
     legal("/terms/", "Terms of Use", "The terms that apply when you use the SWK Properties website.", [
         ("Information only", ["Content on this website is general information, not an offer, valuation, or financial, legal or investment advice. Listings, prices, availability, payment plans and handover dates are indicative, supplied by developers or owners, and may change without notice."]),
         ("Estimates and calculators", ["Mortgage, cost and ROI figures are illustrative estimates. They do not guarantee returns, loan approval or specific terms. Verify all figures with your bank, the developer and your advisers before committing funds."]),
@@ -893,13 +1032,39 @@ def build_404():
 
 
 def build_meta_files():
-    urls = ["/", "/properties/", "/about/", "/services/", "/mortgage/", "/blog/", "/contact/", "/privacy/", "/terms/"]
-    urls += [f"/properties/{p['id']}/" for p in PROPS] + [f"/blog/{p['slug']}/" for p in POSTS]
-    xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    xml += [f"<url><loc>{BASE}{u}</loc><lastmod>{TODAY.isoformat()}</lastmod></url>" for u in urls]
+    pages = ["/", "/properties/", "/about/", "/services/", "/mortgage/", "/blog/", "/contact/", "/privacy/", "/terms/", "/cookies/"]
+    entries = [(u, TODAY.isoformat(), []) for u in pages]
+    entries += [(f"/properties/{p['id']}/", TODAY.isoformat(), [f"{BASE}/assets/og/{p['id']}.jpg"]) for p in PROPS]
+    entries += [(f"/blog/{p['slug']}/", p["date"], [f"{BASE}/assets/og/blog-{p['slug']}.jpg"]) for p in POSTS]
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">']
+    for u, lm, imgs in entries:
+        pri = "1.0" if u == "/" else "0.8" if u.count("/") <= 2 and u not in ("/privacy/", "/terms/", "/cookies/") else "0.6"
+        xml.append(f"<url><loc>{BASE}{u}</loc><lastmod>{lm}</lastmod><priority>{pri}</priority>" + "".join(f"<image:image><image:loc>{i}</image:loc></image:image>" for i in imgs) + "</url>")
     xml.append("</urlset>")
     (OUT / "sitemap.xml").write_text("\n".join(xml) + "\n", encoding="utf-8")
-    (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {BASE}/sitemap.xml\n", encoding="utf-8")
+    (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /404.html\n\nSitemap: {BASE}/sitemap.xml\n", encoding="utf-8")
+
+    # RSS feed for the journal
+    items = "".join(
+        f"<item><title>{e(p['title'])}</title><link>{BASE}/blog/{p['slug']}/</link><guid isPermaLink=\"true\">{BASE}/blog/{p['slug']}/</guid>"
+        f"<pubDate>{datetime.strptime(p['date'], '%Y-%m-%d').strftime('%a, %d %b %Y 08:00:00 +0400')}</pubDate><category>{e(p['category'])}</category>"
+        f"<description>{e(p['excerpt'])}</description></item>" for p in POSTS)
+    (OUT / "feed.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>'
+        f"<title>{e(SITE['name'])} Journal</title><link>{BASE}/blog/</link><description>Dubai property market insight, buyer guides and community spotlights.</description>"
+        f'<language>en-ae</language><atom:link href="{BASE}/feed.xml" rel="self" type="application/rss+xml"/>{items}</channel></rss>', encoding="utf-8")
+
+    # Web app manifest and security.txt
+    manifest = {"name": SITE["name"], "short_name": "SWK", "description": SITE.get("tagline", ""), "start_url": "/", "scope": "/", "display": "browser",
+                "background_color": "#faf7f2", "theme_color": "#faf7f2", "lang": "en-AE",
+                "icons": [{"src": "/assets/images/brand/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                          {"src": "/assets/images/brand/icon-512.png", "sizes": "512x512", "type": "image/png"},
+                          {"src": "/assets/images/brand/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]}
+    (OUT / "manifest.webmanifest").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+    wk = OUT / ".well-known"
+    wk.mkdir(exist_ok=True)
+    (wk / "security.txt").write_text(f"Contact: mailto:{SITE['email']}\nExpires: {TODAY.year + 1}-12-31T23:59:59.000Z\nPreferred-Languages: en\nCanonical: {BASE}/.well-known/security.txt\n", encoding="utf-8")
 
 
 def main():

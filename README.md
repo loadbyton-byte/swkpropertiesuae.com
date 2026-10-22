@@ -59,3 +59,11 @@ Add new files under `src/assets/`, never directly in `public/` (the build delete
 
 - Mobile dock sits at the bottom of the screen so touch targets stay large.
 - An earlier audit counted "14 listings" as a bug. That was real pagination (9 per page). It also said split-text headings lacked accessible text; the original already used sr-only text with `aria-hidden` letters.
+
+## Site-wide UI, SEO and compliance
+
+- `data/site.json` controls the announcement bar (`announcement`), newsletter pop-up (`popup`), analytics IDs (`analytics.ga4/gtm/metaPixel`, loaded only after cookie consent), search-console verification (`verification`) and `twitter`.
+- Cookie banner + preferences, toasts, callback modal, back-to-top: `src/js/modules/75-ui.js`, `src/css/ui.css`.
+- Each page gets a meta CSP with computed script hashes (`csp_for` in `build.py`); extra headers live in `vercel.json`.
+- Generated: `sitemap.xml` (with images), `robots.txt`, `feed.xml`, `manifest.webmanifest`, `.well-known/security.txt`, `/cookies/`.
+- `python3 tools/make-icons.py` rebuilds favicon/PWA icons. Hero poster is saved as `src/assets/images/hero/dubai-golden(.webp|-mobile.webp)`.
