@@ -149,6 +149,20 @@
   });
 })();
 
+// Top navigation bar: transparent over the hero, a frosted bar once the page scrolls.
+(function () {
+  'use strict';
+  var SWK = window.SWK;
+
+  SWK.reg('header', function () {
+    var bar = SWK.$('[data-site-header]');
+    if (!bar) return;
+    var update = SWK.raf(function () { bar.classList.toggle('is-scrolled', window.scrollY > 12); });
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  });
+})();
+
 // Scroll-driven depth: scrubbed 3D entrances, parallax skyline layers and the
 // interior page-header skyline. One rAF-throttled pass over only the elements
 // currently near the viewport.
