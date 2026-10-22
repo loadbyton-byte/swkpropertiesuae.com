@@ -29,11 +29,14 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
 
 ::selection { background: var(--gold-400); color: var(--navy-950); }
 
+.badge-gold { background: var(--gold-100); color: var(--gold-700); }
+.property-card--feature .badge-gold { background: var(--gold-100); color: var(--gold-700); }
+
 .eyebrow { color: var(--gold-400); }
 .eyebrow::before { height: 2px; width: 30px; border-radius: 2px; background: var(--grad-gold); }
 
 .section--alt {
-  background: linear-gradient(to bottom, var(--color-bg) 0, rgba(36, 57, 138, 0.55) 90px, rgba(36, 57, 138, 0.55) calc(100% - 90px), var(--color-bg) 100%);
+  background: linear-gradient(to bottom, var(--color-bg) 0, rgba(15, 58, 43, 0.82) 90px, rgba(15, 58, 43, 0.82) calc(100% - 90px), var(--color-bg) 100%);
 }
 
 /* ---- Type details ---- */
@@ -111,15 +114,15 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
 
 /* ---- Cards: lighter, colourful depth ---- */
 
-.property-card { border: 1px solid var(--color-border); background: linear-gradient(180deg, rgba(36, 57, 138, 0.55), var(--navy-900)); }
-.property-card:hover { box-shadow: 0 28px 60px rgba(4, 8, 40, 0.6), 0 0 0 1px rgba(255, 185, 46, 0.35); }
+.property-card { border: 1px solid var(--color-border); background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), var(--navy-900)); }
+.property-card:hover { box-shadow: 0 28px 60px rgba(4, 6, 8, 0.6), 0 0 0 1px rgba(230, 199, 122, 0.4); }
 .blog-card, .developer-card, .service-card, .benefit-card { border: 1px solid var(--color-border); }
-.blog-card { background: linear-gradient(180deg, rgba(36, 57, 138, 0.5), var(--navy-900)); }
+.blog-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), var(--navy-900)); }
 .marquee__item { border-color: var(--color-border); }
 
 /* ---- Interior page headers ---- */
 
-.page-hero .breadcrumbs a { color: var(--azure-400); }
+.page-hero .breadcrumbs a { color: var(--gold-400); }
 .page-hero .breadcrumbs a:hover { color: var(--gold-400); }
 .page-hero p { color: var(--slate-300); }
 
@@ -133,3 +136,8 @@ body { background: var(--grad-page), var(--color-bg); background-repeat: no-repe
 /* ---- Focus ---- */
 
 :focus-visible { outline: 3px solid var(--gold-400); outline-offset: 3px; }
+
+/* Section heading rows stack on phones so the title keeps its full width. */
+@media (max-width: 767px) {
+  .section-head-row { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+}

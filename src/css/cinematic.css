@@ -75,8 +75,8 @@
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(90deg, rgba(10, 18, 51, 0.5) 0%, rgba(10, 18, 51, 0.18) 38%, rgba(10, 18, 51, 0) 62%),
-    linear-gradient(to top, rgba(10, 18, 51, 0.78) 0%, rgba(10, 18, 51, 0.32) 30%, rgba(10, 18, 51, 0) 58%);
+    linear-gradient(90deg, rgba(22, 27, 34, 0.5) 0%, rgba(22, 27, 34, 0.18) 38%, rgba(22, 27, 34, 0) 62%),
+    linear-gradient(to top, rgba(22, 27, 34, 0.78) 0%, rgba(22, 27, 34, 0.32) 30%, rgba(22, 27, 34, 0) 58%);
   /* Only needed while the headline is on screen; fades as the camera starts to fly. */
   opacity: clamp(0, calc(1.1 - var(--p, 0) * 3), 1);
   pointer-events: none;
@@ -110,7 +110,7 @@
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(10, 18, 51, 0.38) 100%);
+  background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(22, 27, 34, 0.38) 100%);
 }
 
 /* Anamorphic light streak across the horizon, fades as the camera climbs. */
@@ -124,7 +124,7 @@
   opacity: calc(0.75 - var(--p, 0) * 1.4);
   background: linear-gradient(90deg, transparent, rgba(255, 140, 90, 0.0) 12%, rgba(255, 140, 90, 0.55) 50%, rgba(255, 140, 90, 0.0) 88%, transparent);
   filter: blur(1.2px);
-  box-shadow: 0 0 22px 3px rgba(255, 107, 71, 0.28);
+  box-shadow: 0 0 22px 3px rgba(255, 184, 96, 0.3);
 }
 
 /* Chapter captions — shown in turn as the camera flies through the skyline. */
