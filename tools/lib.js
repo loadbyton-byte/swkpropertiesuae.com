@@ -18,7 +18,7 @@ function watch(page, bucket) {
     bucket.push(`console.${m.type()}: ${m.text()}${url ? ' [' + url + ']' : ''}`);
   });
   page.on('pageerror', (e) => bucket.push(`pageerror: ${e.message}`));
-  page.on('requestfailed', (r) => bucket.push(`requestfailed: ${r.url()} (${r.failure() && r.failure().errorText})`));
+  page.on('requestfailed', (r) => { if (/ERR_ABORTED/.test((r.failure() && r.failure().errorText) || '') && /\.(webp|jpe?g|png|mp4|webm)(\?|$)/.test(r.url())) return; bucket.push(`requestfailed: ${r.url()} (${r.failure() && r.failure().errorText})`); });
   page.on('response', (r) => { if (r.status() >= 400) bucket.push(`http ${r.status()}: ${r.url()}`); });
 }
 

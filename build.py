@@ -785,10 +785,17 @@ def build_home():
 <div class="rv__count" aria-hidden="true"><b data-rv-now>01</b> / {len(REVIEWS):02d}</div>
 <div class="rv__nav"><button type="button" class="tc-arrow" data-rv-prev aria-label="Previous review">{PREV}</button><button type="button" class="tc-arrow" data-rv-next aria-label="Next review">{NEXT}</button></div></div></div>"""
 
+    devs = []
+    for q in PROPS:
+        d = q["developer"]
+        if d not in devs:
+            devs.append(d)
+    ad_html = "".join(f'<div class="ad ad--{i + 1}" data-ad><span class="ad__tag">Master developer</span><strong>{e(d)}</strong><i></i></div>' for i, d in enumerate(devs[:5]))
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
 <div class="hero__bg"><img src="{HERO_POSTER}" alt="" width="1280" height="720" fetchpriority="high" decoding="async" referrerpolicy="no-referrer"></div>
 <video class="hero__video" muted playsinline preload="auto" aria-hidden="true" tabindex="-1" data-video-desktop="{HERO_VIDEO_HD}" data-video-mobile="{HERO_VIDEO_SD}" poster="{HERO_POSTER}" crossorigin="anonymous"></video>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
+<div class="hero__ads" aria-hidden="true">{ad_html}</div>
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>Built to rise.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__content container">
 <span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>
