@@ -109,26 +109,50 @@ const BUILDING_FRAG = /* glsl */ `
     vec3 shade = vec3(0.50, 0.50, 0.66);
     vec3 col = base * mix(shade, vec3(1.10, 1.02, 0.90), 0.3 + 0.7 * diff);
 
+    // Reflection vector: glass mirrors the sky and the low sun.
+    vec3 R = reflect(-V, N);
+    vec3 skyLow = vec3(0.93, 0.80, 0.62);
+    vec3 skyHi  = vec3(0.30, 0.50, 0.78);
+    vec3 skyRef = mix(skyLow, skyHi, clamp(R.y * 1.6 + 0.15, 0.0, 1.0));
+    vec3 sunD = normalize(vec3(0.22, 0.16, -1.0));
+    float sunSpec = pow(max(dot(R, sunD), 0.0), 18.0);
+
     if (vTop > 0.5) {
-      col = mix(col, vec3(0.97, 0.98, 1.0), 0.75);
+      // Roof: gravel / concrete with a parapet line and a plant room.
+      vec2 rg = vFace * 0.5;
+      float n = hash(floor(rg * 6.0));
+      col = mix(vec3(0.46, 0.45, 0.43), vec3(0.62, 0.60, 0.56), n);
+      float edge = min(min(fract(vFace.x / 9.0), 1.0 - fract(vFace.x / 9.0)), min(fract(vFace.y / 9.0), 1.0 - fract(vFace.y / 9.0)));
+      col *= 0.8 + 0.2 * smoothstep(0.0, 0.05, edge);
     } else {
-      vec2 g = vFace / vec2(2.4, 3.8);
+      float storeyH = 3.7;
+      float bayW = mix(1.7, 2.6, hash(vec2(seed, 3.1)));
+      vec2 g = vFace / vec2(bayW, storeyH);
       vec2 id = floor(g);
       vec2 f = fract(g);
-      float win = mix(step(0.14, f.x) * step(f.x, 0.86) * step(0.2, f.y) * step(f.y, 0.8), step(0.04, f.x) * step(f.x, 0.96) * step(0.12, f.y) * step(f.y, 0.88), glassy);
+      float style = floor(hash(vec2(seed, 9.7)) * 3.0);   // 0 ribbon, 1 punched, 2 curtain wall + fins
+      float spandrel = step(f.y, 0.26);                   // opaque slab band at the bottom of each storey
+      float mullion = step(f.x, 0.045) + step(0.955, f.x);
+      float glassMask = 1.0 - spandrel;
+      if (style == 1.0) glassMask *= step(0.14, f.x) * step(f.x, 0.86);
+      if (style == 2.0) glassMask *= 1.0 - step(0.9, f.x) * 0.6;
       float r = hash(id + seed * 57.3);
-      float r2 = hash(id.yx + seed * 13.7);
-      // Glass reflects the sky: deeper blue low down, brighter with height.
-      vec3 glass = mix(base * 0.55, mix(base, vec3(0.95, 0.72, 0.52), 0.55), 0.25 + 0.75 * hh);
-      glass = mix(glass, vec3(0.30, 0.34, 0.50), (1.0 - glassy) * 0.7);
-      glass = mix(glass, glass * vec3(1.15, 1.1, 0.95), step(0.8, r2));
-      float tw = 0.5 + 0.5 * sin(uTime * (0.35 + r * 0.9) + r * 40.0);
-      float glint = step(0.955, r) * (0.35 + 0.65 * tw);
-      vec3 pane = mix(glass, vec3(1.0, 0.97, 0.88), glint * 0.85);
-      col = mix(col, pane * (0.6 + 0.6 * diff), win * 0.9);
-      float mull = step(f.x, 0.03) + step(0.97, f.x);
-      col *= 1.0 - 0.12 * mull;
+      float lit = step(0.93, r);
+      vec3 tint = mix(base, vec3(0.35, 0.50, 0.66), glassy * 0.6);
+      vec3 glass = skyRef * tint * 1.25;
+      glass += vec3(1.0, 0.86, 0.6) * sunSpec * 0.9 * glassy;
+      glass = mix(glass, vec3(1.0, 0.85, 0.55), lit * 0.75);
+      glass *= 0.82 + 0.3 * hash(id.yx + seed * 13.7);          // pane-to-pane variation
+      vec3 slab = base * mix(vec3(0.78), vec3(1.0), diff) * 0.9;
+      vec3 facade = mix(slab, glass, glassMask);
+      facade *= 1.0 - 0.22 * mullion;
+      facade *= 1.0 - 0.18 * smoothstep(0.0, 0.05, f.y) * (1.0 - smoothstep(0.05, 0.12, f.y)) ; // slab shadow line
+      col = mix(col, facade, 0.92);
+      // vertical fins on every ~4th bay for the "curtain wall" style
+      if (style == 2.0) col *= 1.0 - 0.25 * step(0.5, fract(id.x * 0.25 + 0.01)) * step(f.x, 0.12);
     }
+    // Ambient occlusion toward street level and a soft edge darkening
+    col *= mix(0.55, 1.0, smoothstep(0.0, 22.0, vWorld.y));
 
     float fres = pow(1.0 - clamp(abs(dot(N, V)), 0.0, 1.0), 3.0);
     col += vec3(1.0, 0.84, 0.60) * 0.3 * fres * (0.4 + 0.6 * hh);
@@ -232,6 +256,76 @@ const GROUND_FRAG = /* glsl */ `
     col = mix(col, vec3(0.95, 0.74, 0.25), edge * 0.95);
     float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
     col = mix(col, uFogColor, clamp(ff * 1.05, 0.0, 1.0));
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+
+const VEH_VERT = /* glsl */ `
+  attribute float aPart;
+  attribute float aLane;
+  attribute float aSpeed;
+  attribute float aOff;
+  attribute float aDir;
+  attribute vec3 aColor;
+  uniform float uTime;
+  varying vec3 vNormalW;
+  varying vec3 vWorld;
+  varying float vPart;
+  varying vec3 vColor;
+  varying float vFogDepth;
+  void main() {
+    float zFar = -520.0;
+    float zNear = 92.0;
+    float span = zNear - zFar;
+    float z = zFar + mod(aOff + aDir * uTime * aSpeed, span);
+    float sc = smoothstep(0.0, 60.0, z - zFar) * smoothstep(0.0, 18.0, zNear - z);
+    vec3 p = position;
+    vec3 n = normal;
+    if (aDir < 0.0) { p.xz = -p.xz; n.xz = -n.xz; }
+    p *= sc;
+    vec3 wp = vec3(aLane + p.x, p.y, z + p.z);
+    vWorld = wp;
+    vNormalW = n;
+    vPart = aPart;
+    vColor = aColor;
+    vec4 mv = viewMatrix * vec4(wp, 1.0);
+    vFogDepth = -mv.z;
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+
+const VEH_FRAG = /* glsl */ `
+  uniform vec3 uFogColor;
+  uniform float uFogDensity;
+  varying vec3 vNormalW;
+  varying vec3 vWorld;
+  varying float vPart;
+  varying vec3 vColor;
+  varying float vFogDepth;
+  void main() {
+    vec3 N = normalize(vNormalW);
+    vec3 V = normalize(cameraPosition - vWorld);
+    vec3 L = normalize(vec3(0.45, 0.7, 0.55));
+    float diff = clamp(dot(N, L), 0.0, 1.0);
+    vec3 col;
+    if (vPart < 0.5) {                 // paint
+      col = vColor * (0.42 + 0.7 * diff);
+      float fres = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 3.0);
+      col += vec3(1.0, 0.9, 0.75) * fres * 0.22;
+      col += vec3(1.0, 0.95, 0.85) * pow(max(dot(reflect(-L, N), V), 0.0), 24.0) * 0.45;
+    } else if (vPart < 1.5) {          // glass
+      vec3 R = reflect(-V, N);
+      col = mix(vec3(0.07, 0.10, 0.15), vec3(0.55, 0.68, 0.82), clamp(R.y * 1.4 + 0.2, 0.0, 1.0)) * 0.9;
+    } else if (vPart < 2.5) {          // tyres
+      col = vec3(0.05, 0.05, 0.06) * (0.6 + 0.4 * diff);
+    } else if (vPart < 3.5) {          // headlights
+      col = vec3(1.0, 0.96, 0.84) * 1.6;
+    } else {                           // taillights
+      col = vec3(1.0, 0.10, 0.08) * 1.5;
+    }
+    float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
+    col = mix(col, uFogColor, clamp(ff * 0.9, 0.0, 1.0));
     gl_FragColor = vec4(col, 1.0);
   }
 `;
@@ -424,6 +518,18 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     }
   }
 
+  // Rooftop plant rooms and antennas on the taller blocks
+  {
+    const base = parts.length;
+    for (let i = 0; i < base; i++) {
+      const q = parts[i];
+      if (q.h > 70 && q.w > 7 && q.y === 0 && rand() < 0.8) {
+        push(q.x + (rand() - 0.5) * q.w * 0.3, q.h, q.z, q.w * 0.36, 3.5 + rand() * 4, q.d * 0.36, 0, fract1(q.seed + 0.5));
+        if (q.h > 120 && rand() < 0.7) push(q.x, q.h, q.z, 0.5, 10 + rand() * 18, 0.5, 0, 5.4);
+      }
+    }
+  }
+
   // Landmark 1: a tiered, slowly twisting spire (Burj-style silhouette)
   {
     const lx = 40, lz = -300, tiers = 16;
@@ -490,6 +596,17 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
 
   // ---- Street furniture: date palms and lamp posts along the boulevard
   {
+    // Kerbs, pavements and a planted central reservation
+    const flat = (w, h, len, x, y, color) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, len), new THREE.MeshBasicMaterial({ color }));
+      m.position.set(x, y, 98 - len / 2); scene.add(m);
+    };
+    const roadLen = 760;
+    flat(4.2, 0.22, roadLen, -9.2, 0.11, 0xd9d2c3); flat(4.2, 0.22, roadLen, 9.2, 0.11, 0xd9d2c3);
+    flat(0.35, 0.3, roadLen, -7.1, 0.15, 0xb9b3a6); flat(0.35, 0.3, roadLen, 7.1, 0.15, 0xb9b3a6);
+    flat(1.3, 0.4, roadLen, 0, 0.2, 0x5f8a5a);
+    flat(0.2, 0.5, roadLen, 0.75, 0.25, 0xb9b3a6); flat(0.2, 0.5, roadLen, -0.75, 0.25, 0xb9b3a6);
+
     const trunkGeo = new THREE.CylinderGeometry(0.28, 0.5, 1, 6);
     trunkGeo.translate(0, 0.5, 0);
     // Crown: 9 drooping, tapered fronds merged into one geometry.
@@ -535,7 +652,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     let k = 0;
     for (let i = 0; i < N; i++) {
       for (const side of [-1, 1]) {
-        const z = 70 - i * 15;
+        const z = 38 - i * 15;
         const jitter = (rand() - 0.5) * 1.2;
         const hT = 9 + rand() * 3.5;
         q.setFromAxisAngle(axisY, rand() * 6.28);
@@ -554,8 +671,76 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     [trunks, crowns, lamps, bulbs].forEach((o) => { o.frustumCulled = false; scene.add(o); });
   }
 
-  // ---- Traffic light streaks
-  const carCount = mobile ? 150 : 260;
+  // ---- Realistic traffic: instanced sedans and SUVs (white-heavy UAE fleet) with lit head/tail lamps
+  function mergeParts(list) {
+    const pos = [], nor = [], part = [];
+    list.forEach((it) => {
+      const g = it.geo.index ? it.geo.toNonIndexed() : it.geo;
+      if (it.m) g.applyMatrix4(it.m);
+      const pa = g.attributes.position.array, na = g.attributes.normal.array;
+      for (let i = 0; i < pa.length; i++) { pos.push(pa[i]); nor.push(na[i]); }
+      for (let i = 0; i < pa.length / 3; i++) part.push(it.part);
+    });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(nor), 3));
+    g.setAttribute('aPart', new THREE.BufferAttribute(new Float32Array(part), 1));
+    return g;
+  }
+  function taperedBox(w, h, l, top) {
+    const g = new THREE.BoxGeometry(w, h, l);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) if (p.getY(i) > 0) { p.setX(i, p.getX(i) * top); p.setZ(i, p.getZ(i) * (top + 0.08)); }
+    g.computeVertexNormals();
+    return g;
+  }
+  const T = (x, y, z) => new THREE.Matrix4().makeTranslation(x, y, z);
+  function buildCar(kind) {
+    const suv = kind === 'suv';
+    const W = suv ? 1.95 : 1.82, L = suv ? 4.95 : 4.65, R = suv ? 0.42 : 0.35;
+    const bodyH = suv ? 0.82 : 0.62, cabH = suv ? 0.72 : 0.5, cabL = suv ? 3.15 : 2.35;
+    const list = [];
+    list.push({ geo: new THREE.BoxGeometry(W, bodyH, L), part: 0, m: T(0, R * 0.9 + bodyH / 2, 0) });
+    list.push({ geo: taperedBox(W * 0.92, cabH, cabL, 0.86), part: 1, m: T(0, R * 0.9 + bodyH + cabH / 2 - 0.02, suv ? -0.35 : -0.25) });
+    list.push({ geo: new THREE.BoxGeometry(W * 0.86, 0.06, cabL * 0.78), part: 0, m: T(0, R * 0.9 + bodyH + cabH, suv ? -0.35 : -0.25) });
+    const wheelGeo = new THREE.CylinderGeometry(R, R, 0.26, 12); wheelGeo.rotateZ(Math.PI / 2);
+    [[-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(([sx, sz]) => list.push({ geo: wheelGeo.clone(), part: 2, m: T(sx * (W / 2 - 0.1), R, sz * L * 0.33) }));
+    [-1, 1].forEach((sx) => {
+      list.push({ geo: new THREE.BoxGeometry(0.46, 0.14, 0.08), part: 3, m: T(sx * (W / 2 - 0.3), R * 0.9 + bodyH * 0.72, L / 2) });
+      list.push({ geo: new THREE.BoxGeometry(0.5, 0.12, 0.08), part: 4, m: T(sx * (W / 2 - 0.3), R * 0.9 + bodyH * 0.72, -L / 2) });
+    });
+    return mergeParts(list);
+  }
+  const PAINT = [[0.97, 0.97, 0.96], [0.97, 0.97, 0.96], [0.96, 0.96, 0.94], [0.93, 0.93, 0.92], [0.72, 0.74, 0.78], [0.55, 0.57, 0.6], [0.08, 0.08, 0.09], [0.1, 0.12, 0.16], [0.55, 0.08, 0.1], [0.9, 0.78, 0.45]];
+  const vehMat = new THREE.ShaderMaterial({
+    vertexShader: VEH_VERT, fragmentShader: VEH_FRAG,
+    uniforms: { uTime: uniforms.uTime, uFogColor: uniforms.uFogColor, uFogDensity: uniforms.uFogDensity },
+  });
+  [['suv', mobile ? 26 : 46], ['sedan', mobile ? 22 : 40]].forEach(([kind, n]) => {
+    const geo = buildCar(kind);
+    const ln = new Float32Array(n), sp = new Float32Array(n), of = new Float32Array(n), dr = new Float32Array(n), cl = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const d = i % 2 === 0 ? 1 : -1;
+      const lanes = d > 0 ? [-2.5, -5.4] : [2.5, 5.4];
+      ln[i] = lanes[(rand() * 2) | 0];
+      sp[i] = 11 + rand() * 9;
+      of[i] = rand() * 612;
+      dr[i] = d;
+      const c = PAINT[(rand() * PAINT.length) | 0];
+      cl[i * 3] = c[0]; cl[i * 3 + 1] = c[1]; cl[i * 3 + 2] = c[2];
+    }
+    geo.setAttribute('aLane', new THREE.InstancedBufferAttribute(ln, 1));
+    geo.setAttribute('aSpeed', new THREE.InstancedBufferAttribute(sp, 1));
+    geo.setAttribute('aOff', new THREE.InstancedBufferAttribute(of, 1));
+    geo.setAttribute('aDir', new THREE.InstancedBufferAttribute(dr, 1));
+    geo.setAttribute('aColor', new THREE.InstancedBufferAttribute(cl, 3));
+    const mesh = new THREE.InstancedMesh(geo, vehMat, n);
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+  });
+
+  // ---- Distant headlight / tail-light glints
+  const carCount = mobile ? 40 : 90;
   const carGeo = new THREE.BufferGeometry();
   const lane = new Float32Array(carCount);
   const speed = new Float32Array(carCount);
