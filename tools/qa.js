@@ -85,24 +85,15 @@ function pagesFromSitemap() {
   console.log(`  ${urls.length} pages checked`);
 
   // ---------------------------------------------------------------- home deep dive
-  sect('Home: WebGL hero, scroll scrub, captions');
+  sect('Home: video hero, scroll scrub, captions');
   msgs.length = 0;
   await page.goto(L.BASE + '/', { waitUntil: 'load' });
   await page.waitForFunction(() => document.querySelector('.hero.is-gl'), null, { timeout: 20000 }).catch(() => {});
   ok(await page.evaluate(() => !!document.querySelector('.hero.is-gl')), 'hero reached is-gl');
   await page.waitForTimeout(3600);
   await shot(page, 'home-top');
-  const cvs = await page.evaluate(() => { const c = document.querySelector('.hero__gl'); return { w: c.width, h: c.height, cw: c.clientWidth }; });
-  ok(cvs.w > 800 && cvs.h > 400, `canvas size ${cvs.w}x${cvs.h}`);
-  const png = (await page.screenshot({ clip: { x: 0, y: 0, width: 1440, height: 640 } })).toString('base64');
-  const lit = await page.evaluate(async (b64) => { // sample the composited frame for real, varied content
-    const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
-    const t = document.createElement('canvas'); t.width = 96; t.height = 40; const x = t.getContext('2d'); x.drawImage(img, 0, 0, 96, 40);
-    const d = x.getImageData(0, 0, 96, 40).data; let bright = 0; const set = new Set();
-    for (let i = 0; i < d.length; i += 4) { if (d[i] + d[i + 1] + d[i + 2] > 150) bright++; set.add((d[i] >> 4) + ',' + (d[i + 1] >> 4) + ',' + (d[i + 2] >> 4)); }
-    return { bright, colors: set.size };
-  }, png);
-  ok(lit.colors > 25 && lit.bright > 40, `hero frame has real 3D content ${JSON.stringify(lit)}`);
+  const vid = await page.evaluate(() => { const v = document.querySelector('.hero__video'); return { rs: v.readyState, w: v.videoWidth, dur: v.duration }; });
+  ok(vid.rs >= 2 && vid.w > 0 && vid.dur > 1, `hero video decoded ${JSON.stringify(vid)}`);
   const progs = [];
   for (const f of [0, 0.35, 0.65, 1]) {
     await page.evaluate((f) => { const w = document.querySelector('.hero-cine'); scrollTo({ top: w.offsetTop + (w.offsetHeight - innerHeight) * f, behavior: 'instant' }); }, f);
@@ -111,6 +102,8 @@ function pagesFromSitemap() {
   }
   ok(progs[0].p === 0 && progs[3].p === 1 && progs[1].p > 0.3 && progs[1].p < 0.4, `scroll progress ${JSON.stringify(progs.map((x) => x.p))}`);
   ok(progs[1].caps[0] > 0.9 && progs[2].caps[1] > 0.9 && progs[3].caps[2] > 0.9, `captions per chapter ${JSON.stringify(progs.map((x) => x.caps))}`);
+  const ct = await page.evaluate(() => document.querySelector('.hero__video').currentTime);
+  ok(ct > 1.5, `video playhead follows scroll (t=${ct.toFixed(2)})`);
   await shot(page, 'home-fly');
   await page.evaluate(() => scrollTo(0, 0));
   ok(L.clean(msgs).length === 0, 'home console clean after scrub: ' + JSON.stringify(L.clean(msgs)));
@@ -176,13 +169,14 @@ function pagesFromSitemap() {
   ok(await page.evaluate(() => document.querySelector('.lightbox').hidden), 'lightbox closes on Escape');
   ok(await page.evaluate(() => document.activeElement.hasAttribute('data-fan-card')), 'focus returns to opener');
 
-  // team carousel + calculator on home
-  await page.evaluate(() => document.querySelector('[data-testimonials-carousel]').scrollIntoView({ block: 'center' }));
-  await page.waitForTimeout(500);
-  await page.click('[data-tc-next]'); await page.waitForTimeout(400);
-  ok((await page.textContent('.tc-name')) === 'Mohammad Haseeb', 'team carousel next');
-  await page.click('[data-tc-prev]'); await page.click('[data-tc-prev]'); await page.waitForTimeout(300);
-  ok((await page.textContent('.tc-name')) === 'Issaadi Chahrazed', 'team carousel wraps');
+  // reviews slider + calculator on home
+  await page.evaluate(() => document.querySelector('[data-reviews]').scrollIntoView({ block: 'center' })); await page.waitForTimeout(600);
+  const rv0 = await page.evaluate(() => ({ n: document.querySelectorAll('[data-rv-slide]').length, act: document.querySelector('.rv-slide.is-active strong').textContent }));
+  ok(rv0.n >= 8, `${rv0.n} reviews in the DOM (SEO text)`);
+  await page.click('[data-rv-next]'); await page.waitForTimeout(500);
+  ok((await page.textContent('.rv-slide.is-active strong')) !== rv0.act, 'review slider next changes slide');
+  await page.click('[data-rv-prev]'); await page.waitForTimeout(300);
+  ok((await page.textContent('.rv-slide.is-active strong')) === rv0.act, 'review slider prev returns');
 
   // search form -> properties with params
   await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(600);
@@ -317,8 +311,8 @@ function pagesFromSitemap() {
   ok(L.clean(rm.msgs).length === 0, 'reduced-motion console clean');
   await rm.ctx.close();
   const nw = await newPage(b);
-  await nw.page.goto(L.BASE + '/?nowebgl', { waitUntil: 'load' }); await nw.page.waitForTimeout(1500);
-  ok(await nw.page.evaluate(() => !document.querySelector('.hero.is-gl') && document.querySelector('.hero-cine').classList.contains('is-flat')), '?nowebgl keeps the photo hero');
+  await nw.page.goto(L.BASE + '/?novideo', { waitUntil: 'load' }); await nw.page.waitForTimeout(1500);
+  ok(await nw.page.evaluate(() => !document.querySelector('.hero.is-gl') && document.querySelector('.hero-cine').classList.contains('is-flat')), '?novideo keeps the photo hero');
   ok(L.clean(nw.msgs).length === 0, 'nowebgl console clean ' + JSON.stringify(L.clean(nw.msgs)));
   await nw.ctx.close();
   const nj = await newPage(b, { javaScriptEnabled: false });
