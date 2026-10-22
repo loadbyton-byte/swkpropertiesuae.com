@@ -13,7 +13,7 @@
 
 import * as THREE from '/assets/vendor/three.module.min.js';
 
-const FOG_COLOR = new THREE.Color(0.2, 0.085, 0.085);
+const FOG_COLOR = new THREE.Color(0.31, 0.2, 0.46);
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -87,16 +87,16 @@ const BUILDING_FRAG = /* glsl */ `
     float seed = fract(sv);
     float hh = clamp(vWorld.y / 230.0, 0.0, 1.0);
 
-    vec3 base = mix(vec3(0.034, 0.043, 0.068), vec3(0.075, 0.085, 0.12), seed);
-    base += vec3(0.05, 0.03, 0.04) * hh;
+    vec3 base = mix(vec3(0.12, 0.16, 0.36), vec3(0.24, 0.28, 0.54), seed);
+    base += vec3(0.10, 0.05, 0.09) * hh;
     vec3 ember = vec3(1.0, 0.36, 0.2);
 
     float back = clamp(dot(N, normalize(vec3(0.15, 0.05, -1.0))), 0.0, 1.0);
     float side = clamp(abs(N.x), 0.0, 1.0);
-    vec3 col = base + ember * (0.10 * back + 0.06 * side * (0.4 + hh));
+    vec3 col = base + ember * (0.22 * back + 0.12 * side * (0.4 + hh));
 
     if (vTop > 0.5) {
-      col = mix(col, vec3(0.17, 0.12, 0.14), 0.7);
+      col = mix(col, vec3(0.38, 0.32, 0.55), 0.7);
     } else {
       vec2 g = vFace / vec2(2.4, 3.8);
       vec2 id = floor(g);
@@ -119,7 +119,7 @@ const BUILDING_FRAG = /* glsl */ `
     }
 
     float fres = pow(1.0 - clamp(abs(dot(N, V)), 0.0, 1.0), 3.0);
-    col += ember * 0.24 * fres * (0.5 + 0.5 * hh);
+    col += ember * 0.4 * fres * (0.5 + 0.5 * hh);
     col = mix(col, vec3(1.0, 0.84, 0.66) * 1.5, beacon * 0.9);
 
     float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
@@ -149,19 +149,19 @@ const SKY_FRAG = /* glsl */ `
   void main() {
     vec3 d = normalize(vDir);
     float y = d.y;
-    vec3 top = vec3(0.010, 0.014, 0.034);
-    vec3 mid = vec3(0.056, 0.034, 0.074);
-    vec3 hor = vec3(0.62, 0.22, 0.12);
+    vec3 top = vec3(0.05, 0.09, 0.34);
+    vec3 mid = vec3(0.32, 0.17, 0.56);
+    vec3 hor = vec3(1.0, 0.5, 0.33);
     vec3 col = mix(hor, mid, smoothstep(0.0, 0.18, y));
     col = mix(col, top, smoothstep(0.12, 0.68, y));
     float az = dot(normalize(vec3(d.x, 0.0001, d.z)), vec3(0.0, 0.0, -1.0));
     float glow = pow(max(az, 0.0), 3.0) * exp(-max(y, 0.0) * 7.0);
-    col += vec3(1.0, 0.45, 0.22) * glow * 0.95;
-    col = mix(col, vec3(0.06, 0.03, 0.04), smoothstep(0.0, -0.25, y));
+    col += vec3(1.0, 0.45, 0.3) * glow * 0.62;
+    col = mix(col, vec3(0.2, 0.13, 0.34), smoothstep(0.0, -0.25, y));
     vec3 sunDir = normalize(vec3(0.18, 0.07, -1.0));
     float sd = dot(d, sunDir);
-    col += vec3(1.0, 0.72, 0.45) * smoothstep(0.9986, 0.9996, sd) * 1.3;
-    col += vec3(1.0, 0.5, 0.3) * pow(max(sd, 0.0), 160.0) * 0.55;
+    col += vec3(1.0, 0.66, 0.45) * smoothstep(0.9986, 0.9996, sd) * 0.8;
+    col += vec3(1.0, 0.45, 0.32) * pow(max(sd, 0.0), 160.0) * 0.35;
     vec3 sp = d * 240.0;
     float h = hash(floor(sp.xy) + floor(sp.zy) * 1.7);
     float star = step(0.9972, h) * smoothstep(0.08, 0.32, y);
@@ -191,7 +191,11 @@ const GROUND_FRAG = /* glsl */ `
   void main() {
     float ax = abs(vWorld.x);
     float road = 1.0 - smoothstep(7.0, 8.0, ax);
-    vec3 col = mix(vec3(0.020, 0.022, 0.030), vec3(0.045, 0.048, 0.062), road);
+    vec3 plaza = mix(vec3(0.12, 0.13, 0.31), vec3(0.17, 0.15, 0.36), smoothstep(10.0, 140.0, ax));
+    float joint = max(smoothstep(0.0, 0.05, abs(fract(vWorld.z / 12.0) - 0.5) - 0.45),
+                      smoothstep(0.0, 0.05, abs(fract(vWorld.x / 12.0) - 0.5) - 0.45));
+    plaza += vec3(0.032, 0.04, 0.09) * joint * (1.0 - smoothstep(30.0, 170.0, vFogDepth));
+    vec3 col = mix(plaza, vec3(0.17, 0.19, 0.37), road);
     float dash = step(0.5, fract(vWorld.z / 8.0)) * (1.0 - smoothstep(0.12, 0.22, ax));
     col += vec3(0.55, 0.48, 0.36) * dash * road * 0.32;
     float edge = smoothstep(6.5, 6.75, ax) * (1.0 - smoothstep(6.75, 7.0, ax));
@@ -295,7 +299,7 @@ const BEACON_FRAG = /* glsl */ `
   }
 `;
 
-export function createHeroScene(canvas, { mobile = false } = {}) {
+export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: !mobile,
@@ -303,7 +307,7 @@ export function createHeroScene(canvas, { mobile = false } = {}) {
     stencil: false,
     powerPreference: 'high-performance',
   });
-  renderer.setClearColor(0x07090d, 1);
+  renderer.setClearColor(0x1a1a44, 1);
   let pixelRatio = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 1.75);
   renderer.setPixelRatio(pixelRatio);
 
@@ -403,6 +407,11 @@ export function createHeroScene(canvas, { mobile = false } = {}) {
       push(lx, i * 7, lz, 22 - i * 0.15, 7.2, 22 - i * 0.15, i * 0.075, 0.61);
     }
     beacons.push([lx, tiers * 7 + 1, lz, 2.2]);
+  }
+  // A hazy backdrop row that closes the far end of the boulevard (no hard gap of raw sky).
+  for (let i = -4; i <= 4; i++) {
+    const h = 70 + rand() * 190;
+    push(i * 17 + (rand() - 0.5) * 6, 0, -650 - rand() * 50, 13 + rand() * 11, h, 14, 0, rand());
   }
   // Two slim towers that frame the opening shot
   push(-96, 0, 10, 12, 96, 12, 0, 0.18);
@@ -613,6 +622,14 @@ export function createHeroScene(canvas, { mobile = false } = {}) {
   api.setProgress = (p) => { state.p = clamp(p, 0, 1); };
   api.setPointer = (x, y) => { state.px = clamp(x, -1, 1); state.py = clamp(y, -1, 1); };
   api.start = () => {
+    if (hold) {
+      // ?hold: draw the opening frame once and stay still (used to render the poster image).
+      requestAnimationFrame(() => {
+        resize(); placeCamera(0.0001); renderer.render(scene, camera);
+        if (!readyFired) { readyFired = true; if (api.onReady) api.onReady(); }
+      });
+      return;
+    }
     if (running || disposed) return;
     running = true;
     last = 0;

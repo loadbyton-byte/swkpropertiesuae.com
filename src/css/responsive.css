@@ -74,7 +74,7 @@
   display: flex;
   align-items: flex-end;
   padding: var(--space-4);
-  background: linear-gradient(to top, rgba(7, 9, 13, 0.85) 0%, rgba(7, 9, 13, 0.15) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(10, 18, 51, 0.85) 0%, rgba(10, 18, 51, 0.15) 55%, transparent 100%);
   opacity: 0;
   transition: opacity var(--duration-base) var(--ease-luxury);
 }
@@ -339,21 +339,6 @@
   .property-card__feature-title,
   .property-card__feature-price {
     font-size: var(--fs-sm);
-  }
-}
-
-/* ---- Mobile: tighter footer ---- */
-@media (max-width: 767px) {
-  .footer-card {
-    padding-block: var(--space-5);
-  }
-
-  .footer-grid {
-    gap: var(--space-5);
-  }
-
-  .footer-col ul {
-    gap: var(--space-2);
   }
 }
 
