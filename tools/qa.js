@@ -92,8 +92,8 @@ function pagesFromSitemap() {
   ok(await page.evaluate(() => !!document.querySelector('.hero.is-gl')), 'hero reached is-gl');
   await page.waitForTimeout(3600);
   await shot(page, 'home-top');
-  const fl = await page.evaluate(() => ({ walls: document.querySelectorAll('.hero .wall').length, ads: document.querySelectorAll('.hero .wall__ad').length, imgs: [...document.querySelectorAll('.hero .wall img')].filter((i) => i.complete && i.naturalWidth > 0).length }));
-  ok(fl.walls >= 20 && fl.ads >= 8 && fl.imgs === fl.walls, `fly-through built from real photos ${JSON.stringify(fl)}`);
+  const fl = await page.evaluate(() => ({ layers: document.querySelectorAll('.hero .dt').length, tags: document.querySelectorAll('.hero .dt__tag').length, imgs: [...document.querySelectorAll('.hero .dt img')].filter((i) => i.complete && i.naturalWidth > 0).length, credit: !!document.querySelector('.hero__credit a[href*="unsplash.com/@"]') }));
+  ok(fl.layers >= 6 && fl.tags === fl.layers && fl.imgs >= 1 && fl.credit, `Downtown Dubai photo journey built ${JSON.stringify(fl)}`);
   const progs = [];
   for (const f of [0, 0.35, 0.65, 1]) {
     await page.evaluate((f) => { const w = document.querySelector('.hero-cine'); scrollTo({ top: w.offsetTop + (w.offsetHeight - innerHeight) * f, behavior: 'instant' }); }, f);
@@ -103,8 +103,8 @@ function pagesFromSitemap() {
   }
   ok(progs[0].p === 0 && progs[3].p === 1 && progs[1].p > 0.3 && progs[1].p < 0.4, `scroll progress ${JSON.stringify(progs.map((x) => x.p))}`);
   ok(progs[1].caps[0] > 0.9 && progs[2].caps[1] > 0.9 && progs[3].caps[2] > 0.9, `captions per chapter ${JSON.stringify(progs.map((x) => x.caps))}`);
-  const visWalls = await page.evaluate(() => [...document.querySelectorAll('.hero .wall')].filter((w) => parseFloat(w.style.opacity || 0) > 0.3).length);
-  ok(visWalls >= 2, `wall panels visible at the end of the flight (${visWalls})`);
+  const lastOn = await page.evaluate(() => { const l = [...document.querySelectorAll('.hero .dt')]; return parseFloat(l[l.length - 1].style.opacity || 0); });
+  ok(lastOn > 0.8, `last Downtown photo fully shown at the end of the scroll (${lastOn})`);
   await shot(page, 'home-fly');
   await page.evaluate(() => scrollTo(0, 0));
   ok(L.clean(msgs).length === 0, 'home console clean after scrub: ' + JSON.stringify(L.clean(msgs)));

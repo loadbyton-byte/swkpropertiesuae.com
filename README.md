@@ -68,8 +68,9 @@ Add new files under `src/assets/`, never directly in `public/` (the build delete
 - Generated: `sitemap.xml` (with images), `robots.txt`, `feed.xml`, `manifest.webmanifest`, `.well-known/security.txt`, `/cookies/`.
 - `python3 tools/make-icons.py` rebuilds favicon/PWA icons. Hero poster is saved as `src/assets/images/hero/hero-scene(.webp|-mobile.webp)`.
 
-## Luxe theme, photo fly-through hero, reviews
+## Luxe theme, Downtown Dubai hero, reviews
 
-- Theme: near-black + bronze gradients, Inter (headings/body) and Montserrat (nav, buttons, labels), all self-hosted. Tokens and overrides: `src/css/luxe.css` (loaded last).
-- Home hero is a scroll-driven boulevard fly-through built from real property/community photos as CSS-3D wall panels (`WALL_L`/`WALL_R` in `build.py`), with developer-name LED signs on alternating panels, traffic-light streaks on the road and a skyline backdrop. No video, no WebGL. `?novideo` (or reduced motion / save-data) falls back to the flat poster. Logic: `src/js/modules/40-hero.js`; styles: `.flight*`/`.wall*` in `src/css/luxe.css`.
+- Theme: deep navy canvas with restrained multi-hue accents (blue, teal, indigo, emerald, violet, rose; no gold/bronze), Inter (headings/body) and Montserrat (nav, buttons, labels), all self-hosted. Tokens and overrides: `src/css/luxe.css` (loaded last).
+- Home hero is a scroll-driven Downtown Dubai photo journey: six real Unsplash photographs (`DOWNTOWN` in `build.py`: Burj Khalifa, The Dubai Mall, Burj Lake, skyline) cross-fade and push in as you scroll, with a landmark/developer tag, a side rail and photographer credits. Photos are hot-linked per Unsplash guidelines; the local poster shows if they fail. `?novideo`, reduced motion or save-data use the flat poster. Logic: `src/js/modules/40-hero.js`; styles: `.dt*` in `src/css/luxe.css`.
+- Homepage portfolio fan photos react to the pointer (`src/js/modules/51-portfolio.js`). Partner logos in `src/assets/images/developers/` are shown in true colour on white chips.
 - Reviews: `data/testimonials.json` (replace with real client reviews before launch). Team: `data/team.json`.

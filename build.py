@@ -49,8 +49,8 @@ BUDGETS = [
     ("6000000-10000000", "AED 6M - 10M"),
     ("10000000", "AED 10M+"),
 ]
-FEATURE_THEMES = ["30 46% 30%", "24 40% 26%", "36 44% 34%", "28 36% 24%", "33 42% 28%"]
-SERVICE_THEMES = ["30 46% 40%", "24 40% 36%", "36 44% 44%", "28 36% 34%", "33 42% 38%", "30 30% 42%"]
+FEATURE_THEMES = ["208 52% 30%", "174 46% 24%", "238 38% 36%", "152 38% 24%", "270 32% 34%"]
+SERVICE_THEMES = ["208 52% 40%", "174 46% 34%", "238 38% 46%", "152 38% 34%", "270 32% 44%", "346 36% 44%"]
 PAGE_HERO_IMG = "og/default.jpg"
 
 
@@ -479,12 +479,16 @@ def csp_for(html_text):
 
 HERO_POSTER = "/assets/images/hero/dubai-skyline-hero.webp"
 
-# Real photographs used as textured planes for the boulevard fly-through (left wall, right wall).
-WALL_L = ["properties/rise-by-athlon-1", "properties/jvc-boulevard-residences-1", "properties/business-bay-executive-tower-1", "communities/business-bay",
-          "properties/marina-sky-penthouse-1", "properties/golf-fields-1", "communities/downtown-dubai", "properties/hills-estate-golf-mansion-1"]
-WALL_R = ["properties/river-cove-residences-1", "properties/palm-garden-homes-1", "properties/raw-district-2-1", "communities/sheikh-zayed-road",
-          "properties/villa-sanctuary-1", "communities/dubai-marina", "properties/islands-2-1", "communities/dubai-creek-harbour"]
-AD_AT = {1: 0, 3: 1, 5: 2, 7: 3, 9: 4, 11: 5}   # wall index -> developer index
+# Downtown Dubai landmarks for the scroll-driven hero (real Unsplash photographs, hot-linked per Unsplash guidelines).
+# (photo path, photographer, profile, landmark, detail, alt)
+DOWNTOWN = [
+    ("photo-1544092683-c0c9ebb368e5", "K T", "_knt", "Burj Khalifa", "828 m \u00b7 Emaar Properties", "Burj Khalifa rising above Downtown Dubai and Sheikh Zayed Road in the morning"),
+    ("photo-1726533765829-67f0313ab064", "Kate Trysh", "katetrysh", "The Dubai Mall", "Emaar Properties", "The Dubai Mall and Emaar towers seen from Burj Lake"),
+    ("photo-1555613739-35929bac2d1e", "Philipp Katzenberger", "fantasyflip", "Burj Lake", "Downtown Dubai", "Burj Khalifa reflected beside the lake in Downtown Dubai"),
+    ("photo-1619806840163-38e329be64bb", "Jeshur Jacinto", "jnjshots", "Downtown skyline", "Emaar master community", "Rooftop view of the Downtown Dubai skyline"),
+    ("photo-1721804222952-299547e55d65", "Nelemson Guevarra", "nelemson", "Downtown Dubai", "Boulevard district", "Panoramic view of the towers of Downtown Dubai"),
+    ("flagged/photo-1559717201-fbb671ff56b7", "ZQ Lee", "zqlee", "Burj Khalifa by night", "Sheikh Zayed Road", "The Burj Khalifa over the lit Dubai skyline at night"),
+]
 
 
 def head(path, title, desc, image, ld, og_type, robots, preload):
@@ -510,7 +514,7 @@ def head(path, title, desc, image, ld, og_type, robots, preload):
 <meta name="description" content="{e(desc)}">
 <meta name="author" content="{SITE['name']}">
 <meta name="format-detection" content="telephone=no">
-<meta name="theme-color" content="#faf7f2">
+<meta name="theme-color" content="#0a1220">
 <meta name="color-scheme" content="light">
 <link rel="canonical" href="{url}">
 {hreflang}{rb}{ver}<meta property="og:type" content="{og_type}">
@@ -795,26 +799,21 @@ def build_home():
         if q["developer"] not in devs:
             devs.append(q["developer"])
 
-    def wall_src(path):
-        small = f"assets/images/{path}-640.webp"
-        return "/" + (small if (SRC / small).is_file() else f"assets/images/{path}.webp")
-
-    wall_parts = []
-    for side, lst in ((-1, WALL_L), (1, WALL_R)):
-        for i in range(12):
-            ph = lst[i % len(lst)] if i < len(lst) else lst[(i * 3 + 1) % len(lst)]
-            z = -260 - i * 640
-            ad = ""
-            if (i + (0 if side < 0 else 1)) % 2 == 1 and devs:
-                ad = f'<div class="wall__ad"><span>Master developer</span><strong>{e(devs[(i // 2 + (0 if side < 0 else 3)) % len(devs)])}</strong></div>'
-            wall_parts.append(f'<div class="wall" data-pz="{z}" style="--z:{z}px;--side:{side}"><img src="{wall_src(ph)}" alt="" decoding="async"><span class="wall__shade"></span>{ad}</div>')
-    wall_html = "".join(wall_parts)
+    dt_layers, dt_rail, dt_credit = [], [], []
+    for n, (pid, who, user, name, detail, alt) in enumerate(DOWNTOWN):
+        src = f"https://images.unsplash.com/{pid}?auto=format&fit=crop&q=72"
+        srcset = ", ".join(f"{src}&w={w} {w}w" for w in (900, 1500, 2200))
+        prio = 'fetchpriority="high" ' if n == 0 else 'loading="lazy" '
+        dt_layers.append(f'<figure class="dt" data-dt="{n}"><img src="{src}&w=1500" srcset="{srcset}" sizes="100vw" alt="" width="1500" height="1000" '
+                         f'{prio}decoding="async" referrerpolicy="no-referrer">'
+                         f'<figcaption class="dt__tag"><span>{e(detail)}</span><strong>{e(name)}</strong></figcaption></figure>')
+        dt_rail.append(f'<li data-dt-dot="{n}"><i></i><span>{e(name)}</span></li>')
+        dt_credit.append(f'<a href="https://unsplash.com/@{user}?utm_source=swk_properties&amp;utm_medium=referral" target="_blank" rel="noopener noreferrer">{e(who)}</a>')
+    dt_html = "".join(dt_layers)
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
 <div class="hero__bg"><img src="{HERO_POSTER}" alt="" width="1600" height="1067" fetchpriority="high" decoding="async"></div>
-<div class="hero__flight" aria-hidden="true"><div class="flight__back"><img src="{HERO_POSTER}" alt="" decoding="async"></div><div class="flight" data-flight>
-<div class="flight__road"><i></i></div>
-{wall_html}
-</div></div>
+<div class="hero__flight" aria-hidden="true" data-flight><div class="dt-stack">{dt_html}</div></div>
+<ol class="dt-rail" aria-hidden="true">{"".join(dt_rail)}</ol>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>Built to rise.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__content container">
@@ -826,6 +825,7 @@ def build_home():
 <button type="submit" class="btn btn-primary">{SEARCH} Search</button></form></div>
 </div>
 <div class="hero__scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
+<p class="hero__credit">Downtown Dubai photography: {", ".join(dt_credit)} / <a href="https://unsplash.com/?utm_source=swk_properties&amp;utm_medium=referral" target="_blank" rel="noopener noreferrer">Unsplash</a></p>
 </section></div>
 
 {VALUES}
@@ -1168,7 +1168,7 @@ def build_meta_files():
 
     # Web app manifest and security.txt
     manifest = {"name": SITE["name"], "short_name": "SWK", "description": SITE.get("tagline", ""), "start_url": "/", "scope": "/", "display": "browser",
-                "background_color": "#faf7f2", "theme_color": "#faf7f2", "lang": "en-AE",
+                "background_color": "#0a1220", "theme_color": "#0a1220", "lang": "en-AE",
                 "icons": [{"src": "/assets/images/brand/icon-192.png", "sizes": "192x192", "type": "image/png"},
                           {"src": "/assets/images/brand/icon-512.png", "sizes": "512x512", "type": "image/png"},
                           {"src": "/assets/images/brand/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]}
