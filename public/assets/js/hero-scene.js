@@ -321,8 +321,12 @@ const VEH_FRAG = /* glsl */ `
       col = vec3(0.05, 0.05, 0.06) * (0.6 + 0.4 * diff);
     } else if (vPart < 3.5) {          // headlights
       col = vec3(1.0, 0.96, 0.84) * 1.6;
-    } else {                           // taillights
+    } else if (vPart < 4.5) {          // taillights
       col = vec3(1.0, 0.10, 0.08) * 1.5;
+    } else if (vPart < 5.5) {
+      col = vec3(0.52, 0.56, 0.60) * (0.5 + diff);
+    } else {
+      col = vec3(0.92, 0.92, 0.88);
     }
     float ff = 1.0 - exp(-pow(vFogDepth * uFogDensity, 2.0));
     col = mix(col, uFogColor, clamp(ff * 0.9, 0.0, 1.0));
@@ -530,6 +534,17 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     }
   }
 
+  // Podiums, recessed roof crowns and repeated balcony slabs break up box silhouettes.
+  {
+    const bases = parts.filter(p => p.y === 0 && p.h > 45 && p.z > -350);
+    bases.forEach((p, i) => {
+      push(p.x, 0, p.z, p.w + 3, 5.2, p.d + 3, 0, 0.12);
+      push(p.x, p.h - 1.2, p.z, p.w + 0.8, 1.2, p.d + 0.8, 0, 0.12);
+      if (i % 4 === 0) for (let y = 9; y < Math.min(p.h - 3, 100); y += 7.4)
+        push(p.x, y, p.z, p.w + 0.65, 0.32, p.d + 0.9, 0, 0.15);
+    });
+  }
+
   // Landmark 1: a tiered, slowly twisting spire (Burj-style silhouette)
   {
     const lx = 40, lz = -300, tiers = 16;
@@ -594,7 +609,22 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
   scene.add(buildings);
 
 
-  // ---- Street furniture: date palms and lamp posts along the boulevard
+  // Illuminated developer wordmarks on a stylised Dubai skyline, not a geographic map.
+  const signTextures = [];
+  const signBuildings = parts.filter(p => p.y === 0 && p.h > 65 && p.w > 11 && p.z > -290 && p.z < -50).slice(0, mobile ? 4 : 8);
+  signBuildings.forEach((p, i) => {
+    const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 192;
+    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    ctx.fillStyle = '#18232d'; ctx.fillRect(0, 0, 1024, 192);
+    ctx.fillStyle = '#f5e9ce'; ctx.font = '500 100px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(['EMAAR', 'DAMAC', 'SOBHA', 'BINGHATTI'][i % 4], 512, 100, 970);
+    const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); signTextures.push(texture);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(p.w * 0.9, p.w * 0.17), new THREE.MeshBasicMaterial({ map: texture, color: 0xfff6e8 }));
+    sign.position.set(p.x, p.h - 4.5, p.z + p.d / 2 + 0.06); scene.add(sign);
+  });
+
+  // ---- Stone central reservation, limestone pavements and boulevard lighting
   {
     // Kerbs, pavements and a planted central reservation
     const flat = (w, h, len, x, y, color) => {
@@ -604,45 +634,15 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     const roadLen = 760;
     flat(4.2, 0.22, roadLen, -9.2, 0.11, 0xd9d2c3); flat(4.2, 0.22, roadLen, 9.2, 0.11, 0xd9d2c3);
     flat(0.35, 0.3, roadLen, -7.1, 0.15, 0xb9b3a6); flat(0.35, 0.3, roadLen, 7.1, 0.15, 0xb9b3a6);
-    flat(1.3, 0.4, roadLen, 0, 0.2, 0x5f8a5a);
+    flat(1.3, 0.4, roadLen, 0, 0.2, 0xbca68b);
     flat(0.2, 0.5, roadLen, 0.75, 0.25, 0xb9b3a6); flat(0.2, 0.5, roadLen, -0.75, 0.25, 0xb9b3a6);
 
-    const trunkGeo = new THREE.CylinderGeometry(0.28, 0.5, 1, 6);
-    trunkGeo.translate(0, 0.5, 0);
-    // Crown: 9 drooping, tapered fronds merged into one geometry.
-    const crownGeo = (() => {
-      const pos = [];
-      const FR = 9, SEG = 4;
-      for (let f = 0; f < FR; f++) {
-        const a = (f / FR) * Math.PI * 2 + (f % 2) * 0.2;
-        const ca = Math.cos(a), sa = Math.sin(a);
-        const len = 4.6 + (f % 3) * 0.5;
-        for (let sIdx = 0; sIdx < SEG; sIdx++) {
-          const t0 = sIdx / SEG, t1 = (sIdx + 1) / SEG;
-          const pt = (t, side) => {
-            const r = t * len;
-            const w = (1 - t) * 0.9 * side + (t > 0.97 ? 0 : 0);
-            const y = 0.7 * Math.sin(t * 2.2) * 1.2 - t * t * 2.6 + 0.8;
-            return [ca * r - sa * w, y, sa * r + ca * w];
-          };
-          const A = pt(t0, 1), B = pt(t0, -1), C = pt(t1, 1), D = pt(t1, -1);
-          pos.push(...A, ...B, ...C, ...B, ...D, ...C);
-        }
-      }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
-      return g;
-    })();
     const lampGeo = new THREE.CylinderGeometry(0.12, 0.16, 1, 5);
     lampGeo.translate(0, 0.5, 0);
     const bulbGeo = new THREE.SphereGeometry(0.55, 8, 6);
-    const trunkMat = new THREE.MeshBasicMaterial({ color: 0x8a6a4c });
-    const crownMat = new THREE.MeshBasicMaterial({ color: 0x3f7a42, side: THREE.DoubleSide });
     const lampMat = new THREE.MeshBasicMaterial({ color: 0x2b3750 });
     const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffd58a });
     const N = mobile ? 26 : 44;
-    const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, N * 2);
-    const crowns = new THREE.InstancedMesh(crownGeo, crownMat, N * 2);
     const lamps = new THREE.InstancedMesh(lampGeo, lampMat, N * 2);
     const bulbs = new THREE.InstancedMesh(bulbGeo, bulbMat, N * 2);
     const m = new THREE.Matrix4();
@@ -653,13 +653,6 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
     for (let i = 0; i < N; i++) {
       for (const side of [-1, 1]) {
         const z = 38 - i * 15;
-        const jitter = (rand() - 0.5) * 1.2;
-        const hT = 9 + rand() * 3.5;
-        q.setFromAxisAngle(axisY, rand() * 6.28);
-        v.set(side * (10.5 + jitter), 0, z); sv.set(1, hT, 1);
-        m.compose(v, q, sv); trunks.setMatrixAt(k, m);
-        v.set(side * (10.5 + jitter), hT, z); sv.set(1, 1, 1);
-        m.compose(v, q, sv); crowns.setMatrixAt(k, m);
         const lz = z - 7.5;
         v.set(side * 8.2, 0, lz); sv.set(1, 7.5, 1);
         m.compose(v, q, sv); lamps.setMatrixAt(k, m);
@@ -668,7 +661,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
         k++;
       }
     }
-    [trunks, crowns, lamps, bulbs].forEach((o) => { o.frustumCulled = false; scene.add(o); });
+    [lamps, bulbs].forEach((o) => { o.frustumCulled = false; scene.add(o); });
   }
 
   // ---- Realistic traffic: instanced sedans and SUVs (white-heavy UAE fleet) with lit head/tail lamps
@@ -709,6 +702,17 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
       list.push({ geo: new THREE.BoxGeometry(0.46, 0.14, 0.08), part: 3, m: T(sx * (W / 2 - 0.3), R * 0.9 + bodyH * 0.72, L / 2) });
       list.push({ geo: new THREE.BoxGeometry(0.5, 0.12, 0.08), part: 4, m: T(sx * (W / 2 - 0.3), R * 0.9 + bodyH * 0.72, -L / 2) });
     });
+    // Body-coloured pillars make the glass cabin read as individual windows.
+    [-1, 1].forEach(sx => {
+      list.push({ geo: new THREE.BoxGeometry(0.055, cabH, 0.12), part: 0, m: T(sx * W * 0.44, R * 0.9 + bodyH + cabH / 2, -0.25) });
+      list.push({ geo: taperedBox(0.22, 0.13, 0.32, 0.8), part: 0, m: T(sx * (W / 2 + 0.07), R * 0.9 + bodyH + 0.13, cabL * 0.28) });
+      [-1, 1].forEach(sz => {
+        const rim = new THREE.CylinderGeometry(R * 0.61, R * 0.61, 0.025, 16); rim.rotateZ(Math.PI / 2);
+        list.push({ geo: rim, part: 5, m: T(sx * (W / 2 + 0.04), R, sz * L * 0.33) });
+      });
+    });
+    list.push({ geo: new THREE.BoxGeometry(W * 0.48, 0.22, 0.035), part: 2, m: T(0, R + bodyH * 0.25, L / 2 + 0.045) });
+    [-1, 1].forEach(sz => list.push({ geo: new THREE.BoxGeometry(0.42, 0.12, 0.04), part: 6, m: T(0, R + bodyH * 0.35, sz * (L / 2 + 0.07)) }));
     return mergeParts(list);
   }
   const PAINT = [[0.97, 0.97, 0.96], [0.97, 0.97, 0.96], [0.96, 0.96, 0.94], [0.93, 0.93, 0.92], [0.72, 0.74, 0.78], [0.55, 0.57, 0.6], [0.08, 0.08, 0.09], [0.1, 0.12, 0.16], [0.55, 0.08, 0.1], [0.9, 0.78, 0.45]];
@@ -930,6 +934,7 @@ export function createHeroScene(canvas, { mobile = false, hold = false } = {}) {
       if (o.geometry) o.geometry.dispose();
       if (o.material) o.material.dispose();
     });
+    signTextures.forEach(texture => texture.dispose());
     renderer.dispose();
   };
   api.stats = () => ({ buildings: count, cars: carCount, dust: dustCount, beacons: beacons.length, camera: camera.position.toArray(), fov: camera.fov, pixelRatio });

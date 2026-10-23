@@ -14,6 +14,7 @@ import json
 import re
 import shutil
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import quote
 
@@ -36,7 +37,7 @@ TEAM = load("team")
 POSTS = sorted(load("blog"), key=lambda p: p["date"], reverse=True)
 
 BASE = SITE["url"]
-TODAY = date.today()
+TODAY = datetime.now(ZoneInfo("Asia/Dubai")).date()
 e = html.escape
 
 # ---------------------------------------------------------------- helpers
@@ -220,7 +221,7 @@ ASSET_V = ""
 def build_assets():
     """Concatenate CSS and JS, fingerprint them, and copy vendor files."""
     global ASSET_V
-    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme", "ui"]
+    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme", "ui", "premium"]
     css = "\n".join((SRC / "css" / f"{n}.css").read_text(encoding="utf-8") for n in css_order)
     css = css.replace("../assets/", "/assets/")
     mods = sorted((SRC / "js" / "modules").glob("*.js"))
@@ -444,6 +445,18 @@ def ui_markup():
             f'<button type="button" class="back-top" data-back-top aria-label="Back to top">{ICON_UP}</button>')
 
 
+def chat_markup():
+    return f'''<aside class="swk-chat" aria-label="SWK property assistant">
+<button class="swk-chat__launcher" type="button" data-chat-toggle aria-expanded="false" aria-controls="swk-chat-panel">SWK <span>Chat with us</span></button>
+<section id="swk-chat-panel" class="swk-chat__panel" aria-label="SWK assistant" hidden>
+<header><div><strong>SWK Concierge</strong><small>Website assistant · human handoff available</small></div><button type="button" data-chat-close aria-label="Close chat">×</button></header>
+<div class="swk-chat__messages" data-chat-log role="log" aria-live="polite" aria-relevant="additions"><p class="swk-chat__message">Welcome to SWK. I’m the website assistant. Choose a topic or tell me what you’re looking for. For a personal reply, connect with our team on WhatsApp.</p></div>
+<div class="swk-chat__topics"><button type="button" data-chat-topic="buy">Buying a home</button><button type="button" data-chat-topic="off-plan">Off-plan</button><button type="button" data-chat-topic="sell">Selling</button><button type="button" data-chat-topic="human">Speak to SWK</button></div>
+<form data-chat-form><label class="sr-only" for="swk-chat-input">Your property question</label><input id="swk-chat-input" maxlength="1000" placeholder="Ask about your property search…" required autocomplete="off"><button type="submit" aria-label="Send question">→</button></form>
+<a class="swk-chat__handoff" data-chat-handoff href="{wa('Hello SWK, I would like to speak with a property consultant.')}" target="_blank" rel="noopener noreferrer">Continue with SWK on WhatsApp ↗</a><small class="swk-chat__privacy">Assistant answers are general guidance. Messages stay in this tab until you choose to share them on WhatsApp. <a href="/privacy/">Privacy</a></small>
+</section></aside>'''
+
+
 def csp_for(html_text):
     hashes = []
     for m in re.finditer(r"<script>(.*?)</script>", html_text, re.S):
@@ -530,6 +543,7 @@ def page(path, title, desc, body, *, image=PAGE_HERO_IMG, ld=None, og_type="webs
 </main>
 {footer()}
 {ui_markup()}
+{chat_markup()}
 <script>window.SWK_V="{ASSET_V}";window.SWK_ASSETS="/assets/js/";</script>
 <script src="/assets/js/main.js?v={ASSET_V}" defer></script>
 </body>
@@ -577,6 +591,8 @@ UNSPLASH = {
 
 
 def hero_photo(key):
+    if key == "services":
+        return ('<div class="page-hero__bg" aria-hidden="true">' + img("assets/images/hero/dubai-services-cinematic.webp", "", lazy=False, sizes="100vw") + "</div>", '<span class="photo-credit">Dubai cityscape · AI-created illustration</span>')
     pid, who, alt = UNSPLASH[key]
     base = f"https://images.unsplash.com/{pid}?auto=format&fit=crop&q=70"
     srcset = ", ".join(f"{base}&w={w} {w}w" for w in (800, 1400, 2000))
@@ -759,15 +775,25 @@ def build_home():
 <svg class="service-card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></div>
 <div class="service-card__decor" aria-hidden="true">{service_icon(s['id'])}</div></div>"""
 
-    tilts = [-6, 4, -3]
-    photos = "".join(
-        f'<div class="tc-photo" data-tc-photo="{i}" style="--tc-rot:{tilts[i % 3]}deg">{img(t["photo"], t["name"])}</div>' for i, t in enumerate(TEAM))
-    t0 = TEAM[0]
-    words = "".join(f'<span class="tc-word is-in">{e(w)}</span> ' for w in t0["bio"].split(" "))
-    team = f"""<div class="testimonials-carousel" data-testimonials-carousel><div class="testimonials-carousel__media" data-tc-media>{photos}</div>
-<div class="testimonials-carousel__content"><div data-tc-text><h3 class="tc-name">{e(t0['name'])}</h3><p class="tc-designation">{e(t0['role'])}</p><p class="tc-quote">{words}</p></div>
-<div class="tc-nav"><button type="button" class="tc-arrow" data-tc-prev aria-label="Previous team member">{PREV}</button><button type="button" class="tc-arrow" data-tc-next aria-label="Next team member">{NEXT}</button></div></div></div>
-<script type="application/json" id="team-data">{json.dumps([{"name": t["name"], "role": t["role"], "bio": t["bio"]} for t in TEAM], ensure_ascii=False).replace("</", "<\\/")}</script>"""
+    reviews = load("testimonials")
+    if reviews:
+        slides = "".join(f'<figure class="review-slide" data-review-slide {"hidden" if i else ""}><blockquote>{e(r["quote"])}</blockquote><figcaption>{e(r["name"])} · {e(r["context"])}</figcaption></figure>' for i, r in enumerate(reviews))
+        review_heading = "What our clients say"
+        review_intro = "In their own words, shared with permission."
+    else:
+        commitments = [
+            ("A shortlist with a reason", "Tell us what a good home needs to do for you. We will explain why each option belongs on your shortlist."),
+            ("The full cost, before the offer", "Ask us to walk through purchase costs and recurring charges alongside the asking price."),
+            ("A viewing that answers questions", "Look at the layout, light, access and condition. Bring the questions a listing photograph cannot answer."),
+            ("Payment plans in plain English", "Compare the dates and amounts against your own cash flow, including what falls due at handover."),
+            ("A neighbourhood, beyond its skyline", "Consider the everyday journey: the commute, nearby services and the way the area feels at different times."),
+            ("Rental assumptions you can inspect", "Separate the advertised rent from service charges, vacancy and maintenance when considering an investment."),
+            ("One clear next step", "Whether you are still exploring or ready to make an offer, leave the conversation knowing what happens next."),
+            ("Support after the shortlist", "Keep your consultant in the conversation as you move from viewings to documents and handover.")]
+        slides = "".join(f'<figure class="review-slide" data-review-slide {"hidden" if i else ""}><blockquote>{e(text)}</blockquote><figcaption>{e(title)}</figcaption></figure>' for i, (title, text) in enumerate(commitments))
+        review_heading = "What you can expect from SWK"
+        review_intro = "Our service commitments. Client reviews will appear here once verified and approved."
+    team = f'''<div class="review-carousel" data-review-carousel aria-label="{review_heading}">{slides}<div class="review-controls"><button type="button" class="tc-arrow" data-review-prev aria-label="Previous story">{PREV}</button><span data-review-count>1 / {len(reviews) if reviews else 8}</span><button type="button" class="tc-arrow" data-review-next aria-label="Next story">{NEXT}</button><button type="button" class="review-pause" data-review-pause aria-pressed="false">Pause</button></div></div>'''
 
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
 <div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/hero-scene-mobile.webp">
@@ -777,7 +803,7 @@ def build_home():
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
 <div class="hero__content container">
 <span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>
-<h1 class="hero__title"><span class="sr-only">Experience Luxury Living in UAE</span><span data-typewriter aria-hidden="true">Experience Luxury<br><em>Living in UAE</em></span></h1>
+<h1 class="hero__title"><span class="sr-only">Dubai homes. A clearer perspective.</span><span data-typewriter aria-hidden="true">Dubai homes.<br><em>A clearer perspective.</em></span></h1>
 <p class="hero__subtitle">Off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.</p>
 <div class="hero__ctas"><a href="/properties/" class="btn btn-primary btn-lg">Explore Listings {ARROW}</a><a href="/contact/" class="btn btn-outline-dark btn-lg">Talk to an advisor</a></div>
 <div class="hero__search-wrap"><form class="search-bar glass-panel" action="/properties/" method="get" aria-label="Search properties">{search}
@@ -790,7 +816,7 @@ def build_home():
 
 <section class="section container arc-gallery ambient-glow-host" data-arc-gallery>{GLOW}
 <div class="section-header center"><span class="eyebrow">Portfolio</span>{h2_cascade("A closer look at our listings")}
-<p>A curated sweep through the homes, interiors and skylines SWK Properties has placed clients in this year.</p></div>
+<p>Explore the architecture, interiors and neighbourhoods behind a Dubai property search.</p></div>
 <div class="fan-carousel-wrap" data-fan-carousel aria-label="Portfolio photo carousel" role="region">
 <div class="fan-layout" data-fan-track>{gallery}</div>
 <div class="fan-pagination"><button type="button" class="fan-arrow" data-fan-prev aria-label="Previous photos">{PREV}</button>
@@ -824,7 +850,7 @@ def build_home():
 <p>Adjust the figures below for an instant estimate, or get a personalised rate comparison on our mortgage page.</p></div>
 {calculator("/mortgage/", "Analyze")}</div></section>
 
-<section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Our Experts</span><h2 class="sr-only">Meet our team</h2></div>{team}</div></section>
+<section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">The SWK Experience</span><h2>{review_heading}</h2><p>{review_intro}</p></div>{team}</div></section>
 
 <section class="section ambient-glow-host">{GLOW}<div class="container">
 <div class="section-head-row"><div class="section-header" style="margin-bottom:0"><span class="eyebrow">Insights</span>{h2_cascade("From the SWK journal")}</div>
@@ -1041,16 +1067,19 @@ def build_blog():
     for p in POSTS:
         others = [q for q in POSTS if q["slug"] != p["slug"]]
         tr = [("Home", "/"), ("Journal", "/blog/"), (p["title"], None)]
+        sections = "".join(f'<section><h2>{e(q["title"])}</h2><p>{e(q["text"])}</p></section>' for q in p.get("sections", []))
+        sources = "".join(f'<li><a href="{e(q["url"])}" target="_blank" rel="noopener noreferrer">{e(q["title"])}</a></li>' for q in p.get("sources", []))
+        source_block = f'<section><h2>Official sources</h2><ul>{sources}</ul></section>' if sources else ""
         b = f"""<section class="page-hero page-hero--photo"><div class="page-hero__bg" aria-hidden="true">{img(p['image'], "", lazy=False, sizes="100vw")}</div><div class="container">{crumbs(tr)}<span class="badge badge-gold">{e(p['category'])}</span>
 <h1 class="page-hero__title" style="margin-top:var(--space-4)">{e(p['title'])}</h1>
-<p class="post-meta"><time datetime="{p['date']}">{nice_date(p['date'])}</time> · {e(p['readTime'])}</p>
+<p class="post-meta"><time datetime="{p['date']}">{nice_date(p['date'])}</time> · {e(p['readTime'])} · Updated {nice_date(p.get('updated', p['date']))}</p>
 <div class="pd-actions"><button type="button" class="btn btn-outline-dark" data-share>Share this article</button></div></div></section>
-<article class="section container ambient-glow-host">{GLOW}<div class="prose">{img(p['image'], p['title'], lazy=False)}<p>{e(p['content'])}</p>
+<article class="section container ambient-glow-host">{GLOW}<div class="prose"><p class="article-answer">{e(p['content'])}</p>{sections}{source_block}
 <p style="font-size:var(--fs-xs)">This article is general information, not financial, legal or investment advice. Market conditions and regulations change — speak to a consultant before you decide.</p></div></article>
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header"><span class="eyebrow">Keep reading</span><h2>More from the journal</h2></div>
 <div class="blog-grid">{"".join(blog_card(q, i) for i, q in enumerate(others))}</div></div></section>
 {cta_section()}"""
-        ld = [breadcrumb_ld(tr), {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "datePublished": p["date"], "dateModified": p["date"],
+        ld = [breadcrumb_ld(tr), {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "datePublished": p["date"], "dateModified": p.get("updated", p["date"]),
               "description": p["excerpt"], "image": f"{BASE}/assets/og/blog-{p['slug']}.jpg", "mainEntityOfPage": f"{BASE}/blog/{p['slug']}/",
               "author": {"@type": "Organization", "name": SITE["name"]},
               "publisher": {"@type": "Organization", "name": SITE["name"], "logo": {"@type": "ImageObject", "url": f"{BASE}/assets/images/brand/swk-logo.png"}}}]
@@ -1104,7 +1133,7 @@ def build_meta_files():
     pages = ["/", "/properties/", "/about/", "/services/", "/mortgage/", "/blog/", "/contact/", "/privacy/", "/terms/", "/cookies/"]
     entries = [(u, TODAY.isoformat(), []) for u in pages]
     entries += [(f"/properties/{p['id']}/", TODAY.isoformat(), [f"{BASE}/assets/og/{p['id']}.jpg"]) for p in PROPS]
-    entries += [(f"/blog/{p['slug']}/", p["date"], [f"{BASE}/assets/og/blog-{p['slug']}.jpg"]) for p in POSTS]
+    entries += [(f"/blog/{p['slug']}/", p.get("updated", p["date"]), [f"{BASE}/assets/og/blog-{p['slug']}.jpg"]) for p in POSTS]
     xml = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">']
     for u, lm, imgs in entries:
