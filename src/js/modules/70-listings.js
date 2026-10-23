@@ -23,6 +23,7 @@
     var pager = SWK.$('[data-pagination]');
     var fields = ['community', 'type', 'budget', 'status'];
     var page = 1;
+    var matched = cards.slice();
 
     var params = new URLSearchParams(location.search);
     fields.forEach(function (name) {
@@ -35,7 +36,7 @@
     function draw(scroll) {
       var f = {};
       fields.forEach(function (name) { f[name] = bar.elements[name] ? bar.elements[name].value : ''; });
-      var matched = cards.filter(function (c) {
+      matched = cards.filter(function (c) {
         if (f.community && c.dataset.community !== f.community) return false;
         if (f.type && c.dataset.type !== f.type) return false;
         if (f.status && c.dataset.status !== f.status) return false;
@@ -68,8 +69,21 @@
       fields.forEach(function (name) { if (f[name]) qs.set(name, f[name]); });
       if (page > 1) qs.set('page', String(page));
       history.replaceState(null, '', qs.toString() ? '?' + qs : location.pathname);
+      document.dispatchEvent(new CustomEvent('swk:deck-state', { detail: { i: page, n: pages, kind: 'listings' } }));
       if (scroll) grid.scrollIntoView({ behavior: SWK.reduced ? 'auto' : 'smooth', block: 'start' });
     }
+
+    // The console (pinned after the announcement bar) can page the grid.
+    document.addEventListener('swk:deck-page', function (ev) {
+      var n = Math.max(1, Math.ceil(matched.length / PAGE_SIZE));
+      var np = SWK.clamp(page + ((ev.detail && ev.detail.dir) || 1), 1, n);
+      if (np === page) return;
+      page = np;
+      draw(true);
+    });
+    document.addEventListener('swk:deck-state-request', function () {
+      document.dispatchEvent(new CustomEvent('swk:deck-state', { detail: { i: page, n: Math.max(1, Math.ceil(matched.length / PAGE_SIZE)), kind: 'listings' } }));
+    });
 
     bar.addEventListener('change', function () { page = 1; draw(false); });
     bar.addEventListener('submit', function (ev) { ev.preventDefault(); });

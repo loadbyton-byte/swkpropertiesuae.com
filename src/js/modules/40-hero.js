@@ -40,6 +40,42 @@
     });
   }
 
+  // ---- Cinematic caption beats (letter-by-letter film titles) -----------
+  function splitCaptionChars(node, state) {
+    Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+      if (child.nodeType === 3) {
+        var frag = document.createDocumentFragment();
+        child.textContent.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(' ')); return; }
+          var word = document.createElement('span');
+          word.className = 'cw';
+          Array.prototype.slice.call(part).forEach(function (ch) {
+            var c = document.createElement('span');
+            c.className = 'cc';
+            c.textContent = ch;
+            c._v = -1;
+            state.i++;
+            word.appendChild(c);
+          });
+          frag.appendChild(word);
+        });
+        child.parentNode.replaceChild(frag, child);
+      } else if (child.nodeType === 1 && child.tagName !== 'BR') {
+        splitCaptionChars(child, state);
+      }
+    });
+  }
+
+  function initCaptionChars() {
+    return SWK.$$('.hero__caption').map(function (cap) {
+      var line = SWK.$('.cap-line', cap);
+      if (!line) return [];
+      splitCaptionChars(line, { i: 0 });
+      return SWK.$$('.cc', line);
+    });
+  }
+
   // ---- Scroll-scrubbed stock video ------------------------------------
   SWK.reg('hero', function () {
     var hero = SWK.$('.hero');
@@ -47,10 +83,14 @@
     if (!hero) return;
 
     initTypewriter();
+    var charSets = SWK.reduced ? [] : initCaptionChars();
 
     var video = SWK.$('.hero__video', hero);
     var captions = SWK.$$('.hero__caption', hero);
-    var ranges = [[0.26, 0.52], [0.52, 0.78], [0.78, 1.2]];
+    // Curiosity pacing: three title cards, strictly separated beats — each
+    // act fully leaves the frame before the next rises (a long, deliberate
+    // Hollywood hold that asks to keep scrolling).
+    var ranges = [[0.16, 0.44], [0.56, 0.80], [0.90, 1.2]];
     var progress = 0, target = 0, ready = false, failed = false, raf = 0;
     var mobile = window.matchMedia('(max-width: 767px)').matches;
 
@@ -62,14 +102,38 @@
       progress = total > 0 ? SWK.clamp(-r.top / total, 0, 1) : 0;
       hero.style.setProperty('--p', progress.toFixed(4));
       hero.classList.toggle('is-leaving', progress > 0.18);
+      // Park the footage once it is no longer on stage: the video keeps
+      // decoding 60fps otherwise, costing CPU/battery on every section
+      // below the hero. It seeks fine while paused, so the scrub still works.
+      if (video && ready && !failed && video.duration) {
+        var parked = progress > 0.22;
+        if (parked !== video.paused) {
+          if (parked) video.pause();
+          else {
+            var resume = video.play();
+            if (resume && resume.catch) resume.catch(function () {});
+          }
+        }
+      }
       captions.forEach(function (el, i) {
         var rg = ranges[i] || [2, 3];
-        var fade = 0.07;
-        var o = SWK.clamp((progress - rg[0]) / fade, 0, 1) * (i === captions.length - 1 ? 1 : SWK.clamp((rg[1] - progress) / fade, 0, 1));
-        var t = SWK.clamp((progress - rg[0]) / (rg[1] - rg[0]), 0, 1);
+        var outW = 0.09;
+        var outO = i === captions.length - 1 ? 1 : SWK.clamp((rg[1] - progress) / outW, 0, 1);
+        var o = SWK.clamp((progress - rg[0]) / 0.05, 0, 1) * outO;
         el.style.setProperty('--o', o.toFixed(3));
-        el.style.setProperty('--y', ((0.5 - t) * 46).toFixed(1) + 'px');
-        el.style.setProperty('--s', (0.96 + t * 0.07).toFixed(3));
+
+        // Per-letter reveal: characters start a stagger apart and rise over
+        // 0.05 of scroll — a film-title cascade that builds curiosity. The
+        // stagger adapts so the cascade always fits before the fade-out.
+        var chars = charSets[i] || [];
+        var stagger = chars.length ? Math.min(0.011, (rg[1] - rg[0]) * 0.92 / chars.length) : 0;
+        var active = progress > rg[0] - 0.02 && progress < rg[1] + outW + 0.12;
+        for (var k = 0; k < chars.length; k++) {
+          var c = chars[k];
+          var co = 0;
+          if (active) co = SWK.clamp((progress - (rg[0] + k * stagger)) / 0.05, 0, 1) * outO;
+          if (c._v !== co) { c._v = co; c.style.setProperty('--co', co.toFixed(3)); }
+        }
       });
       target = progress;
       if (ready && !raf) raf = requestAnimationFrame(seek);

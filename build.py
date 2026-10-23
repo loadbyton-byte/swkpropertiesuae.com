@@ -221,7 +221,7 @@ ASSET_V = ""
 def build_assets():
     """Concatenate CSS and JS, fingerprint them, and copy vendor files."""
     global ASSET_V
-    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme", "ui", "luxe"]
+    css_order = ["variables", "base", "components", "sections", "animations", "responsive", "cinematic", "theme", "ui", "luxe", "lumiere"]
     css = "\n".join((SRC / "css" / f"{n}.css").read_text(encoding="utf-8") for n in css_order)
     css = css.replace("../assets/", "/assets/")
     mods = sorted((SRC / "js" / "modules").glob("*.js"))
@@ -383,6 +383,22 @@ ANN = SITE.get("announcement") or {}
 POPUP = SITE.get("popup") or {}
 ANALYTICS = SITE.get("analytics") or {}
 ICON_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
+ICON_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>'
+CONSOLE_BUILDING = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4M9 7h1M9 11h1M14 7h1M14 11h1"/></svg>'
+
+
+def deck_console(path):
+    """Fixed listing console pinned right beneath the announcement bar:
+    arrow paging + a live page readout + a scroll-to-listings pill."""
+    if path not in ("/", "/properties/"):
+        return ""
+    return (f'<div class="deck-console" data-deck-console aria-label="Listing deck controls">'
+            f'<div class="deck-console__inner"><span class="console-brand">{CONSOLE_BUILDING}SWK</span>'
+            f'<button type="button" class="console-arrow" data-deck-page="-1" aria-label="Previous page of listings">{PREV}</button>'
+            f'<button type="button" class="console-arrow" data-deck-page="1" aria-label="Next page of listings">{NEXT}</button>'
+            f'<span class="console-read" aria-hidden="true"><b data-deck-now>&ndash;</b><i>/</i><span data-deck-total>&ndash;</span></span>'
+            f'<button type="button" class="console-jump" data-jump-listings>Scroll to listings {ICON_DOWN}</button>'
+            f'</div></div>')
 
 
 def announce_bar():
@@ -542,6 +558,7 @@ def page(path, title, desc, body, *, image=PAGE_HERO_IMG, ld=None, og_type="webs
 <a class="skip-link" href="#main">Skip to content</a>
 {announce_bar()}
 {site_header(path)}
+{deck_console(path)}
 {dock(path)}
 <main id="main">
 {body}
@@ -789,7 +806,7 @@ def build_home():
 <div class="hero__bg"><img src="{HERO_POSTER}" alt="" width="1280" height="720" fetchpriority="high" decoding="async" referrerpolicy="no-referrer"></div>
 <video class="hero__video" muted playsinline preload="auto" aria-hidden="true" tabindex="-1" data-video-desktop="{HERO_VIDEO_HD}" data-video-mobile="{HERO_VIDEO_SD}" poster="{HERO_POSTER}" crossorigin="anonymous"></video>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
-<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>Built to rise.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
+<div class="hero__captions" aria-hidden="true"><p class="hero__caption"><span class="cap-kicker">Act I &mdash; The Skyline</span><span class="cap-line">Dubai. <em>Built to rise.</em></span></p><p class="hero__caption"><span class="cap-kicker">Act II &mdash; The Story</span><span class="cap-line">Every tower, <em>a story.</em></span></p><p class="hero__caption"><span class="cap-kicker">Act III &mdash; Your Address</span><span class="cap-line">Find <em>yours.</em></span></p></div>
 <div class="hero__content container">
 <span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>
 <h1 class="hero__title"><span class="sr-only">Experience Luxury Living in UAE</span><span data-typewriter aria-hidden="true">Experience Luxury<br><em>Living in UAE</em></span></h1>
@@ -812,10 +829,10 @@ def build_home():
 <div class="fan-dots" data-fan-dots aria-hidden="true">{dots}</div><button type="button" class="fan-arrow" data-fan-next aria-label="Next photos">{NEXT}</button></div></div>
 <div class="arc-gallery__viewall"><a href="/properties/" class="btn btn-outline-dark">View all properties</a></div></section>
 
-<section class="section section--alt featured-section ambient-glow-host">{GLOW}<div class="container">
-<div class="section-head-row"><div class="section-header" style="margin-bottom:0"><span class="eyebrow">Featured</span>{h2_cascade("Featured listings this month")}</div>
-<a href="/properties/" class="btn btn-outline-dark">View all properties</a></div>
-<div class="feature-slider" data-feature-slider><div class="feature-slider__viewport"><div class="feature-slider__track" data-featured-grid>{feat_cards}</div></div><div class="feature-slider__nav"></div></div>
+<section class="section section--alt featured-section ambient-glow-host" id="featured">{GLOW}<div class="container">
+<div class="section-head-row deck-head"><div class="section-header deck-head__title" style="margin-bottom:0"><span class="eyebrow">Featured</span>{h2_cascade("Featured listings this month")}</div>
+<div class="deck-head__tools"><span class="deck-hint" aria-hidden="true">{CONSOLE_BUILDING} Swipe the deck</span><div class="feature-slider__nav" data-deck-nav></div><a href="/properties/" class="btn btn-outline-dark btn-sm">All listings</a></div></div>
+<div class="feature-slider" data-feature-slider><div class="feature-slider__viewport"><div class="feature-slider__track" data-featured-grid>{feat_cards}</div></div></div>
 <p class="listing-note">ROI figures are estimates based on current market rents and are not guaranteed. Prices and availability are subject to change.</p>
 </div></section>
 
@@ -866,7 +883,9 @@ def build_properties():
     cards = "".join(prop_card(p) for p in PROPS)
     trail = [("Home", "/"), ("Properties", None)]
     body = f"""{page_hero("Properties for Sale in Dubai", "Off-plan and ready homes across Dubai's most sought-after communities, updated as new listings launch.", trail, bg="properties")}
-<section class="section container ambient-glow-host">{GLOW}
+<section class="section container ambient-glow-host" id="listings">{GLOW}
+<div class="listings-console-row"><span class="lc-mark" aria-hidden="true"><i class="lc-pulse"></i>Live listings</span>
+<div class="lc-actions"><button type="button" class="mini-arrow" data-deck-page="-1" aria-label="Previous listings page">{PREV}</button><button type="button" class="mini-arrow" data-deck-page="1" aria-label="Next listings page">{NEXT}</button><button type="button" class="console-jump" data-jump-listings>Scroll to listings {ICON_DOWN}</button></div></div>
 <form class="filter-bar" data-filters aria-label="Filter properties" novalidate>{filters}
 <button type="button" class="btn btn-outline-dark btn-sm" data-filters-reset>Reset</button>
 <span class="results-count" data-results-count role="status" aria-live="polite">{len(PROPS)} properties found</span></form>
@@ -932,9 +951,13 @@ def build_property(p):
 
 
 def build_about():
-    cards = "".join(f'''<article class="team-card" data-reveal data-reveal-delay="{i * 80}" data-tilt="6" style="--theme-color:{FEATURE_THEMES[i % len(FEATURE_THEMES)]}">
-<div class="team-card__photo">{img(t["photo"], t["name"], sizes="(min-width: 900px) 360px, 90vw")}</div>
-<div class="team-card__body"><h3>{e(t["name"])}</h3><p class="team-card__role">{e(t["role"])}</p><p class="team-card__bio">{e(t["bio"])}</p></div></article>''' for i, t in enumerate(TEAM))
+    card_accents = ["213 88% 66%", "168 74% 62%", "258 88% 76%", "33 40% 52%", "199 74% 66%"]
+    cards = "".join(f'''<article class="id-card" data-reveal data-reveal-delay="{i * 90}" style="--i:{i}; --tc:{card_accents[i % len(card_accents)]}">
+<div class="id-card__head"><span class="id-card__hole" aria-hidden="true"></span></div>
+<div class="id-card__photo">{img(t["photo"], t["name"], sizes="(min-width: 1100px) 20vw, 62vw")}<span class="id-card__sheen" aria-hidden="true"></span></div>
+<div class="id-card__body"><div class="id-card__org">SWK Properties &middot; Dubai</div><h3>{e(t["name"])}</h3><p class="id-card__role">{e(t["role"])}</p><p class="id-card__bio">{e(t["bio"])}</p></div>
+<div class="id-card__bar" aria-hidden="true"></div>
+<div class="id-card__foot"><span class="id-card__num">SWK&ndash;{i + 1:02d}</span><span class="id-card__ok" aria-hidden="true">Verified</span></div></article>''' for i, t in enumerate(TEAM))
     values = [("Radical Transparency", "Every fee, commission and clause disclosed upfront — no surprises at signing."),
               ("Data Over Hype", "ROI and appreciation projections built on transaction data, not developer marketing."),
               ("One Point of Contact", "The consultant who takes your first call is the one who sees your deal through to handover."),
@@ -951,8 +974,10 @@ def build_about():
 <a href="/contact/" class="btn btn-dark" style="margin-top:var(--space-5)">Talk to our team</a></div></div></section>
 <section class="section section--alt ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Our Values</span><h2>What guides every deal we close</h2></div><div class="step-list">{steps}</div></div></section>
 <section class="section section--dark ambient-glow-host">{GLOW}<div class="container"><div class="stat-strip">{stat_html}</div></div></section>
-<section class="section ambient-glow-host">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Our People</span><h2>Meet a few of our consultants</h2>
-<p>Every client is paired with a dedicated consultant for the life of their purchase.</p></div><div class="team-grid">{cards}</div></div></section>
+<section class="section ambient-glow-host" id="team">{GLOW}<div class="container"><div class="section-header center"><span class="eyebrow">Our People</span><h2>Meet a few of our consultants</h2>
+<p>Every client is paired with a dedicated consultant for the life of their purchase.</p></div>
+<div class="team-rail" data-team-rail>{cards}</div>
+<p class="team-rail-note">On a team of 40+ consultants &mdash; scroll the badge rail to meet the desk leads.</p></div></section>
 {cta_section("Let's find your next Dubai address", "Book a no-obligation consultation and we'll come prepared with listings matched to your budget.")}"""
     write("/about/", page("/about/", "About Us | SWK Properties",
                           "SWK Properties is a Dubai-based real estate agency built on ten years of local market expertise, transparent advice, and full-service support for buyers and investors.",

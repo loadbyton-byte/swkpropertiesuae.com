@@ -1,6 +1,9 @@
 // End-to-end QA. Fails (exit 1) on any console error, page error, failed request,
 // broken link, missing SEO tag, accessibility violation or broken interaction.
 //   node tools/dev-server.js &  node tools/qa.js
+// NOTE: scroll positions are set with behavior:'instant' throughout — the CSS
+// scroll-behavior default (smooth) composites through rAF, which stalls under
+// CPU/software renderers and would leave elements moving for many seconds.
 const fs = require('fs');
 const L = require('./lib.js');
 const AXE = process.env.AXE_PATH || '';
@@ -9,6 +12,20 @@ let fails = 0, passes = 0;
 const ok = (c, msg) => { if (c) passes++; else { fails++; console.log('  FAIL ' + msg); } };
 const sect = (t) => console.log('\n# ' + t);
 const shot = async (page, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: true }); await page.screenshot({ path: `${SHOTS}/${name}.png` }); } };
+
+// Navigations occasionally stall for one full timeout under software-render
+// load; a fresh attempt on the same page recovers instantly. Retries only
+// "Timeout exceeded" — real failures propagate.
+async function robustGoto(page, url, opts = {}) {
+  for (let i = 1; ; i++) {
+    try {
+      return await page.goto(url, opts);
+    } catch (e) {
+      if (i >= 3 || !(e && /Timeout.*exceeded/.test(e && e.message))) throw e;
+      console.log(`  (navigation stalled, retrying ${url})`);
+    }
+  }
+}
 
 async function newPage(b, opts = {}) {
   const { fresh, ...ctxOpts } = opts;
@@ -36,7 +53,7 @@ function pagesFromSitemap() {
   const checkedLinks = new Set();
   for (const u of urls) {
     msgs.length = 0;
-    await page.goto(L.BASE + u, { waitUntil: 'load' });
+    await robustGoto(page, L.BASE + u, { waitUntil: 'load' });
     await page.waitForTimeout(u === '/' ? 3500 : 500);
     const info = await page.evaluate(() => ({
       h1: document.querySelectorAll('h1').length,
@@ -87,7 +104,7 @@ function pagesFromSitemap() {
   // ---------------------------------------------------------------- home deep dive
   sect('Home: video hero, scroll scrub, captions');
   msgs.length = 0;
-  await page.goto(L.BASE + '/', { waitUntil: 'load' });
+  await robustGoto(page, L.BASE + '/', { waitUntil: 'load' });
   await page.waitForFunction(() => document.querySelector('.hero.is-gl'), null, { timeout: 20000 }).catch(() => {});
   ok(await page.evaluate(() => !!document.querySelector('.hero.is-gl')), 'hero reached is-gl');
   await page.waitForTimeout(3600);
@@ -105,11 +122,11 @@ function pagesFromSitemap() {
   const ct = await page.evaluate(() => document.querySelector('.hero__video').currentTime);
   ok(ct > 1.5, `video playhead follows scroll (t=${ct.toFixed(2)})`);
   await shot(page, 'home-fly');
-  await page.evaluate(() => scrollTo(0, 0));
+  await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
   ok(L.clean(msgs).length === 0, 'home console clean after scrub: ' + JSON.stringify(L.clean(msgs)));
 
   sect('Home: nav bar, dock magnification, tilt, slider, fan, lightbox');
-  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(500);
+  await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await page.waitForTimeout(500);
   // Desktop uses the top navigation bar (the dock is hidden there); the dock is the tablet/phone nav.
   const navInfo = await page.evaluate(() => { const h = document.querySelector('.site-header'), n = [...document.querySelectorAll('.site-nav a')]; const cur = n.filter((a) => a.getAttribute('aria-current') === 'page').map((a) => a.textContent);
     return { links: n.map((a) => a.textContent), cur, headerH: Math.round(h.getBoundingClientRect().height), dockShown: getComputedStyle(document.querySelector('.dock-wrap')).display !== 'none' }; });
@@ -118,7 +135,7 @@ function pagesFromSitemap() {
   ok(heroBox.titleBelowHeader && heroBox.searchInView, `hero text clears the header and search fits ${JSON.stringify(heroBox)}`);
   await page.evaluate(() => scrollTo({ top: 400, behavior: 'instant' })); await page.waitForTimeout(500);
   ok(await page.evaluate(() => document.querySelector('.site-header').classList.contains('is-scrolled')), 'header turns into a frosted bar on scroll');
-  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(400);
+  await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await page.waitForTimeout(400);
   await page.setViewportSize({ width: 1000, height: 800 }); await page.waitForTimeout(500);
   const dockItems = await page.$$('.dock__item');
   const bb = await dockItems[3].boundingBox();
@@ -130,7 +147,7 @@ function pagesFromSitemap() {
   await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(400);
 
   // featured slider
-  await page.evaluate(() => document.querySelector('[data-feature-slider]').scrollIntoView({ block: 'center' }));
+  await page.evaluate(() => document.querySelector('[data-feature-slider]').scrollIntoView({ block: 'center', behavior: 'instant' }));
   await page.waitForTimeout(1200);
   await shot(page, 'home-featured');
   const sl = await page.evaluate(() => ({ dots: document.querySelectorAll('.feature-slider__dot').length, prev: document.querySelector('[data-fs-prev]').disabled, next: document.querySelector('[data-fs-next]').disabled, slides: document.querySelectorAll('.property-card--feature').length }));
@@ -142,14 +159,16 @@ function pagesFromSitemap() {
   ok(await page.evaluate(() => document.querySelector('[data-fs-next]').disabled), 'slider next disabled at end');
   // tilt
   const card = await page.$('.property-card--feature:nth-child(3)');
-  await card.scrollIntoViewIfNeeded(); const cb = await card.boundingBox();
+  // Instant scroll (see NOTE at top): we only need the card on screen.
+  await page.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }), card);
+  const cb = await card.boundingBox();
   await page.mouse.move(cb.x + cb.width * 0.8, cb.y + cb.height * 0.25, { steps: 6 }); await page.waitForTimeout(300);
   const tilt = await card.evaluate((el) => ({ rx: el.style.getPropertyValue('--rx'), ry: el.style.getPropertyValue('--ry') }));
   ok(parseFloat(tilt.ry) > 2 && parseFloat(tilt.rx) > 1, `3D tilt ${JSON.stringify(tilt)}`);
   await page.mouse.move(5, 5);
 
   // fan carousel
-  await page.evaluate(() => document.querySelector('[data-fan-carousel]').scrollIntoView({ block: 'center' }));
+  await page.evaluate(() => document.querySelector('[data-fan-carousel]').scrollIntoView({ block: 'center', behavior: 'instant' }));
   await page.waitForTimeout(1300);
   await shot(page, 'home-fan');
   const fan = () => page.evaluate(() => { const cs = [...document.querySelectorAll('[data-fan-card]')]; return { center: cs.findIndex((c) => c.classList.contains('is-center')), visible: cs.filter((c) => c.style.opacity === '1').length, dot: [...document.querySelectorAll('.fan-dot')].findIndex((d) => d.classList.contains('is-active')) }; });
@@ -170,7 +189,7 @@ function pagesFromSitemap() {
   ok(await page.evaluate(() => document.activeElement.hasAttribute('data-fan-card')), 'focus returns to opener');
 
   // reviews slider + calculator on home
-  await page.evaluate(() => document.querySelector('[data-reviews]').scrollIntoView({ block: 'center' })); await page.waitForTimeout(600);
+  await page.evaluate(() => document.querySelector('[data-reviews]').scrollIntoView({ block: 'center', behavior: 'instant' })); await page.waitForTimeout(600);
   const rv0 = await page.evaluate(() => ({ n: document.querySelectorAll('[data-rv-slide]').length, act: document.querySelector('.rv-slide.is-active strong').textContent }));
   ok(rv0.n >= 8, `${rv0.n} reviews in the DOM (SEO text)`);
   await page.click('[data-rv-next]'); await page.waitForTimeout(500);
@@ -179,7 +198,7 @@ function pagesFromSitemap() {
   ok((await page.textContent('.rv-slide.is-active strong')) === rv0.act, 'review slider prev returns');
 
   // search form -> properties with params
-  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(600);
+  await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await page.waitForTimeout(600);
   await page.selectOption('#s-community', 'Dubai Land'); await page.selectOption('#s-status', 'Off-Plan');
   await Promise.all([page.waitForURL(/properties\/\?/), page.click('.search-bar button[type=submit]')]);
   const q = new URL(page.url()).searchParams;
@@ -190,7 +209,7 @@ function pagesFromSitemap() {
 
   // ---------------------------------------------------------------- listings
   sect('Properties: filters + pagination');
-  await page.goto(L.BASE + '/properties/', { waitUntil: 'load' }); await page.waitForTimeout(500);
+  await robustGoto(page, L.BASE + '/properties/', { waitUntil: 'load' }); await page.waitForTimeout(500);
   const vis = () => page.evaluate(() => ({ n: [...document.querySelectorAll('[data-properties-grid] .property-card')].filter((c) => !c.hidden).length, count: document.querySelector('[data-results-count]').textContent, pages: document.querySelectorAll('[data-pagination] button').length, empty: !document.querySelector('[data-empty-state]').hidden }));
   let v = await vis(); ok(v.n === 9 && v.count === '14 properties found' && v.pages === 2, `listing page 1 ${JSON.stringify(v)}`);
   await page.click('[data-pagination] button:nth-child(2)'); await page.waitForTimeout(700);
@@ -200,13 +219,13 @@ function pagesFromSitemap() {
   await page.selectOption('[data-filter=budget]', '0-1000000');
   v = await vis(); ok(v.n === 0 && v.empty, `no results shows empty state ${JSON.stringify(v)}`);
   await page.click('[data-filters-reset]'); v = await vis(); ok(v.n === 9 && !v.empty, 'reset restores');
-  await page.goto(L.BASE + '/properties/?community=Dubai%20Hills%20Estate&status=Ready', { waitUntil: 'load' }); await page.waitForTimeout(400);
+  await robustGoto(page, L.BASE + '/properties/?community=Dubai%20Hills%20Estate&status=Ready', { waitUntil: 'load' }); await page.waitForTimeout(400);
   v = await vis(); ok(v.n === 1, `deep link filters ${JSON.stringify(v)}`);
   await shot(page, 'properties');
 
   // ---------------------------------------------------------------- detail + lightbox
   sect('Property detail: gallery + lightbox');
-  await page.goto(L.BASE + '/properties/islands-2/', { waitUntil: 'load' }); await page.waitForTimeout(500);
+  await robustGoto(page, L.BASE + '/properties/islands-2/', { waitUntil: 'load' }); await page.waitForTimeout(500);
   ok((await page.$$('[data-lightbox-index]')).length === 16, 'islands-2 has 16 gallery tiles');
   await page.click('[data-lightbox-index="2"]'); await page.waitForTimeout(500);
   ok(await page.evaluate(() => document.querySelector('.lightbox__counter').textContent) === '3 / 16', 'lightbox shows tile 3');
@@ -217,7 +236,7 @@ function pagesFromSitemap() {
 
   // ---------------------------------------------------------------- calculator
   sect('Mortgage: calculator maths, validation, FAQ');
-  await page.goto(L.BASE + '/mortgage/', { waitUntil: 'load' }); await page.waitForTimeout(500);
+  await robustGoto(page, L.BASE + '/mortgage/', { waitUntil: 'load' }); await page.waitForTimeout(500);
   const out = async (k) => (await page.textContent(`[data-calc-output="${k}"]`)).replace(/\u00a0/g, ' ');
   ok(await out('piAmount') === 'AED 10,422', 'P&I default ' + await out('piAmount'));
   ok(await out('totalInterest') === 'AED 1,251,558', 'interest default ' + await out('totalInterest'));
@@ -245,7 +264,7 @@ function pagesFromSitemap() {
 
   // ---------------------------------------------------------------- contact
   sect('Contact form: validation, honest fallback');
-  await page.goto(L.BASE + '/contact/?property=golf-fields', { waitUntil: 'load' }); await page.waitForTimeout(400);
+  await robustGoto(page, L.BASE + '/contact/?property=golf-fields', { waitUntil: 'load' }); await page.waitForTimeout(400);
   ok((await page.inputValue('#cf-message')).includes('Golf Fields'), 'property prefill');
   await page.fill('#cf-message', '');
   await page.click('#contact-form button[type=submit]'); await page.waitForTimeout(200);
@@ -264,7 +283,7 @@ function pagesFromSitemap() {
   // ---------------------------------------------------------------- mobile
   sect('Mobile 390x844');
   const m = await newPage(b, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
-  await m.page.goto(L.BASE + '/', { waitUntil: 'load' });
+  await robustGoto(m.page, L.BASE + '/', { waitUntil: 'load' });
   await m.page.waitForFunction(() => document.querySelector('.hero.is-gl'), null, { timeout: 20000 }).catch(() => {});
   await m.page.waitForTimeout(3600);
   await shot(m.page, 'mobile-top');
@@ -277,7 +296,7 @@ function pagesFromSitemap() {
   ok(mo.searchInView && mo.btnInView, `search bar fits first screen ${JSON.stringify(mo)}`);
   ok(L.clean(m.msgs).length === 0, 'mobile console clean ' + JSON.stringify(L.clean(m.msgs)));
   for (const u of ['/properties/', '/mortgage/', '/contact/', '/about/', '/properties/golf-fields/']) {
-    await m.page.goto(L.BASE + u, { waitUntil: 'load' }); await m.page.waitForTimeout(300);
+    await robustGoto(m.page, L.BASE + u, { waitUntil: 'load' }); await m.page.waitForTimeout(300);
     ok(!(await m.page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)), `mobile overflow on ${u}`);
   }
   await m.ctx.close();
@@ -286,7 +305,7 @@ function pagesFromSitemap() {
   sect('Responsive sweep: hero form and key blocks stay inside their containers');
   for (const w of [320, 360, 390, 414, 600, 768, 1024, 1280, 1920]) {
     const r = await newPage(b, { viewport: { width: w, height: w < 700 ? 760 : 900 }, isMobile: w < 700, hasTouch: w < 700 });
-    await r.page.goto(L.BASE + '/', { waitUntil: 'load' });
+    await robustGoto(r.page, L.BASE + '/', { waitUntil: 'load' });
     await r.page.waitForTimeout(w <= 414 ? 2500 : 1800);
     const lay = await r.page.evaluate(() => {
       const bar = document.querySelector('.search-bar').getBoundingClientRect();
@@ -305,18 +324,18 @@ function pagesFromSitemap() {
   // ---------------------------------------------------------------- fallbacks
   sect('Fallbacks: reduced motion, ?nowebgl, no JS');
   const rm = await newPage(b, { reducedMotion: 'reduce' });
-  await rm.page.goto(L.BASE + '/', { waitUntil: 'load' }); await rm.page.waitForTimeout(1200);
+  await robustGoto(rm.page, L.BASE + '/', { waitUntil: 'load' }); await rm.page.waitForTimeout(1200);
   const r1 = await rm.page.evaluate(() => ({ gl: !!document.querySelector('.hero.is-gl'), flat: document.querySelector('.hero-cine').classList.contains('is-flat'), h: document.querySelector('.hero-cine').offsetHeight, vh: innerHeight, vis: [...document.querySelectorAll('[data-reveal]')].every((e) => getComputedStyle(e).opacity === '1'), h1: document.querySelector('h1').innerText.length > 5, typed: !document.querySelector('.tw-char') }));
   ok(!r1.gl && r1.flat && r1.h <= r1.vh + 2 && r1.vis && r1.typed, `reduced motion ${JSON.stringify(r1)}`);
   ok(L.clean(rm.msgs).length === 0, 'reduced-motion console clean');
   await rm.ctx.close();
   const nw = await newPage(b);
-  await nw.page.goto(L.BASE + '/?novideo', { waitUntil: 'load' }); await nw.page.waitForTimeout(1500);
+  await robustGoto(nw.page, L.BASE + '/?novideo', { waitUntil: 'load' }); await nw.page.waitForTimeout(1500);
   ok(await nw.page.evaluate(() => !document.querySelector('.hero.is-gl') && document.querySelector('.hero-cine').classList.contains('is-flat')), '?novideo keeps the photo hero');
   ok(L.clean(nw.msgs).length === 0, 'nowebgl console clean ' + JSON.stringify(L.clean(nw.msgs)));
   await nw.ctx.close();
   const nj = await newPage(b, { javaScriptEnabled: false });
-  await nj.page.goto(L.BASE + '/', { waitUntil: 'load' });
+  await robustGoto(nj.page, L.BASE + '/', { waitUntil: 'load' });
   const j = await nj.page.evaluate(() => ({ h1: document.querySelector('.hero__title').innerText.replace(/\s+/g, ' ').trim(), cards: [...document.querySelectorAll('.property-card--feature')].every((c) => getComputedStyle(c).opacity === '1'), imgs: [...document.querySelectorAll('img')].filter((i) => getComputedStyle(i).opacity === '0').length, tall: document.querySelector('.hero-cine').offsetHeight <= innerHeight + 2 }));
   ok(/Experience Luxury/.test(j.h1) && j.cards && j.imgs === 0 && j.tall, `no-JS page is usable ${JSON.stringify(j)}`);
   await nj.ctx.close();
@@ -325,7 +344,7 @@ function pagesFromSitemap() {
   // ---------------------------------------------------------------- UI systems (fresh visitor)
   sect('Announcement, cookies, dialogs, toasts, popup');
   const fv = await newPage(b, { fresh: true });
-  await fv.page.goto(L.BASE + '/properties/', { waitUntil: 'load' });
+  await robustGoto(fv.page, L.BASE + '/properties/', { waitUntil: 'load' });
   ok(await fv.page.evaluate(() => !!document.querySelector('[data-announce]') && getComputedStyle(document.querySelector('[data-announce]')).display !== 'none'), 'announcement bar visible');
   await fv.page.waitForSelector('[data-cookie-banner].is-in', { timeout: 5000 });
   ok(true, 'cookie banner appears');
@@ -344,7 +363,7 @@ function pagesFromSitemap() {
   await fv.page.reload({ waitUntil: 'load' });
   ok(await fv.page.evaluate(() => getComputedStyle(document.querySelector('[data-announce]')).display === 'none'), 'dismissed announcement stays dismissed');
   ok(await fv.page.evaluate(() => document.querySelector('[data-cookie-banner]').hidden), 'cookie banner does not return after a choice');
-  await fv.page.goto(L.BASE + '/properties/islands-2/', { waitUntil: 'load' });
+  await robustGoto(fv.page, L.BASE + '/properties/islands-2/', { waitUntil: 'load' });
   await fv.page.click('.pd-cta [data-open-callback]');
   await fv.page.waitForSelector('[data-callback-modal].is-open');
   await fv.page.click('[data-callback-modal] button[type=submit]');
@@ -352,7 +371,7 @@ function pagesFromSitemap() {
   await fv.page.keyboard.press('Escape'); await fv.page.waitForTimeout(400);
   ok(await fv.page.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-open-callback')), 'focus returns to opener');
   await fv.page.evaluate(() => { localStorage.removeItem('swk_lead'); });
-  await fv.page.goto(L.BASE + '/about/', { waitUntil: 'load' });
+  await robustGoto(fv.page, L.BASE + '/about/', { waitUntil: 'load' });
   await fv.page.evaluate(() => { document.dispatchEvent(new MouseEvent('mouseout', { clientY: -5, relatedTarget: null, bubbles: true })); });
   ok(true, 'exit-intent handler runs without error');
   await fv.page.evaluate(() => window.scrollTo({ top: 2000, behavior: 'instant' })); await fv.page.waitForTimeout(700);

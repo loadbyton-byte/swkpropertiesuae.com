@@ -14,7 +14,9 @@
     var viewport = SWK.$('.feature-slider__viewport', root);
     var track = SWK.$('.feature-slider__track', root);
     var slides = Array.prototype.slice.call(track.children);
-    var nav = SWK.$('.feature-slider__nav', root);
+    // The nav now lives in the section header ("deck head"); fall back to a
+    // page-level mount when kept inside the slider markup.
+    var nav = SWK.$('.feature-slider__nav', root) || SWK.$('[data-deck-nav]');
     if (!slides.length || !nav) return;
 
     nav.innerHTML =
@@ -60,6 +62,7 @@
         s.setAttribute('aria-hidden', on ? 'false' : 'true');
         SWK.$$('a,button', s).forEach(function (el) { el.tabIndex = on ? 0 : -1; });
       });
+      emit();
     }
 
     function to(i) {
@@ -67,8 +70,25 @@
       render();
     }
 
+    function emit() {
+      document.dispatchEvent(new CustomEvent('swk:deck-state', { detail: { i: index + 1, n: maxIndex() + 1, kind: 'featured' } }));
+    }
+    document.addEventListener('swk:deck-state-request', emit);
+
     prev.addEventListener('click', function () { to(index - 1); });
     next.addEventListener('click', function () { to(index + 1); });
+
+    // External paging: the console pinned after the announcement bar (and any
+    // other control) can drive the deck; it first brings the deck on screen.
+    document.addEventListener('swk:deck-page', function (ev) {
+      var dir = ev.detail && ev.detail.dir || 1;
+      var r = root.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      if (r.bottom < 80 || r.top > vh - 80) {
+        root.scrollIntoView({ behavior: SWK.reduced ? 'auto' : 'smooth', block: 'center' });
+      }
+      to(index + dir);
+    });
 
     // Keyboard focus landing on a slide scrolls the clipped viewport; undo that
     // and slide the track instead.
@@ -87,13 +107,41 @@
       else if (ev.key === 'ArrowLeft') to(index - 1);
     });
 
-    var x0 = null, y0 = null;
-    viewport.addEventListener('pointerdown', function (ev) { x0 = ev.clientX; y0 = ev.clientY; });
+    var x0 = null, y0 = null, baseX = 0, dragPx = 0;
+    function stepPx() {
+      var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+      return slides[0].offsetWidth + gap;
+    }
+    if (maxIndex() > 0) root.classList.add('is-draggable');
+    viewport.addEventListener('pointerdown', function (ev) {
+      if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+      x0 = ev.clientX; y0 = ev.clientY;
+      baseX = -index * stepPx(); dragPx = 0;
+    });
+    viewport.addEventListener('pointermove', function (ev) {
+      if (x0 === null) { suppress = false; return; }
+      var dx = ev.clientX - x0, dy = ev.clientY - y0;
+      if (Math.abs(dx) <= Math.abs(dy)) return;
+      root.classList.add('is-dragging');
+      dragPx = ev.clientX - x0;
+      var over = baseX + dragPx;
+      var max = -maxIndex() * stepPx();
+      if (over > 0) over = over * 0.35;               // edge rubber-band
+      if (over < max) over = max + (over - max) * 0.35;
+      track.style.transform = 'translate3d(' + over.toFixed(1) + 'px,0,0)';
+    });
+    viewport.addEventListener('pointercancel', function () {
+      x0 = null; root.classList.remove('is-dragging');
+      render();
+    });
     viewport.addEventListener('pointerup', function (ev) {
       if (x0 === null) return;
       var dx = ev.clientX - x0, dy = ev.clientY - y0;
       x0 = null;
-      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) to(index + (dx < 0 ? 1 : -1));
+      root.classList.remove('is-dragging');
+      if (Math.abs(dragPx) > 12) to(Math.round(-(baseX + dragPx) / stepPx()));
+      else if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) to(index + (dx < 0 ? 1 : -1));
+      dragPx = 0;
     });
     viewport.addEventListener('click', function (ev) {
       // a swipe that ends on a card must not also follow its link
@@ -104,6 +152,18 @@
       suppress = x0 !== null && Math.abs(ev.clientX - x0) > 12;
     });
     viewport.addEventListener('pointerup', function () { setTimeout(function () { suppress = false; }, 0); });
+
+    // Trackpad / shift-wheel: a deliberate horizontal wheel gesture pages the
+    // deck; vertical wheel keeps scrolling the page as normal.
+    var wacc = 0, wtimer = 0;
+    viewport.addEventListener('wheel', function (ev) {
+      if (Math.abs(ev.deltaX) <= Math.abs(ev.deltaY)) return;
+      ev.preventDefault();
+      wacc += ev.deltaX;
+      clearTimeout(wtimer);
+      wtimer = setTimeout(function () { wacc = 0; }, 180);
+      if (Math.abs(wacc) > 60) { to(index + (wacc > 0 ? 1 : -1)); wacc = 0; }
+    }, { passive: false });
 
     var lastPv = perView();
     window.addEventListener('resize', SWK.raf(function () {
