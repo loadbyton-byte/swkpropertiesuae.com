@@ -247,7 +247,7 @@
   });
 })();
 
-// Hero: headline reveal and the scroll-scrubbed WebGL fly-through.
+// Hero: headline reveal and the scroll-driven Downtown Dubai photo journey.
 (function () {
   'use strict';
   var SWK = window.SWK;
@@ -289,7 +289,7 @@
     });
   }
 
-  // ---- Boulevard fly-through: real photographs as textured planes, driven by scroll ----
+  // ---- Downtown Dubai scroll journey: real photographs cross-fade and push in as you scroll ----
   SWK.reg('hero', function () {
     var hero = SWK.$('.hero');
     var wrap = SWK.$('.hero-cine');
@@ -297,22 +297,22 @@
 
     initTypewriter();
 
-    var flight = SWK.$('[data-flight]', hero);
-    var panels = SWK.$$('[data-pz]', hero).map(function (el) { return { el: el, z: parseFloat(el.getAttribute('data-pz')) }; });
+    var stage = SWK.$('[data-flight]', hero);
+    var layers = SWK.$$('.dt', hero);
+    var dots = SWK.$$('[data-dt-dot]', hero);
     var captions = SWK.$$('.hero__caption', hero);
-    var ranges = [[0.26, 0.52], [0.52, 0.78], [0.78, 1.2]];
+    var ranges = [[0.2, 0.5], [0.5, 0.78], [0.78, 1.2]];
+    var N = layers.length;
     var progress = 0;
-    var TRAVEL = 3300;
 
-    function flat() { if (wrap) wrap.classList.add('is-flat'); hero.classList.remove('is-gl', 'is-gl-pending'); }
+    function flat() { if (wrap) wrap.classList.add('is-flat'); hero.classList.remove('is-gl'); }
 
     var update = SWK.raf(function () {
       var total = wrap ? wrap.offsetHeight - hero.offsetHeight : 0;
       var r = wrap ? wrap.getBoundingClientRect() : { top: 0 };
       progress = total > 0 ? SWK.clamp(-r.top / total, 0, 1) : 0;
       hero.style.setProperty('--p', progress.toFixed(4));
-      hero.style.setProperty('--sway', (Math.sin(progress * Math.PI * 2) * 34).toFixed(1) + 'px');
-      hero.classList.toggle('is-leaving', progress > 0.18);
+      hero.classList.toggle('is-leaving', progress > 0.16);
       captions.forEach(function (el, i) {
         var rg = ranges[i] || [2, 3];
         var fade = 0.07;
@@ -322,27 +322,35 @@
         el.style.setProperty('--y', ((0.5 - t) * 46).toFixed(1) + 'px');
         el.style.setProperty('--s', (0.96 + t * 0.07).toFixed(3));
       });
-      // Panels fade in far away and out as they pass the camera
-      var travel = progress * TRAVEL;
-      panels.forEach(function (pn) {
-        var z = pn.z + travel;
-        var o = SWK.clamp((z + 7600) / 1800, 0, 1) * SWK.clamp((380 - z) / 260, 0, 1);
-        pn.el.style.opacity = o.toFixed(3);
+      // Each photograph owns an equal slice of the scroll; neighbours cross-fade, each pushes in slowly.
+      var pos = progress * (N - 1);
+      var active = Math.round(pos);
+      layers.forEach(function (el, i) {
+        var d = Math.abs(pos - i);
+        var o = SWK.clamp(1 - d * 1.15, 0, 1);
+        var local = pos - i;                       // -1 .. 1 around this layer
+        var scale = 1.04 + (local + 1) * 0.07;     // push-in as it becomes, then passes, the focus
+        el.style.opacity = o.toFixed(3);
+        el.style.transform = 'translate3d(0,' + (local * -2.2).toFixed(2) + '%,0) scale(' + scale.toFixed(3) + ')';
+        el.classList.toggle('is-active', i === active);
+        el.style.visibility = o < 0.01 ? 'hidden' : 'visible';
       });
+      dots.forEach(function (d, i) { d.classList.toggle('is-active', i === active); d.classList.toggle('is-past', i < active); });
     });
 
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
     update();
 
-    var use = flight && wrap && !SWK.reduced && !/[?&]novideo\b/.test(location.search) &&
+    var use = stage && wrap && layers.length && !SWK.reduced && !/[?&]novideo\b/.test(location.search) &&
       !(navigator.connection && navigator.connection.saveData);
     if (!use) { flat(); return; }
 
-    // Reveal once the backdrop photo is decoded, so the first frame is never half-built.
-    var back = SWK.$('.flight__back img', hero);
+    // Reveal once the first photograph is decoded; if it never loads, the local poster stays.
+    var first = layers[0] && SWK.$('img', layers[0]);
     var done = function () { hero.classList.add('is-gl'); update(); };
-    if (back && back.decode) back.decode().then(done, done); else done();
+    if (first && first.complete && first.naturalWidth) done();
+    else if (first) { first.addEventListener('load', done, { once: true }); setTimeout(function () { if (first.naturalWidth) done(); }, 6000); }
 
     // Tilt the glass search panel toward the pointer.
     var bar = SWK.$('.search-bar', hero);
@@ -462,6 +470,43 @@
         el.style.setProperty('--py', '0');
         el.style.setProperty('--go', '0');
       });
+    });
+  });
+})();
+
+// Portfolio fan: each photo reacts to the pointer with a subtle tilt, parallax and moving highlight.
+(function () {
+  'use strict';
+  var SWK = window.SWK;
+
+  SWK.reg('portfolio-hover', function () {
+    if (!SWK.fine || SWK.reduced) return;
+    SWK.$$('.fan-card').forEach(function (card) {
+      var img = SWK.$('img', card);
+      var pend = null;
+      function apply() {
+        var p = pend; pend = null;
+        if (!p) return;
+        card.style.setProperty('--fx', p.nx.toFixed(3));
+        card.style.setProperty('--fy', p.ny.toFixed(3));
+        card.style.setProperty('--fgx', ((p.nx + 1) * 50).toFixed(1) + '%');
+        card.style.setProperty('--fgy', ((p.ny + 1) * 50).toFixed(1) + '%');
+        card.style.setProperty('--fgo', '1');
+      }
+      card.addEventListener('pointermove', function (ev) {
+        if (ev.pointerType === 'touch') return;
+        var r = card.getBoundingClientRect();
+        pend = { nx: ((ev.clientX - r.left) / r.width - 0.5) * 2, ny: ((ev.clientY - r.top) / r.height - 0.5) * 2 };
+        card.classList.add('is-reacting');
+        requestAnimationFrame(apply);
+      });
+      card.addEventListener('pointerleave', function () {
+        pend = null;
+        card.classList.remove('is-reacting');
+        ['--fx', '--fy'].forEach(function (k) { card.style.setProperty(k, '0'); });
+        card.style.setProperty('--fgo', '0');
+      });
+      if (img) img.draggable = false;
     });
   });
 })();

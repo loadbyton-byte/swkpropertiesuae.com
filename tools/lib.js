@@ -38,7 +38,7 @@ async function stubExternal(ctx) {
       }
       return route.fulfill({ status: 200, headers: { ...base, 'Content-Length': String(buf.length) }, body: buf });
     }
-    if (/images\.(unsplash|pexels)\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'image/gif', body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64') });
+    if (/images\.(unsplash|pexels)\.com/.test(u)) return route.fulfill({ status: 200, contentType: 'image/webp', body: require('fs').readFileSync(require('path').join(__dirname, '..', 'src', 'assets', 'images', 'communities', 'downtown-dubai-640.webp')) });
     return route.fulfill({ status: 204, body: '' });
   });
 }
