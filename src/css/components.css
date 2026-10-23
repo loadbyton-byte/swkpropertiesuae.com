@@ -61,12 +61,12 @@
   color: var(--color-accent);
   border: 1.5px solid var(--color-accent);
 }
-.btn-primary-outline:hover { background: rgba(148, 101, 44, 0.1); }
+.btn-primary-outline:hover { background: rgba(49, 84, 143, 0.1); }
 
 .btn-outline-dark {
   background: transparent;
   color: var(--color-text);
-  border: 1.5px solid #cdbfa8;
+  border: 1.5px solid #9fb7d6;
 }
 .btn-outline-dark:hover { border-color: var(--navy-950); background: var(--tint-hover); }
 
@@ -1050,12 +1050,12 @@
 /* ---- Calculator (glassmorphic, metallic-gold-accented) ---- */
 
 .calculator {
-  --calc-c-pi: #94652c;
-  --calc-c-pi-hover: #c99a63;
-  --calc-c-svc: #dcb888;
+  --calc-c-pi: #31548f;
+  --calc-c-pi-hover: #688ac4;
+  --calc-c-svc: #8ca8d8;
   --calc-c-ins: #1b3a6b;
   --calc-glass-bg: rgba(255, 255, 255, 0.92);
-  --calc-glass-border: rgba(148, 101, 44, 0.28);
+  --calc-glass-border: rgba(49, 84, 143, 0.28);
 
   display: grid;
   gap: var(--space-6);
@@ -1179,12 +1179,12 @@
   font-size: var(--fs-sm);
   color: #ffffff;
   text-shadow: none;
-  background: linear-gradient(135deg, #b07a38, #94652c 55%, #6f4a1d);
-  box-shadow: 0 10px 26px rgba(148, 101, 44, 0.35);
+  background: linear-gradient(135deg, #3e66aa, #31548f 55%, #213c6b);
+  box-shadow: 0 10px 26px rgba(49, 84, 143, 0.35);
   transition: transform var(--duration-base) var(--ease-luxury), box-shadow var(--duration-base) var(--ease-luxury);
 }
 
-.btn-calc:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(148, 101, 44, 0.45); }
+.btn-calc:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(49, 84, 143, 0.45); }
 .btn-calc--block { width: 100%; margin-top: var(--space-2); }
 
 /* Golden shine sweep — a bright highlight band drifts across the button on
@@ -1480,8 +1480,8 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: radial-gradient(900px 420px at 92% 0%, rgba(201, 154, 99, 0.16), transparent 60%),
-    linear-gradient(180deg, var(--paper-100) 0%, #efe7d8 100%);
+  background: radial-gradient(900px 420px at 92% 0%, rgba(104, 138, 196, 0.16), transparent 60%),
+    linear-gradient(180deg, var(--paper-100) 0%, #d9e2ee 100%);
   color: var(--color-text-muted);
   padding-block: var(--space-8) var(--space-6);
 }

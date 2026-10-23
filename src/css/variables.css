@@ -19,30 +19,30 @@
 
   /* ---- Paper: warm cream canvas ---- */
   --paper-0: #ffffff;
-  --paper-50: #faf7f2;
-  --paper-100: #f4efe6;
-  --paper-200: #ebe3d5;
+  --paper-50: #f2f5fa;
+  --paper-100: #e5ecf5;
+  --paper-200: #d4deec;
 
   /* ---- Tan / gold (accents) ---- */
-  --gold-700: #94652c;
-  --gold-600: #b07a38;
-  --gold-500: #c99a63;
-  --gold-400: #dcb888;
-  --gold-100: #f6ead7;
+  --gold-700: #31548f;
+  --gold-600: #3e66aa;
+  --gold-500: #688ac4;
+  --gold-400: #8ca8d8;
+  --gold-100: #dbe5f2;
 
   /* ---- Legacy aliases (kept so older rules still resolve) ---- */
-  --ember-600: #7a5224;
-  --ember-500: #94652c;
-  --ember-400: #b07a38;
-  --ember-100: #f6ead7;
-  --cream-50: #faf7f2;
-  --cream-100: #f4efe6;
-  --sand-200: #ebe3d5;
+  --ember-600: #284576;
+  --ember-500: #31548f;
+  --ember-400: #3e66aa;
+  --ember-100: #dbe5f2;
+  --cream-50: #f2f5fa;
+  --cream-100: #e5ecf5;
+  --sand-200: #d4deec;
   --slate-900: #0f2244;
   --slate-700: #33415c;
   --slate-500: #5f6a82;
   --slate-300: #4f5b70;
-  --slate-100: #e6dfd2;
+  --slate-100: #cedaea;
 
   --white: #ffffff;
   --success: #1f7a52;
@@ -51,8 +51,8 @@
   /* ---- Gradients ---- */
   --grad-brand: linear-gradient(90deg, var(--navy-800), var(--gold-500) 60%, var(--gold-400));
   --grad-cta: linear-gradient(135deg, #1b3a6b 0%, #0f2244 100%);
-  --grad-gold: linear-gradient(135deg, #e2c295 0%, #c99a63 60%, #b07a38 100%);
-  --grad-page: radial-gradient(1000px 520px at 100% -4%, rgba(201, 154, 99, 0.16), transparent 62%),
+  --grad-gold: linear-gradient(135deg, #99b7de 0%, #688ac4 60%, #3e66aa 100%);
+  --grad-page: radial-gradient(1000px 520px at 100% -4%, rgba(104, 138, 196, 0.16), transparent 62%),
                radial-gradient(900px 520px at 0% 12%, rgba(27, 58, 107, 0.06), transparent 60%);
 
   /* ---- Semantic tokens ---- */
@@ -65,8 +65,8 @@
   --color-text-on-dark: #ffffff;
   --color-text-on-dark-muted: #cdd6e6;
   --color-accent: var(--gold-700);
-  --color-accent-hover: #7a5224;
-  --color-border: #e6dfd2;
+  --color-accent-hover: #284576;
+  --color-border: #cedaea;
   --color-dark-surface: var(--navy-950);
   --color-dark-surface-alt: var(--navy-900);
   --on-accent: #ffffff;
@@ -158,8 +158,8 @@
   --color-text: #ffffff;
   --color-text-muted: #cdd6e6;
   --color-text-subtle: #a9b6cf;
-  --color-accent: #e2c295;
-  --color-accent-hover: #f0dcbc;
+  --color-accent: #99b7de;
+  --color-accent-hover: #bfd3ed;
   --color-border: rgba(255, 255, 255, 0.18);
   --color-surface: rgba(255, 255, 255, 0.07);
   --color-surface-alt: rgba(255, 255, 255, 0.1);
