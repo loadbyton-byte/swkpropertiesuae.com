@@ -1,0 +1,6 @@
+{
+  "name": "swk-properties-site",
+  "private": true,
+  "engines": {"node": ">=22"},
+  "scripts": {"build": "python3 build.py", "test:chat": "node --test tools/chat.test.cjs"}
+}

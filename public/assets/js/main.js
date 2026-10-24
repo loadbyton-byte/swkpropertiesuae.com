@@ -266,7 +266,7 @@
             var c = document.createElement('span');
             c.className = 'tw-char';
             c.textContent = ch;
-            c.style.transitionDelay = (0.3 + state.i * 0.045).toFixed(3) + 's';
+            c.style.transitionDelay = (0.05 + state.i * 0.012).toFixed(3) + 's';
             state.i++;
             word.appendChild(c);
           });
@@ -317,6 +317,28 @@
 
     initTypewriter();
 
+    var spatial = /[?&](?:scene=3d|hold)\b/.test(location.search);
+    var modeLinks = SWK.$$('[data-hero-mode]');
+    modeLinks.forEach(function (link) { if ((link.getAttribute('data-hero-mode') === '3d') === spatial) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
+    if (spatial) {
+      hero.classList.add('is-spatial-mode');
+      var source = SWK.$('.hero__bg source', hero), poster = SWK.$('.hero__bg img', hero);
+      if (source) source.srcset = '/assets/images/hero/hero-scene-mobile-cinematic.webp';
+      if (poster) { poster.src = '/assets/images/hero/hero-scene-cinematic.webp'; poster.alt = 'Stylised Dubai skyline rendered in 3D'; }
+    } else {
+      hero.classList.add('is-photo-mode');
+      if (wrap && !SWK.reduced && !/[?&]nowebgl\b/.test(location.search)) {
+        var photoCaptions = SWK.$$('.hero__caption', hero);
+        var photoUpdate = SWK.raf(function () {
+          var extent = wrap.offsetHeight - hero.offsetHeight;
+          var p = extent > 0 ? SWK.clamp(-wrap.getBoundingClientRect().top / extent, 0, 1) : 0;
+          hero.style.setProperty('--p', p.toFixed(4)); hero.classList.toggle('is-leaving', p > 0.18);
+          [[0.26,0.52],[0.52,0.78],[0.78,1.2]].forEach(function(r,i){var el=photoCaptions[i];if(!el)return;var t=SWK.clamp((p-r[0])/(r[1]-r[0]),0,1);var o=SWK.clamp((p-r[0])/.07,0,1)*(i===2?1:SWK.clamp((r[1]-p)/.07,0,1));el.style.setProperty('--o',o.toFixed(3));el.style.setProperty('--y',((.5-t)*46).toFixed(1)+'px');el.style.setProperty('--s',(.96+t*.07).toFixed(3));});
+        });
+        window.addEventListener('scroll', photoUpdate, {passive:true}); window.addEventListener('resize', photoUpdate); photoUpdate();
+      } else if (wrap) wrap.classList.add('is-flat');
+      return;
+    }
     var useGL = !!wrap && wantsGL();
     var canvas = SWK.$('.hero__gl', hero);
     if (!useGL || !canvas) {
@@ -333,8 +355,16 @@
 
     function flatten() {
       if (scene) { try { scene.dispose(); } catch (e) { /* noop */ } scene = null; }
-      hero.classList.remove('is-gl', 'is-gl-pending');
-      wrap.classList.add('is-flat');
+      hero.classList.remove('is-gl', 'is-gl-pending', 'is-spatial-mode');
+      hero.classList.add('is-photo-mode');
+      var fallbackSource = SWK.$('.hero__bg source', hero), fallbackImage = SWK.$('.hero__bg img', hero);
+      if (fallbackSource) fallbackSource.srcset = '/assets/images/hero/dubai-cinema-home.webp';
+      if (fallbackImage) { fallbackImage.src = '/assets/images/hero/dubai-cinema-home.webp'; fallbackImage.alt = 'AI-created cinematic Dubai architectural visualisation'; }
+      modeLinks.forEach(function (link) { if (link.getAttribute('data-hero-mode') === 'cinematic') link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
+      // Retain the scroll stage and chapter transitions when switching away from a slow GPU.
+      // Collapsing the stage during a journey would move the entire page under the visitor.
+      if (SWK.reduced) wrap.classList.add('is-flat');
+      if (update) update();
     }
 
     var update = SWK.raf(function () {
@@ -1566,7 +1596,10 @@
     var leadShown = false, leadTimer = null;
     function leadAllowed() {
       if (!lead || leadShown || openDialog) return false;
-      if (/^\/(contact|privacy|terms|cookies)\//.test(location.pathname)) return false;
+      var chat = SWK.$('#swk-chat-panel');
+      if (chat && !chat.hidden) return false;
+      if (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return false;
+      if (/^\/(contact|privacy|terms|cookies|swk-inbox)\//.test(location.pathname)) return false;
       var last = parseInt(store('swk_lead') || '0', 10);
       if (last && Date.now() - last < 14 * 864e5) return false;
       if (banner && !banner.hidden && !consent) return false;
@@ -1693,3 +1726,56 @@
     });
   });
 })();
+
+(function () {
+  'use strict';
+  var S=window.SWK;
+  function post(path,data){return fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),credentials:'same-origin'}).then(function(r){return r.json().catch(function(){return {error:'Live chat is not available on this host. Please use WhatsApp.'};}).then(function(v){if(!r.ok)throw Object.assign(new Error(v.error||'Please try again.'),{status:r.status});return v;});});}
+  function draw(log,messages){
+    var signature=JSON.stringify(messages);if(log.dataset.signature===signature)return;log.dataset.signature=signature;
+    log.replaceChildren();messages.forEach(function(m){var p=document.createElement('p');p.className='swk-chat__message'+(m.author==='visitor'?' swk-chat__message--user':'');var label=document.createElement('strong');label.textContent=m.author==='operator'?'SWK team':'Visitor';var text=document.createElement('span');text.textContent=m.text;p.append(label,document.createElement('br'),text);log.append(p);});log.scrollTop=log.scrollHeight;
+  }
+  S.reg('swk-live',function(){
+    var view=S.$('[data-live-view]');if(!view)return;
+    var live=false,pending=false,session=null,timer,input=S.$('#swk-live-message'),status=S.$('[data-live-status]'),form=S.$('[data-live-form]'),log=S.$('[data-live-log]'),start=S.$('[data-live-start]'),restart=S.$('[data-live-restart]');
+    try{session=JSON.parse(sessionStorage.getItem('swk_live_session')||'null');}catch(e){}
+    function save(){try{if(session)sessionStorage.setItem('swk_live_session',JSON.stringify(session));else sessionStorage.removeItem('swk_live_session');}catch(e){}}
+    function render(data){draw(log,data.messages||[]);status.textContent=data.closed?'This conversation is closed. You can start a new chat.':data.online?'An SWK operator is available. Your message is in the inbox.':'The team is currently offline. Your messages are saved for the next available operator.';form.hidden=!!data.closed;restart.hidden=!data.closed;start.hidden=!!session;}
+    function fail(e){status.textContent=e.message||'Connection interrupted. Please try again.';if(e.status===404||e.status===403){session=null;save();start.hidden=false;form.hidden=false;restart.hidden=false;}}
+    function refresh(){if(!live||document.hidden||S.$('#swk-chat-panel').hidden||pending)return;
+      if(session){post('/api/chat',{action:'messages',id:session.id,token:session.token}).then(render).catch(fail);}
+      else post('/api/chat',{action:'status'}).then(function(d){status.textContent=!d.configured?'SWK Live Chat is being set up. Reach our team on WhatsApp below.':d.online?'An SWK operator is available. Send a message to begin.':'SWK is offline. Leave a message for the team, or contact us on WhatsApp.';}).catch(fail);
+    }
+    S.$$('[data-chat-tab]').forEach(function(b){b.addEventListener('click',function(){live=b.dataset.chatTab==='live';view.hidden=!live;S.$('[data-assistant-view]').hidden=live;S.$$('[data-chat-tab]').forEach(function(t){t.setAttribute('aria-pressed',String(t===b));});clearInterval(timer);if(live){start.hidden=!!session;refresh();timer=setInterval(refresh,7000);}});});
+    form.addEventListener('submit',function(e){e.preventDefault();if(pending)return;var text=input.value.trim();if(!text)return;
+      if(!session&&!S.$('[data-live-consent]').checked){status.textContent='Please agree to share this conversation with SWK before sending.';return;}
+      pending=true;var button=S.$('button[type=submit]',form);button.disabled=true;
+      var data=session?{action:'send',id:session.id,token:session.token,text:text}:{action:'start',name:S.$('#swk-live-name').value.trim(),text:text,consent:true};
+      post('/api/chat',data).then(function(d){if(d.id){session={id:d.id,token:d.token};save();}input.value='';render(d);}).catch(fail).finally(function(){pending=false;button.disabled=false;});
+    });
+    restart.addEventListener('click',function(){session=null;save();log.replaceChildren();log.dataset.signature='';start.hidden=false;form.hidden=false;restart.hidden=true;refresh();});
+    document.addEventListener('visibilitychange',refresh);
+  });
+  S.reg('swk-inbox',function(){
+    var login=S.$('[data-inbox-login]');if(!login)return;
+    var workspace=S.$('[data-inbox-workspace]'),status=S.$('[data-inbox-status]'),threads=S.$('[data-inbox-threads]'),log=S.$('[data-inbox-messages]'),reply=S.$('[data-inbox-reply]'),available=S.$('[data-inbox-online]');
+    var active=null,timer=null,busy=false,signedIn=false;
+    function request(data){return post('/api/chat-admin',data);}
+    function fail(e){status.textContent=e.message;if(e.status===401){signedIn=false;clearInterval(timer);workspace.hidden=true;login.hidden=false;available.checked=false;}}
+    function select(t){active=t;S.$('[data-inbox-name]').textContent=t.name;reply.hidden=!!t.closed;request({action:'messages',id:t.id}).then(function(d){draw(log,d.messages);reply.hidden=d.closed;}).catch(fail);}
+    function refresh(){if(!signedIn||document.hidden||busy)return;busy=true;request({action:'threads'}).then(function(d){threads.replaceChildren();if(!d.threads.length){threads.textContent='No conversations yet.';}d.threads.forEach(function(t){var b=document.createElement('button');b.type='button';b.className='inbox-thread';b.setAttribute('aria-pressed',String(active&&active.id===t.id));var name=document.createElement('strong');name.textContent=t.name+(t.closed?' · Closed':t.lastAuthor==='visitor'?' · Needs reply':'');var preview=document.createElement('span');preview.textContent=t.preview||'';b.append(name,preview);b.addEventListener('click',function(){select(t);});threads.append(b);});if(active){var current=d.threads.find(function(t){return t.id===active.id;});if(current)select(current);}}).catch(fail).finally(function(){busy=false;});if(available.checked)request({action:'presence',online:true}).catch(fail);}
+    function enter(){signedIn=true;workspace.hidden=false;login.hidden=true;status.textContent='Signed in. Turn on availability when you are ready to reply.';clearInterval(timer);timer=setInterval(refresh,10000);refresh();}
+    login.addEventListener('submit',function(e){e.preventDefault();var password=S.$('#inbox-password'),value=password.value;password.value='';request({action:'login',password:value}).then(enter).catch(fail);});
+    available.addEventListener('change',function(){request({action:'presence',online:available.checked}).then(function(d){status.textContent=d.online?'You are available for live chat.':'You are offline. Customers can still leave messages.';}).catch(fail);});
+    S.$('[data-inbox-logout]').addEventListener('click',function(){request({action:'logout'}).then(function(){signedIn=false;clearInterval(timer);workspace.hidden=true;login.hidden=false;available.checked=false;threads.replaceChildren();log.replaceChildren();active=null;status.textContent='Signed out.';}).catch(fail);});
+    reply.addEventListener('submit',function(e){e.preventDefault();if(!active)return;var input=S.$('#inbox-reply'),button=S.$('button[type=submit]',reply),text=input.value.trim();if(!text)return;button.disabled=true;request({action:'reply',id:active.id,text:text}).then(function(d){input.value='';draw(log,d.messages);status.textContent='Reply sent.';refresh();}).catch(fail).finally(function(){button.disabled=false;});});
+    S.$('[data-inbox-close]').addEventListener('click',function(){if(!active)return;request({action:'close',id:active.id}).then(function(){reply.hidden=true;refresh();}).catch(fail);});
+    document.addEventListener('visibilitychange',function(){if(document.hidden&&signedIn&&available.checked)request({action:'presence',online:false}).catch(function(){});else refresh();});
+    request({action:'threads'}).then(enter).catch(fail);
+  });
+})();
+
+(function(){'use strict';var S=window.SWK;S.reg('research-search',function(){var root=S.$('[data-research-search]');if(!root)return;var input=S.$('#research-query'),status=S.$('[data-research-status]'),results=S.$('[data-research-results]'),more=S.$('[data-research-more]'),rows=null,matches=[],shown=0,loading=null;
+function cards(){var frag=document.createDocumentFragment();matches.slice(shown,shown+12).forEach(function(r){var card=document.createElement('article');card.className='research-card';var link=document.createElement('a');link.href='/blog/'+r.slug+'/';var heading=document.createElement('h3');heading.textContent=r.area;var year=document.createElement('p');year.textContent=String(r.year)+(r.year===2026?' · through 5 October':'');var value=document.createElement('strong');value.className='research-card__value';value.textContent='AED '+Math.round(r.median).toLocaleString('en-AE')+' / sq ft';var count=document.createElement('p');count.textContent=r.count.toLocaleString('en-AE')+' qualifying records';link.append(year,heading,value,count);card.append(link);frag.append(card);});shown=Math.min(shown+12,matches.length);results.append(frag);more.hidden=shown>=matches.length;status.textContent=matches.length+' reports found. Showing '+shown+'.';}
+function filter(){var q=input.value.trim().toLowerCase();results.replaceChildren();shown=0;if(!q){more.hidden=true;status.textContent='Browse all 16 years below, or search the 416 reports.';return;}matches=rows.filter(function(r){return (r.area+' '+r.year).toLowerCase().includes(q);});cards();}
+input.addEventListener('input',function(){if(rows){filter();return;}if(loading)return;status.textContent='Loading the research index…';loading=fetch('/assets/data/research-index.json').then(function(r){if(!r.ok)throw Error();return r.json();}).then(function(data){rows=data;filter();}).catch(function(){status.textContent='Search is temporarily unavailable. Browse by year below.';}).finally(function(){loading=null;});});more.addEventListener('click',cards);});})();

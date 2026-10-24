@@ -17,7 +17,7 @@
             var c = document.createElement('span');
             c.className = 'tw-char';
             c.textContent = ch;
-            c.style.transitionDelay = (0.3 + state.i * 0.045).toFixed(3) + 's';
+            c.style.transitionDelay = (0.05 + state.i * 0.012).toFixed(3) + 's';
             state.i++;
             word.appendChild(c);
           });
@@ -68,6 +68,28 @@
 
     initTypewriter();
 
+    var spatial = /[?&](?:scene=3d|hold)\b/.test(location.search);
+    var modeLinks = SWK.$$('[data-hero-mode]');
+    modeLinks.forEach(function (link) { if ((link.getAttribute('data-hero-mode') === '3d') === spatial) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
+    if (spatial) {
+      hero.classList.add('is-spatial-mode');
+      var source = SWK.$('.hero__bg source', hero), poster = SWK.$('.hero__bg img', hero);
+      if (source) source.srcset = '/assets/images/hero/hero-scene-mobile-cinematic.webp';
+      if (poster) { poster.src = '/assets/images/hero/hero-scene-cinematic.webp'; poster.alt = 'Stylised Dubai skyline rendered in 3D'; }
+    } else {
+      hero.classList.add('is-photo-mode');
+      if (wrap && !SWK.reduced && !/[?&]nowebgl\b/.test(location.search)) {
+        var photoCaptions = SWK.$$('.hero__caption', hero);
+        var photoUpdate = SWK.raf(function () {
+          var extent = wrap.offsetHeight - hero.offsetHeight;
+          var p = extent > 0 ? SWK.clamp(-wrap.getBoundingClientRect().top / extent, 0, 1) : 0;
+          hero.style.setProperty('--p', p.toFixed(4)); hero.classList.toggle('is-leaving', p > 0.18);
+          [[0.26,0.52],[0.52,0.78],[0.78,1.2]].forEach(function(r,i){var el=photoCaptions[i];if(!el)return;var t=SWK.clamp((p-r[0])/(r[1]-r[0]),0,1);var o=SWK.clamp((p-r[0])/.07,0,1)*(i===2?1:SWK.clamp((r[1]-p)/.07,0,1));el.style.setProperty('--o',o.toFixed(3));el.style.setProperty('--y',((.5-t)*46).toFixed(1)+'px');el.style.setProperty('--s',(.96+t*.07).toFixed(3));});
+        });
+        window.addEventListener('scroll', photoUpdate, {passive:true}); window.addEventListener('resize', photoUpdate); photoUpdate();
+      } else if (wrap) wrap.classList.add('is-flat');
+      return;
+    }
     var useGL = !!wrap && wantsGL();
     var canvas = SWK.$('.hero__gl', hero);
     if (!useGL || !canvas) {
@@ -84,8 +106,16 @@
 
     function flatten() {
       if (scene) { try { scene.dispose(); } catch (e) { /* noop */ } scene = null; }
-      hero.classList.remove('is-gl', 'is-gl-pending');
-      wrap.classList.add('is-flat');
+      hero.classList.remove('is-gl', 'is-gl-pending', 'is-spatial-mode');
+      hero.classList.add('is-photo-mode');
+      var fallbackSource = SWK.$('.hero__bg source', hero), fallbackImage = SWK.$('.hero__bg img', hero);
+      if (fallbackSource) fallbackSource.srcset = '/assets/images/hero/dubai-cinema-home.webp';
+      if (fallbackImage) { fallbackImage.src = '/assets/images/hero/dubai-cinema-home.webp'; fallbackImage.alt = 'AI-created cinematic Dubai architectural visualisation'; }
+      modeLinks.forEach(function (link) { if (link.getAttribute('data-hero-mode') === 'cinematic') link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
+      // Retain the scroll stage and chapter transitions when switching away from a slow GPU.
+      // Collapsing the stage during a journey would move the entire page under the visitor.
+      if (SWK.reduced) wrap.classList.add('is-flat');
+      if (update) update();
     }
 
     var update = SWK.raf(function () {

@@ -9,6 +9,7 @@ engines, link previews and no-JS visitors all get the full content.
 """
 import base64
 import hashlib
+import gzip
 import html
 import json
 import re
@@ -25,6 +26,9 @@ DATA = ROOT / "data"
 
 
 def load(name):
+    compressed = DATA / f"{name}.json.gz"
+    if compressed.exists():
+        return json.loads(gzip.decompress(compressed.read_bytes()).decode("utf-8"))
     return json.loads((DATA / f"{name}.json").read_text(encoding="utf-8"))
 
 
@@ -35,6 +39,8 @@ SERVICES = load("services")
 FAQ = load("faq")
 TEAM = load("team")
 POSTS = sorted(load("blog"), key=lambda p: p["date"], reverse=True)
+RESEARCH = load("research")
+RESEARCH_SOURCE = load("research-source")
 
 BASE = SITE["url"]
 TODAY = datetime.now(ZoneInfo("Asia/Dubai")).date()
@@ -449,11 +455,11 @@ def chat_markup():
     return f'''<aside class="swk-chat" aria-label="SWK property assistant">
 <button class="swk-chat__launcher" type="button" data-chat-toggle aria-expanded="false" aria-controls="swk-chat-panel">SWK <span>Chat with us</span></button>
 <section id="swk-chat-panel" class="swk-chat__panel" aria-label="SWK assistant" hidden>
-<header><div><strong>SWK Concierge</strong><small>Website assistant · human handoff available</small></div><button type="button" data-chat-close aria-label="Close chat">×</button></header>
-<div class="swk-chat__messages" data-chat-log role="log" aria-live="polite" aria-relevant="additions"><p class="swk-chat__message">Welcome to SWK. I’m the website assistant. Choose a topic or tell me what you’re looking for. For a personal reply, connect with our team on WhatsApp.</p></div>
+<header><div><strong>SWK Concierge</strong><small>Property assistant & SWK Live Chat</small></div><button type="button" data-chat-close aria-label="Close chat">×</button></header>
+<div class="swk-chat__tabs"><button type="button" data-chat-tab="assistant" aria-pressed="true">Property assistant</button><button type="button" data-chat-tab="live" aria-pressed="false">SWK Live Chat</button></div><div data-assistant-view><div class="swk-chat__messages" data-chat-log role="log" aria-live="polite" aria-relevant="additions"><p class="swk-chat__message">Welcome to SWK. I’m the website assistant. Choose a topic or tell me what you’re looking for. For a personal reply, connect with our team on WhatsApp.</p></div>
 <div class="swk-chat__topics"><button type="button" data-chat-topic="buy">Buying a home</button><button type="button" data-chat-topic="off-plan">Off-plan</button><button type="button" data-chat-topic="sell">Selling</button><button type="button" data-chat-topic="human">Speak to SWK</button></div>
 <form data-chat-form><label class="sr-only" for="swk-chat-input">Your property question</label><input id="swk-chat-input" maxlength="1000" placeholder="Ask about your property search…" required autocomplete="off"><button type="submit" aria-label="Send question">→</button></form>
-<a class="swk-chat__handoff" data-chat-handoff href="{wa('Hello SWK, I would like to speak with a property consultant.')}" target="_blank" rel="noopener noreferrer">Continue with SWK on WhatsApp ↗</a><small class="swk-chat__privacy">Assistant answers are general guidance. Messages stay in this tab until you choose to share them on WhatsApp. <a href="/privacy/">Privacy</a></small>
+</div><div data-live-view hidden><p class="swk-live__status" data-live-status role="status">Connect directly with the SWK team.</p><div class="swk-chat__messages" data-live-log role="log" aria-live="polite" aria-relevant="additions"></div><form class="swk-live__form" data-live-form><div data-live-start><label for="swk-live-name">Your name <small>(optional)</small></label><input id="swk-live-name" maxlength="60" autocomplete="given-name"><label class="swk-live__consent"><input type="checkbox" data-live-consent> <span>I agree to share this chat with SWK. Conversations are retained for up to 7 days after the last message. <a href="/privacy/">Privacy</a></span></label></div><label class="sr-only" for="swk-live-message">Message the SWK team</label><div class="swk-live__compose"><input id="swk-live-message" maxlength="2000" required placeholder="Message our team…" autocomplete="off"><button type="submit" aria-label="Send to SWK">→</button></div></form><button type="button" class="swk-live__restart" data-live-restart hidden>Start a new conversation</button></div><a class="swk-chat__handoff" data-chat-handoff href="{wa('Hello SWK, I would like to speak with a property consultant.')}" target="_blank" rel="noopener noreferrer">Continue with SWK on WhatsApp ↗</a><small class="swk-chat__privacy">Assistant answers are general guidance. Assistant messages stay in this tab. SWK Live Chat messages are sent to the team and retained for up to 7 days after the last message. <a href="/privacy/">Privacy</a></small>
 </section></aside>'''
 
 
@@ -796,8 +802,8 @@ def build_home():
     team = f'''<div class="review-carousel" data-review-carousel aria-label="{review_heading}">{slides}<div class="review-controls"><button type="button" class="tc-arrow" data-review-prev aria-label="Previous story">{PREV}</button><span data-review-count>1 / {len(reviews) if reviews else 8}</span><button type="button" class="tc-arrow" data-review-next aria-label="Next story">{NEXT}</button><button type="button" class="review-pause" data-review-pause aria-pressed="false">Pause</button></div></div>'''
 
     body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/hero-scene-mobile.webp">
-<img src="/assets/images/hero/hero-scene.webp" alt="Dubai skyline in golden light" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
+<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-cinema-home.webp">
+<img src="/assets/images/hero/dubai-cinema-home.webp" alt="AI-created cinematic Dubai architectural visualisation" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
 <canvas class="hero__gl" aria-hidden="true"></canvas>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
 <div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
@@ -806,10 +812,10 @@ def build_home():
 <h1 class="hero__title"><span class="sr-only">Dubai homes. A clearer perspective.</span><span data-typewriter aria-hidden="true">Dubai homes.<br><em>A clearer perspective.</em></span></h1>
 <p class="hero__subtitle">Off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.</p>
 <div class="hero__ctas"><a href="/properties/" class="btn btn-primary btn-lg">Explore Listings {ARROW}</a><a href="/contact/" class="btn btn-outline-dark btn-lg">Talk to an advisor</a></div>
-<div class="hero__search-wrap"><form class="search-bar glass-panel" action="/properties/" method="get" aria-label="Search properties">{search}
+<nav class="hero-mode-switch" aria-label="Hero viewing mode"><a href="/" data-hero-mode="cinematic" aria-current="page">Cinematic</a><a href="/?scene=3d" data-hero-mode="3d">Interactive 3D</a></nav><div class="hero__search-wrap"><form class="search-bar glass-panel" action="/properties/" method="get" aria-label="Search properties">{search}
 <button type="submit" class="btn btn-primary">{SEARCH} Search</button></form></div>
 </div>
-<div class="hero__scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
+<span class="hero-art-credit">AI-created architectural visualisation</span><div class="hero__scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section></div>
 
 {VALUES}
@@ -862,8 +868,7 @@ def build_home():
     write("/", page("/", "SWK Properties | Luxury Real Estate in Dubai",
                     "SWK Properties is a premium Dubai real estate agency — off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.",
                     body, ld=ld,
-                    preload=[("/assets/images/hero/hero-scene-mobile.webp", ' media="(max-width: 767px)" fetchpriority="high"'),
-                             ("/assets/images/hero/hero-scene.webp", ' media="(min-width: 768px)" fetchpriority="high"')]))
+                    preload=[("/assets/images/hero/dubai-cinema-home.webp", ' fetchpriority="high"')]))
 
 
 def build_properties():
@@ -1047,10 +1052,67 @@ def build_contact():
                             "Get in touch with SWK Properties — book a consultation, ask about a listing, or reach us on WhatsApp, phone or email.", body, ld=[breadcrumb_ld(trail), org_ld()]))
 
 
+def research_card(p):
+    m = p["metrics"]
+    return f'''<article class="research-card"><a href="/blog/{p['slug']}/"><div class="research-card__top"><span>{p['period']}</span><span>Residential sales</span></div><h3>{e(p['area'])}</h3><div class="research-card__value">AED {m['median']:,.0f}<small>median per sq ft</small></div><p>{m['count']:,} qualifying registrations</p><span class="research-card__link">Read the evidence →</span></a></article>'''
+
+
+def research_table(rows, heading, label):
+    body = "".join(f'<tr><th scope="row">{e(str(r[label]))}</th><td>{r["count"]:,}</td><td>{"Small sample" if r["count"] < 10 else "AED " + format(r["median"], ",.0f")}</td></tr>' for r in rows)
+    return f'<div class="research-table"><table><caption>{e(heading)}</caption><thead><tr><th scope="col">Group</th><th scope="col">Records</th><th scope="col">Median / sq ft</th></tr></thead><tbody>{body}</tbody></table></div>' if rows else '<p>No disclosed records for this breakdown.</p>'
+
+
+def build_research():
+    by_year = {y: [p for p in RESEARCH if p["period"] == y] for y in range(2011, 2027)}
+    years = "".join(f'<a class="research-year" href="/blog/research/{y}/"><strong>{y}</strong><span>26 area reports {"· partial year" if y == 2026 else ""}</span></a>' for y in reversed(by_year))
+    methodology = f'''<div class="research-method"><span class="eyebrow">Read the methodology</span><h2>Evidence with its limits in view</h2><p>416 reports cover the 26 most active eligible registered areas in each year from 2011 to 2026. Each cohort has at least 50 qualifying residential registrations. Selection changes by year; absence from this collection does not mean an area had no sales.</p><p>Source: Dubai Real Estate Data, based on Dubai Land Department open data, licensed CC BY 4.0. This independent snapshot ends on <strong>5 October 2026</strong>. It is not a live official feed. All reports were published on 24 October 2026 as retrospective analysis; they were not published in the historical years shown.</p><p>Filters: upstream quality flag 0, residential usage, Unit or Villa type and positive price per sq ft. Counts and total value describe this filtered sample only. Medians are calculated from individual registrations. Land, whole buildings and commercial properties are excluded. Missing bedrooms remain unknown; price cells with fewer than 10 records are labelled small sample. Quarter-to-quarter differences can reflect the homes sold, not changes in the same home’s value.</p><p>Generated statistical analysis by SWK; no human author or official endorsement is implied. Use these reports for research, not as a valuation, forecast or investment recommendation. The source has not been independently reconciled to a complete official DLD extract.</p><a href="/assets/data/research-source.json">Source manifest and file checksum</a> · <a href="https://huggingface.co/datasets/dubairealestatedata/dubai-real-estate-sales-transactions" target="_blank" rel="noopener noreferrer">Licensed source</a> · <a href="https://dubailand.gov.ae/en/open-data/real-estate-data/" target="_blank" rel="noopener noreferrer">DLD open data</a></div>'''
+    search = '''<div class="research-search" data-research-search><label for="research-query">Find a registered area or year</label><input id="research-query" type="search" placeholder="For example, Business Bay or 2014" autocomplete="off"><p data-research-status role="status">Browse all 16 years below, or search the 416 reports.</p><div class="research-grid" data-research-results></div><button type="button" class="btn btn-outline-dark" data-research-more hidden>Show more results</button></div>'''
+    trail = [("Home", "/"), ("Journal", "/blog/"), ("Research archive", None)]
+    body = page_hero("Dubai property, in the records", "416 residential sales reports across 2011–2026. Registered prices, transaction mix and sample sizes — with the limitations beside the numbers.", trail) + f'<section class="section container">{search}<h2>Explore by year</h2><div class="research-years">{years}</div>{methodology}</section>'
+    write("/blog/research/", page("/blog/research/", "Dubai Property Research 2011–2026 | SWK", "Explore 416 historical Dubai residential sales reports: registered-area prices, sample counts and off-plan versus ready transaction mix, with source methodology.", body, ld=[breadcrumb_ld(trail)]))
+    for year, reports in by_year.items():
+        trail = [("Home", "/"), ("Journal", "/blog/"), ("Research", "/blog/research/"), (str(year), None)]
+        note = "Partial-year snapshot through 5 October 2026." if year == 2026 else "Complete calendar-year window within the source snapshot."
+        nav = "".join(f'<a href="/blog/research/{y}/" {"aria-current=page" if y == year else ""}>{y}</a>' for y in reversed(by_year))
+        body = page_hero(f"{year}: Dubai residential sales", f"26 registered-area reports. {note} Published as retrospective statistical analysis on 24 October 2026.", trail) + f'<section class="section container"><nav class="research-year-nav" aria-label="Research years">{nav}</nav><div class="research-grid">{"".join(research_card(p) for p in reports)}</div><p class="listing-note">Counts describe qualifying residential records, not all Dubai registrations. <a href="/blog/research/">Read the methodology and source disclosure.</a></p></section>'
+        path = f"/blog/research/{year}/"
+        write(path, page(path, f"Dubai Residential Sales {year}: Area Reports | SWK", f"Explore 26 Dubai registered-area residential sales reports for {year}, including price medians, transaction counts and registration mix. {note}", body, ld=[breadcrumb_ld(trail)]))
+    for p in RESEARCH:
+        m = p["metrics"]
+        trail = [("Home", "/"), ("Research", "/blog/research/"), (str(p["period"]), f'/blog/research/{p["period"]}/'), (p["area"], None)]
+        summary = "".join(f'<div><dt>{e(k)}</dt><dd>{e(v)}</dd></div>' for k, v in [("Qualifying records", f'{m["count"]:,}'), ("Median / sq ft", f'AED {m["median"]:,.0f}'), ("Middle 50% / sq ft", f'AED {m["q1"]:,.0f}–{m["q3"]:,.0f}'), ("Off-plan share", f'{m["offplan"]/m["count"]*100:.1f}%')])
+        content = ""
+        for i, section in enumerate(p["sections"]):
+            content += f'<section><h2>{e(section["title"])}</h2><p>{e(section["text"])}</p>'
+            if i == 2: content += research_table(p["registration"], "Registration types in the qualifying sample", "label")
+            if i == 3: content += research_table([dict(q, label=f'Q{q["quarter"]}' + (' · through 5 Oct' if p['period'] == 2026 and q['quarter'] == 4 else '')) for q in p["quarters"]], "Quarterly evidence", "label")
+            if i == 4: content += research_table(p["rooms"], "Disclosed bedroom groups", "label")
+            content += '</section>'
+        period = '1 January–5 October 2026 (partial year)' if p['period'] == 2026 else f'1 January–31 December {p["period"]}'
+        body = page_hero(p["title"], f'{period}. Retrospective statistical analysis · Published 24 October 2026 · {p["readTime"]}', trail)
+        body += f'<article class="section container"><dl class="research-metrics">{summary}</dl><div class="prose"><p class="article-answer">{e(p["content"])}</p>{content}<aside class="research-method"><h2>Source and reproducibility</h2><p>SWK calculations from the licensed Dubai Real Estate Data snapshot of DLD-derived sales. Data cutoff: 5 October 2026. Registered area: {e(p["area"])}. Upstream quality flag 0; residential Unit/Villa records only; no land, buildings or commercial usage. This is programmatic analysis, not an official DLD report. <a href="/blog/research/">Full methodology and limitations</a>.</p><a href="/assets/data/research/{p["slug"]}.json">Download this report’s aggregate data</a><p>Source attribution: Dubai Real Estate Data (dubairealestatedata.com), based on Dubai Land Department open data. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p></aside><p><a href="/blog/research/{p["period"]}/">More registered areas from {p["period"]} →</a></p></div></article>'
+        path = f'/blog/{p["slug"]}/'
+        ld = [breadcrumb_ld(trail), {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "datePublished": p["date"], "dateModified": p["updated"], "description": p["excerpt"], "mainEntityOfPage": BASE + path, "author": {"@type": "Organization", "name": "SWK Properties Research"}, "publisher": {"@type": "Organization", "name": SITE["name"]}, "citation": [q["url"] for q in p["sources"]]}]
+        write(path, page(path, p["seoTitle"], p["excerpt"][:195], body, ld=ld, og_type="article"))
+    data_dir = OUT / 'assets' / 'data'
+    (data_dir / 'research').mkdir(parents=True, exist_ok=True)
+    (data_dir / 'research-source.json').write_text(json.dumps(RESEARCH_SOURCE, ensure_ascii=False), encoding='utf-8')
+    (data_dir / 'research-index.json').write_text(json.dumps([dict(slug=p['slug'], area=p['area'], year=p['period'], count=p['metrics']['count'], median=p['metrics']['median']) for p in RESEARCH], ensure_ascii=False), encoding='utf-8')
+    for p in RESEARCH:
+        (data_dir / 'research' / (p['slug'] + '.json')).write_text(json.dumps({k:p[k] for k in ['area','period','date','metrics','quarters','rooms','registration','sources']}, ensure_ascii=False), encoding='utf-8')
+
+
+def build_chat_inbox():
+    body = '''<section class="section container inbox-shell"><div class="section-header"><span class="eyebrow">SWK Workspace</span><h1>Live chat inbox</h1><p>Private operator access. Only authorised SWK team members may sign in.</p></div>
+<p data-inbox-status role="status"></p><form class="inbox-login ui-card" data-inbox-login><label for="inbox-password">Inbox password</label><input id="inbox-password" type="password" autocomplete="current-password" required><button type="submit" class="btn btn-primary">Sign in</button></form>
+<div data-inbox-workspace hidden><div class="inbox-toolbar"><label><input type="checkbox" data-inbox-online> Available for live chat</label><button type="button" class="btn btn-outline-dark" data-inbox-logout>Sign out</button></div><p class="listing-note">Available status lasts while this inbox is open and active. Reply only after reviewing the customer’s message. Conversations expire 7 days after their last message.</p><div class="inbox-layout"><nav class="inbox-threads" data-inbox-threads aria-label="Customer conversations"></nav><section class="inbox-conversation"><h2 data-inbox-name>Select a conversation</h2><div data-inbox-messages role="log" aria-live="polite" aria-relevant="additions"></div><form data-inbox-reply hidden><label class="sr-only" for="inbox-reply">Reply to customer</label><textarea id="inbox-reply" maxlength="2000" required placeholder="Your reply…"></textarea><button type="submit" class="btn btn-primary">Send reply</button><button type="button" class="btn btn-outline-dark" data-inbox-close>Close conversation</button></form></section></div></div></section>'''
+    write("/swk-inbox/", page("/swk-inbox/", "SWK Live Chat | Private Operator Inbox", "Private SWK operator workspace for customer conversations and live chat support.", body, robots="noindex, nofollow"))
+
+
 def build_blog():
     trail = [("Home", "/"), ("Journal", None)]
     body = f"""{page_hero("The SWK Journal", "Market insight, buyer guides and community spotlights from our consultants on the ground in Dubai.", trail, bg="blog")}
-<section class="section container ambient-glow-host">{GLOW}<h2 class="sr-only">All articles</h2>
+<section class="section container ambient-glow-host">{GLOW}<div class="research-banner"><div><span class="eyebrow">The evidence archive</span><h2>2011–2026. 416 area reports.</h2><p>Explore registered residential sales from 2011–2026. Every report shows its sample, sources and limits.</p></div><a href="/blog/research/" class="btn btn-primary">Explore the research →</a></div><h2 class="sr-only">All articles</h2>
 {blog_filters()}
 {blog_feature(POSTS[0])}
 <div class="blog-grid" data-blog-grid>{"".join(blog_card(p, i) for i, p in enumerate(POSTS[1:]))}</div></section>
@@ -1084,7 +1146,7 @@ def build_blog():
               "author": {"@type": "Organization", "name": SITE["name"]},
               "publisher": {"@type": "Organization", "name": SITE["name"], "logo": {"@type": "ImageObject", "url": f"{BASE}/assets/images/brand/swk-logo.png"}}}]
         long_title = f"{p['title']} | SWK Properties"
-        write(f"/blog/{p['slug']}/", page(f"/blog/{p['slug']}/", long_title if len(long_title) <= 70 else p["title"], p["excerpt"], b,
+        write(f"/blog/{p['slug']}/", page(f"/blog/{p['slug']}/", long_title if len(long_title) < 70 else p.get("seoTitle", p["title"][:66]), p["excerpt"], b,
                                            image=f"og/blog-{p['slug']}.jpg", ld=ld, og_type="article"))
 
 
@@ -1099,6 +1161,7 @@ def build_legal():
     n, em = SITE["name"], SITE["email"]
     legal("/privacy/", "Privacy Policy", "How SWK Properties collects, uses and protects your personal data.", [
         ("Who we are", [f"{n} ('we', 'us') is a real estate brokerage at {SITE['address']}. You can reach us at {em} or {SITE['phoneDisplay']}."]),
+        ("SWK Live Chat", ["The property assistant runs in your browser. If you choose SWK Live Chat and agree to share a message, SWK receives your messages and optional name. Conversation credentials are kept in your browser tab so you can return to the same conversation. Do not send identity documents, payment details or account passwords in chat.", "Live chat messages are stored in the configured server-side database and expire up to seven days after the last message. Authorised SWK operators can read and reply. Online status reflects an active operator session and expires if the session stops. Contact us using the details below for privacy requests."]),
         ("What we collect", ["Information you give us through our contact form, newsletter sign-up, email, phone or WhatsApp: your name, email address, phone number, enquiry details and property preferences.",
                              "We only use analytics or marketing cookies if you allow them in the cookie banner; see our Cookie Policy. The contact page embeds a Google map, which may load content from Google when displayed."]),
         ("Why we use it", ["To respond to your enquiry, arrange viewings, prepare shortlists and any mortgage or legal introductions you ask for and, if you opt in, to send market updates. We rely on your consent and on our legitimate interest in running our business."]),
@@ -1134,6 +1197,8 @@ def build_meta_files():
     entries = [(u, TODAY.isoformat(), []) for u in pages]
     entries += [(f"/properties/{p['id']}/", TODAY.isoformat(), [f"{BASE}/assets/og/{p['id']}.jpg"]) for p in PROPS]
     entries += [(f"/blog/{p['slug']}/", p.get("updated", p["date"]), [f"{BASE}/assets/og/blog-{p['slug']}.jpg"]) for p in POSTS]
+    entries += [(f"/blog/{p['slug']}/", p['updated'], []) for p in RESEARCH]
+    entries += [("/blog/research/", TODAY.isoformat(), [])] + [(f"/blog/research/{y}/", TODAY.isoformat(), []) for y in range(2011, 2027)]
     xml = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">']
     for u, lm, imgs in entries:
@@ -1171,7 +1236,7 @@ def main():
     OUT.mkdir()
     build_assets()
     build_home(); build_properties(); build_about(); build_services(); build_mortgage()
-    build_contact(); build_blog(); build_legal(); build_404(); build_meta_files()
+    build_contact(); build_blog(); build_research(); build_chat_inbox(); build_legal(); build_404(); build_meta_files()
     for p in PROPS:
         build_property(p)
     print(f"Built {sum(1 for _ in OUT.rglob('*.html'))} pages, assets v{ASSET_V}, into {OUT}")

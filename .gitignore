@@ -1,3 +1,14 @@
 __pycache__/
 .DS_Store
 node_modules/
+
+.env
+.env.*
+!.env.example
+# Research HTML and JSON are generated from committed data at build time.
+/public/blog/*-residential-sales/
+/public/blog/research/
+/public/assets/data/
+swk-chat-operator-password.txt
+
+/data/research.json
