@@ -1,4 +1,4 @@
-// Hero: headline reveal and the scroll-scrubbed WebGL fly-through.
+// Hero: headline reveal and the default Interactive 3D Dubai Diorama + scroll-scrubbed fly-through.
 (function () {
   'use strict';
   var SWK = window.SWK;
@@ -68,16 +68,24 @@
 
     initTypewriter();
 
-    var spatial = /[?&](?:scene=3d|hold)\b/.test(location.search);
+    // Interactive 3D is the default mode unless ?scene=cinematic is explicitly requested.
+    var spatial = !/[?&]scene=cinematic\b/.test(location.search);
     var modeLinks = SWK.$$('[data-hero-mode]');
-    modeLinks.forEach(function (link) { if ((link.getAttribute('data-hero-mode') === '3d') === spatial) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
+    modeLinks.forEach(function (link) {
+      if ((link.getAttribute('data-hero-mode') === '3d') === spatial) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+
     if (spatial) {
       hero.classList.add('is-spatial-mode');
-      var source = SWK.$('.hero__bg source', hero), poster = SWK.$('.hero__bg img', hero);
-      if (source) source.srcset = '/assets/images/hero/hero-scene-mobile-cinematic.webp';
-      if (poster) { poster.src = '/assets/images/hero/hero-scene-cinematic.webp'; poster.alt = 'Stylised Dubai skyline rendered in 3D'; }
     } else {
       hero.classList.add('is-photo-mode');
+      var cineSource = SWK.$('.hero__bg source', hero), cinePoster = SWK.$('.hero__bg img', hero);
+      if (cineSource) cineSource.srcset = '/assets/images/hero/dubai-cinema-home.webp';
+      if (cinePoster) {
+        cinePoster.src = '/assets/images/hero/dubai-cinema-home.webp';
+        cinePoster.alt = 'Cinematic Dubai architectural visualisation';
+      }
       if (wrap && !SWK.reduced && !/[?&]nowebgl\b/.test(location.search)) {
         var photoCaptions = SWK.$$('.hero__caption', hero);
         var photoUpdate = SWK.raf(function () {
@@ -90,6 +98,7 @@
       } else if (wrap) wrap.classList.add('is-flat');
       return;
     }
+
     var useGL = !!wrap && wantsGL();
     var canvas = SWK.$('.hero__gl', hero);
     if (!useGL || !canvas) {
@@ -109,11 +118,11 @@
       hero.classList.remove('is-gl', 'is-gl-pending', 'is-spatial-mode');
       hero.classList.add('is-photo-mode');
       var fallbackSource = SWK.$('.hero__bg source', hero), fallbackImage = SWK.$('.hero__bg img', hero);
-      if (fallbackSource) fallbackSource.srcset = '/assets/images/hero/dubai-cinema-home.webp';
-      if (fallbackImage) { fallbackImage.src = '/assets/images/hero/dubai-cinema-home.webp'; fallbackImage.alt = 'AI-created cinematic Dubai architectural visualisation'; }
-      modeLinks.forEach(function (link) { if (link.getAttribute('data-hero-mode') === 'cinematic') link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
-      // Retain the scroll stage and chapter transitions when switching away from a slow GPU.
-      // Collapsing the stage during a journey would move the entire page under the visitor.
+      if (fallbackSource) fallbackSource.srcset = '/assets/images/hero/dubai-diorama-map.jpg';
+      if (fallbackImage) {
+        fallbackImage.src = '/assets/images/hero/dubai-diorama-hero.jpg';
+        fallbackImage.alt = 'Interactive 3D cartographic relief diorama of Dubai featuring Burj Khalifa, Palm Jumeirah, Burj Al Arab and Dubai Metro';
+      }
       if (SWK.reduced) wrap.classList.add('is-flat');
       if (update) update();
     }
@@ -179,14 +188,24 @@
       document.addEventListener('visibilitychange', sync);
       sync();
 
-      if (SWK.fine) {
-        hero.addEventListener('pointermove', function (ev) {
-          if (!scene || ev.pointerType === 'touch') return;
-          var r = hero.getBoundingClientRect();
-          scene.setPointer(((ev.clientX - r.left) / r.width) * 2 - 1, -(((ev.clientY - r.top) / r.height) * 2 - 1));
+      // Pointer tilt & interactive drag on the 3D diorama
+      hero.addEventListener('pointermove', function (ev) {
+        if (!scene) return;
+        if (ev.pointerType === 'touch' && !ev.buttons) return;
+        var r = hero.getBoundingClientRect();
+        scene.setPointer(((ev.clientX - r.left) / r.width) * 2 - 1, -(((ev.clientY - r.top) / r.height) * 2 - 1));
+      });
+      hero.addEventListener('pointerleave', function () { if (scene) scene.setPointer(0, 0); });
+
+      // Interactive 3D Landmark Focus buttons
+      var focusBtns = SWK.$$('[data-hero-focus]', hero);
+      focusBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var target = btn.getAttribute('data-hero-focus');
+          focusBtns.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+          if (scene && scene.setFocus) scene.setFocus(target);
         });
-        hero.addEventListener('pointerleave', function () { if (scene) scene.setPointer(0, 0); });
-      }
+      });
     }).catch(function (err) {
       console.warn('[swk] could not load the WebGL hero, using the photo hero.', err && err.message);
       clearTimeout(giveUp);

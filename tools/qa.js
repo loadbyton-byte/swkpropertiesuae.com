@@ -342,7 +342,7 @@ function pagesFromSitemap() {
   const nj = await newPage(b, { javaScriptEnabled: false });
   await nj.page.goto(L.BASE + '/', { waitUntil: 'load' });
   const j = await nj.page.evaluate(() => ({ h1: document.querySelector('.hero__title').innerText.replace(/\s+/g, ' ').trim(), cards: [...document.querySelectorAll('.property-card--feature')].every((c) => getComputedStyle(c).opacity === '1'), imgs: [...document.querySelectorAll('img')].filter((i) => getComputedStyle(i).opacity === '0').length, tall: document.querySelector('.hero-cine').offsetHeight <= innerHeight + 2 }));
-  ok(/Dubai homes/.test(j.h1) && j.cards && j.imgs === 0 && j.tall, `no-JS page is usable ${JSON.stringify(j)}`);
+  ok(/(?:Capital Precision|Dubai)/.test(j.h1) && j.cards && j.imgs === 0 && j.tall, `no-JS page is usable ${JSON.stringify(j)}`);
   await nj.ctx.close();
 
 

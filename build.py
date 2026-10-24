@@ -14,7 +14,7 @@ import html
 import json
 import re
 import shutil
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import quote
@@ -43,7 +43,11 @@ RESEARCH = load("research")
 RESEARCH_SOURCE = load("research-source")
 
 BASE = SITE["url"]
-TODAY = datetime.now(ZoneInfo("Asia/Dubai")).date()
+try:
+    _DUBAI_TZ = ZoneInfo("Asia/Dubai")
+except Exception:
+    _DUBAI_TZ = timezone(timedelta(hours=4))
+TODAY = datetime.now(_DUBAI_TZ).date()
 e = html.escape
 
 # ---------------------------------------------------------------- helpers
@@ -801,21 +805,26 @@ def build_home():
         review_intro = "Our service commitments. Client reviews will appear here once verified and approved."
     team = f'''<div class="review-carousel" data-review-carousel aria-label="{review_heading}">{slides}<div class="review-controls"><button type="button" class="tc-arrow" data-review-prev aria-label="Previous story">{PREV}</button><span data-review-count>1 / {len(reviews) if reviews else 8}</span><button type="button" class="tc-arrow" data-review-next aria-label="Next story">{NEXT}</button><button type="button" class="review-pause" data-review-pause aria-pressed="false">Pause</button></div></div>'''
 
-    body = f"""<div class="hero-cine"><section class="hero" aria-label="Introduction">
-<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-cinema-home.webp">
-<img src="/assets/images/hero/dubai-cinema-home.webp" alt="AI-created cinematic Dubai architectural visualisation" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
+    body = f"""<div class="hero-cine"><section class="hero is-spatial-mode" aria-label="Introduction">
+<div class="hero__bg"><picture><source media="(max-width: 767px)" srcset="/assets/images/hero/dubai-diorama-map.jpg">
+<img src="/assets/images/hero/dubai-diorama-hero.jpg" alt="Interactive 3D cartographic relief diorama of Dubai featuring Burj Khalifa, Palm Jumeirah, Burj Al Arab and Dubai Metro" width="1600" height="1067" fetchpriority="high" decoding="async"></picture></div>
 <canvas class="hero__gl" aria-hidden="true"></canvas>
 <div class="hero__scrim"></div><div class="hero__glow" aria-hidden="true"></div><div class="hero__vignette"></div><div class="hero__streak" aria-hidden="true"></div>
-<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Dubai. <em>In golden light.</em></p><p class="hero__caption">Every tower, <em>a story.</em></p><p class="hero__caption">Find <em>yours.</em></p></div>
+<div class="hero__captions" aria-hidden="true"><p class="hero__caption">Palm to Downtown. <em>Mapped in depth.</em></p><p class="hero__caption">Transaction data. <em>Zero market noise.</em></p><p class="hero__caption">Your mandate, <em>executed end to end.</em></p></div>
 <div class="hero__content container">
-<span class="hero__eyebrow">Dubai's Trusted Real Estate Partner</span>
-<h1 class="hero__title"><span class="sr-only">Dubai homes. A clearer perspective.</span><span data-typewriter aria-hidden="true">Dubai homes.<br><em>A clearer perspective.</em></span></h1>
-<p class="hero__subtitle">Off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.</p>
-<div class="hero__ctas"><a href="/properties/" class="btn btn-primary btn-lg">Explore Listings {ARROW}</a><a href="/contact/" class="btn btn-outline-dark btn-lg">Talk to an advisor</a></div>
-<nav class="hero-mode-switch" aria-label="Hero viewing mode"><a href="/" data-hero-mode="cinematic" aria-current="page">Cinematic</a><a href="/?scene=3d" data-hero-mode="3d">Interactive 3D</a></nav><div class="hero__search-wrap"><form class="search-bar glass-panel" action="/properties/" method="get" aria-label="Search properties">{search}
+<span class="hero__eyebrow">RERA-Certified Private Client &amp; Investment Advisory</span>
+<h1 class="hero__title"><span class="sr-only">Capital Precision. Iconic Dubai Addresses.</span><span data-typewriter aria-hidden="true">Capital Precision.<br><em>Iconic Dubai Addresses.</em></span></h1>
+<p class="hero__subtitle">Direct developer allocations, trophy waterfront residences and DLD-backed yield advisory across Downtown Dubai, Palm Jumeirah and Dubai Marina.</p>
+<div class="hero__ctas"><a href="/properties/" class="btn btn-primary btn-lg">Explore Prime Portfolio {ARROW}</a><a href="/contact/" class="btn btn-outline-dark btn-lg">Private Client Desk</a></div>
+<div class="hero-bar-row"><nav class="hero-mode-switch" aria-label="Hero viewing mode"><a href="/" data-hero-mode="3d" aria-current="page">Interactive 3D</a><a href="/?scene=cinematic" data-hero-mode="cinematic">Cinematic</a></nav><div class="hero-3d-controls" role="group" aria-label="3D Diorama Landmark Focus">
+<button type="button" data-hero-focus="overview" aria-pressed="true">Full Diorama</button>
+<button type="button" data-hero-focus="downtown" aria-pressed="false">Burj &amp; Fountain</button>
+<button type="button" data-hero-focus="palm" aria-pressed="false">Palm &amp; Sail</button>
+<button type="button" data-hero-focus="metro" aria-pressed="false">Metro &amp; Creek</button>
+</div></div><div class="hero__search-wrap"><form class="search-bar glass-panel" action="/properties/" method="get" aria-label="Search properties">{search}
 <button type="submit" class="btn btn-primary">{SEARCH} Search</button></form></div>
 </div>
-<span class="hero-art-credit">AI-created architectural visualisation</span><div class="hero__scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
+<span class="hero-art-credit">Interactive 3D Dubai Cartographic Diorama</span><div class="hero__scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section></div>
 
 {VALUES}
@@ -865,10 +874,10 @@ def build_home():
 
 {cta_section()}"""
     ld = [org_ld(), {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "url": BASE + "/", "inLanguage": "en"}]
-    write("/", page("/", "SWK Properties | Luxury Real Estate in Dubai",
-                    "SWK Properties is a premium Dubai real estate agency — off-plan and ready homes across Downtown, Dubai Marina, Palm Jumeirah and more, with full buying, mortgage and investment support.",
+    write("/", page("/", "SWK Properties | Private Client & Luxury Real Estate in Dubai",
+                    "SWK Properties is a RERA-certified Dubai real estate advisory — direct developer allocations, waterfront residences and DLD-backed investment support across prime Dubai.",
                     body, ld=ld,
-                    preload=[("/assets/images/hero/dubai-cinema-home.webp", ' fetchpriority="high"')]))
+                    preload=[("/assets/images/hero/dubai-diorama-hero.jpg", ' fetchpriority="high"')]))
 
 
 def build_properties():
