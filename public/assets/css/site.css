@@ -4758,3 +4758,59 @@ main > section.container { max-width: none; padding-inline: max(var(--space-5), 
   .hero__content, .has-ann:not(.ann-off) .hero__content { padding-top: calc(var(--ann-h) + 64px + 34px); }
   .hero__eyebrow { font-size: 0.7rem; letter-spacing: 0.12em; }
 }
+
+/* Pearl, aubergine and brushed champagne complement the existing navy. */
+:root { --swk-pearl:#fbfaf7; --swk-plum:#564456; --swk-champagne:#ba9970; }
+.hero__title { font-family:'Clash Display','General Sans',sans-serif; font-weight:600; letter-spacing:-.055em; line-height:1.02; text-wrap:balance; }
+.hero__title em { font-family:'Instrument Serif',serif; font-weight:400; letter-spacing:-.025em; }
+@font-face { font-family:'Clash Display'; src:url('/assets/fonts/clash-display/clash-display-600.woff2') format('woff2'); font-style:normal; font-weight:600; font-display:swap; }
+.section--alt { background:linear-gradient(125deg,#fbfaf7 0%,#f4f1ed 65%,#f0eaf0 100%); }
+.fan-pagination { margin-top:0; transform:translateY(-12px); }
+.fan-card img { transform:scale(1.07) translate(var(--image-x,0px),var(--image-y,0px)); transition:transform .5s cubic-bezier(.2,.7,.2,1); }
+.service-card { position:relative; isolation:isolate; transition:box-shadow .5s, border-color .5s; }
+.service-card::after { content:''; position:absolute; inset:0; border-radius:inherit; background:radial-gradient(320px circle at var(--spot-x,50%) var(--spot-y,50%),#ba997026,transparent 75%); opacity:0; pointer-events:none; transition:opacity .4s; }
+.service-card:hover::after,.service-card:focus-within::after { opacity:1; }
+.service-card:hover { box-shadow:0 24px 60px #30233b1c; border-color:#ba9970; }
+.service-card__decor { transition:transform .8s cubic-bezier(.2,.7,.2,1); }
+.service-card:hover .service-card__decor { transform:translateY(-10px) rotate(-8deg) scale(1.08); }
+.team-card__bio { display:block; overflow:visible; }
+.team-card__body h3 { font-size:1.2rem; }
+.team-card__role { color:#564456; }
+@media(min-width:1100px) { .team-grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; } .team-card__body { padding:18px; } .team-card__bio { font-size:.83rem; line-height:1.7; } }
+@media(min-width:700px) and (max-width:1099px) { .team-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.review-carousel { max-width:880px; margin:auto; text-align:center; }
+.review-slide { margin:0; min-height:230px; padding:24px; animation:swk-review-in .7s both; }
+.review-slide blockquote { font-family:'Instrument Serif',serif; font-size:clamp(1.8rem,3.3vw,3rem); line-height:1.3; margin:0 0 24px; color:#263146; }
+.review-slide figcaption { color:#564456; font-size:.9rem; letter-spacing:.04em; }
+.review-controls { display:flex; gap:20px; justify-content:center; align-items:center; }
+.review-pause { border:0; background:transparent; text-decoration:underline; padding:12px; cursor:pointer; }
+@keyframes swk-review-in { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+@keyframes swk-hero-drift { from { transform:scale(1.02) translateY(0); } to { transform:scale(1.09) translateY(-1%); } }
+.page-hero__bg img { animation:swk-hero-drift 22s ease-in-out infinite alternate; }
+.page-hero .container { position:relative; z-index:1; }
+.swk-chat { position:fixed; right:24px; bottom:28px; z-index:85; font-family:'General Sans',sans-serif; }
+.swk-chat__launcher { display:flex; align-items:center; gap:12px; border:1px solid #d3bc96; background:#17243c; color:#fff; border-radius:40px; padding:16px 22px; box-shadow:0 8px 32px #17243c33; font-weight:700; cursor:pointer; min-height:52px; }
+.swk-chat__launcher span { font-weight:400; font-size:.85rem; }
+.swk-chat__panel { position:absolute; right:0; bottom:76px; width:min(390px,calc(100vw - 32px)); max-height:min(650px,calc(100dvh - 180px)); overflow:auto; border:1px solid #d6c8b4; background:#fbfaf7; color:#17243c; border-radius:24px; box-shadow:0 24px 80px #17243c30; }
+.swk-chat__panel[hidden] { display:none; }
+.swk-chat header { display:flex; justify-content:space-between; align-items:center; padding:20px; background:linear-gradient(120deg,#17243c,#564456); color:white; }
+.swk-chat header small { display:block; font-size:.68rem; margin-top:5px; color:#eee3d3; }
+.swk-chat header button { background:transparent; color:white; border:0; font-size:28px; min-width:44px; min-height:44px; cursor:pointer; }
+.swk-chat__messages { padding:16px; max-height:260px; overflow:auto; }
+.swk-chat__message { background:#eeeae5; border-radius:14px 14px 14px 2px; padding:13px; font-size:.85rem; line-height:1.6; margin:0 0 10px; overflow-wrap:anywhere; }
+.swk-chat__message--user { background:#e4e9f0; margin-left:30px; border-radius:14px 14px 2px 14px; }
+.swk-chat__topics { display:flex; gap:8px; flex-wrap:wrap; padding:0 16px 14px; }
+.swk-chat__topics button { border:1px solid #c9b89f; border-radius:24px; background:white; color:#17243c; padding:10px 12px; font-size:.75rem; cursor:pointer; min-height:44px; }
+.swk-chat form { display:flex; padding:0 16px 12px; gap:8px; }
+.swk-chat input { min-width:0; flex:1; padding:12px; border:1px solid #ccc4bb; border-radius:12px; background:white; color:#17243c; font-size:16px; }
+.swk-chat form button { min-width:44px; border:0; background:#17243c; color:white; border-radius:12px; cursor:pointer; }
+.swk-chat__handoff { display:block; margin:0 16px 12px; padding:12px; text-align:center; background:#564456; color:white; border-radius:12px; font-size:.83rem; }
+.swk-chat__privacy { display:block; padding:0 16px 16px; font-size:.65rem; line-height:1.5; color:#575969; }
+@media(max-width:899px) { .swk-chat { bottom:calc(102px + env(safe-area-inset-bottom)); right:16px; } .swk-chat__launcher { padding:12px 16px; } .swk-chat__launcher span { display:none; } .swk-chat__panel { max-height:calc(100dvh - 240px); bottom:64px; } }
+@media(prefers-reduced-motion:reduce) { .page-hero__bg img,.review-slide { animation:none; } .fan-card img,.service-card__decor { transition:none; transform:none; } }
+/* One floating contact entry; WhatsApp remains available inside Concierge. */
+body:has(.swk-chat) .whatsapp-float { display:none; }
+.back-top { bottom:100px; }
+@media(max-width:1023px) { .swk-chat { bottom:calc(102px + env(safe-area-inset-bottom)); } .back-top { bottom:calc(168px + env(safe-area-inset-bottom)); } }
+@media print { .swk-chat { display:none; } }
+.article-answer { font-size:1.2rem; border-left:3px solid #ba9970; padding-left:20px; }

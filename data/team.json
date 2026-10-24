@@ -1,20 +1,32 @@
 [
- {
-  "name": "Mohd Shahid Khan",
-  "role": "Office Admin & IT Executive, India",
-  "photo": "assets/images/team/mohd-shahid-khan.webp",
-  "bio": "Ensures smooth day-to-day office operations while managing the company's IT systems and digital infrastructure. Coordinates administrative processes, streamlines workflows, and provides reliable technical support to keep the business running efficiently."
- },
- {
-  "name": "Mohammad Haseeb",
-  "role": "Sales Manager, Pakistan",
-  "photo": "assets/images/team/haseeb.webp",
-  "bio": "Leads the sales team with a focus on client satisfaction, business growth, and successful property transactions. Develops sales strategies, mentors the team, and ensures every client receives professional guidance."
- },
- {
-  "name": "Issaadi Chahrazed",
-  "role": "Off-Plan Property Consultant, Algeria",
-  "photo": "assets/images/team/issaadi-chahrazed.webp",
-  "bio": "Specializes in Dubai's off-plan properties, helping clients identify high-potential investment opportunities. Provides expert advice on new launches, payment plans, and market trends to help buyers make confident decisions."
- }
+  {
+    "name": "Mohammad Haseeb",
+    "role": "Sales & Operations Manager",
+    "photo": "assets/images/team/haseeb.webp",
+    "bio": "Mohammad Haseeb brings sales and day-to-day operations together, keeping the property search, paperwork and handover moving in the same direction. His focus is straightforward: a clear next step for the client and a team that follows through."
+  },
+  {
+    "name": "Mohd Shahid Khan",
+    "role": "Office Admin & IT Executive, India",
+    "photo": "assets/images/team/mohd-shahid-khan.webp",
+    "bio": "Ensures smooth day-to-day office operations while managing the company's IT systems and digital infrastructure. Coordinates administrative processes, streamlines workflows, and provides reliable technical support to keep the business running efficiently."
+  },
+  {
+    "name": "Issaadi Chahrazed",
+    "role": "Off-Plan Property Consultant, Algeria",
+    "photo": "assets/images/team/issaadi-chahrazed.webp",
+    "bio": "Specializes in Dubai's off-plan properties, helping clients identify high-potential investment opportunities. Provides expert advice on new launches, payment plans, and market trends to help buyers make confident decisions."
+  },
+  {
+    "name": "Talha Shabbir",
+    "role": "Business Development Manager",
+    "photo": "assets/images/team/talha-shabbir.webp",
+    "bio": "Talha Shabbir is the first conversation behind new relationships at SWK. He helps turn a broad property brief into a practical discussion about location, budget and timing, connecting clients with the right consultant and keeping communication clear from the outset."
+  },
+  {
+    "name": "Fareed Choudhary",
+    "role": "Senior Property Consultant",
+    "photo": "assets/images/team/fareed-choudhary.webp",
+    "bio": "Fareed Choudhary helps buyers look beyond a striking photograph. His approach centres on how a home will actually work: the layout, the neighbourhood, the ongoing costs and the questions to settle before making an offer. He supports clients through shortlisting, viewings and the next steps toward purchase."
+  }
 ]

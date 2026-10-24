@@ -176,13 +176,22 @@ function pagesFromSitemap() {
   ok(await page.evaluate(() => document.querySelector('.lightbox').hidden), 'lightbox closes on Escape');
   ok(await page.evaluate(() => document.activeElement.hasAttribute('data-fan-card')), 'focus returns to opener');
 
-  // team carousel + calculator on home
-  await page.evaluate(() => document.querySelector('[data-testimonials-carousel]').scrollIntoView({ block: 'center' }));
-  await page.waitForTimeout(500);
-  await page.click('[data-tc-next]'); await page.waitForTimeout(400);
-  ok((await page.textContent('.tc-name')) === 'Mohammad Haseeb', 'team carousel next');
-  await page.click('[data-tc-prev]'); await page.click('[data-tc-prev]'); await page.waitForTimeout(300);
-  ok((await page.textContent('.tc-name')) === 'Issaadi Chahrazed', 'team carousel wraps');
+  // Text-only stories and the site assistant.
+  await page.locator('[data-review-carousel]').scrollIntoViewIfNeeded();
+  await page.click('[data-review-pause]');
+  await page.click('[data-review-next]');
+  ok((await page.textContent('[data-review-count]')) === '2 / 8', 'story carousel next');
+  await page.click('[data-review-prev]'); await page.click('[data-review-prev]');
+  ok((await page.textContent('[data-review-count]')) === '8 / 8', 'story carousel wraps');
+  await page.click('[data-chat-toggle]');
+  ok(await page.locator('#swk-chat-panel').isVisible(), 'concierge opens');
+  await page.fill('#swk-chat-input', '<script>alert(1)</script> buy a home');
+  await page.click('[data-chat-form] button');
+  ok(await page.locator('[data-chat-log]').textContent().then(t=>t.includes('shortlist')), 'buying question answered');
+  ok(await page.locator('[data-chat-log] script').count() === 0, 'chat input rendered as text');
+  ok((await page.getAttribute('[data-chat-handoff]', 'href')).includes('wa.me/971564330448'), 'human handoff uses SWK number');
+  await page.locator('#swk-chat-input').press('Escape');
+  ok(!(await page.locator('#swk-chat-panel').isVisible()), 'Escape closes concierge');
 
   // search form -> properties with params
   await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(600);
@@ -324,7 +333,7 @@ function pagesFromSitemap() {
   const nj = await newPage(b, { javaScriptEnabled: false });
   await nj.page.goto(L.BASE + '/', { waitUntil: 'load' });
   const j = await nj.page.evaluate(() => ({ h1: document.querySelector('.hero__title').innerText.replace(/\s+/g, ' ').trim(), cards: [...document.querySelectorAll('.property-card--feature')].every((c) => getComputedStyle(c).opacity === '1'), imgs: [...document.querySelectorAll('img')].filter((i) => getComputedStyle(i).opacity === '0').length, tall: document.querySelector('.hero-cine').offsetHeight <= innerHeight + 2 }));
-  ok(/Experience Luxury/.test(j.h1) && j.cards && j.imgs === 0 && j.tall, `no-JS page is usable ${JSON.stringify(j)}`);
+  ok(/Dubai homes/.test(j.h1) && j.cards && j.imgs === 0 && j.tall, `no-JS page is usable ${JSON.stringify(j)}`);
   await nj.ctx.close();
 
 

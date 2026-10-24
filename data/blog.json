@@ -1,32 +1,143 @@
 [
- {
-  "slug": "off-plan-vs-ready-2026",
-  "title": "Off-Plan vs. Ready Property in Dubai: What 2026 Buyers Should Know",
-  "category": "Market Insight",
-  "date": "2026-06-02",
-  "readTime": "6 min read",
-  "image": "assets/images/blog/off-plan-vs-ready.webp",
-  "excerpt": "Payment flexibility versus immediate rental income — how to weigh the two paths depending on your investment horizon.",
-  "content": "Off-plan purchases continue to dominate Dubai transaction volumes thanks to developer payment plans that stretch well beyond handover, letting investors spread capital over several years while the asset appreciates during construction. Ready properties, by contrast, generate rental income from day one and remove construction-delay risk entirely. The right choice comes down to horizon: investors targeting capital appreciation over 3-5 years typically favour off-plan in high-growth communities like Dubai Creek Harbour, while those wanting immediate cash flow lean toward ready stock in established areas such as Dubai Marina and Downtown."
- },
- {
-  "slug": "golden-visa-property-guide",
-  "title": "The Complete Guide to Dubai's Golden Visa Through Property Investment",
-  "category": "Buyer Guide",
-  "date": "2026-05-18",
-  "readTime": "7 min read",
-  "image": "assets/images/blog/golden-visa-guide.webp",
-  "excerpt": "A AED 2 million investment can unlock a 10-year renewable UAE residency — here's exactly how the process works.",
-  "content": "The UAE's Golden Visa programme grants a renewable 10-year residency to buyers investing AED 2 million or more in property, with eligibility extending to spouses and children. Unlike standard investor visas, the property can be mortgaged provided a specific equity threshold is met, and multiple properties can be combined to reach the minimum. Processing typically takes 4-8 weeks once the sale is registered with the Dubai Land Department, and SWK Properties coordinates the full application through our in-house legal partners."
- },
- {
-  "slug": "best-communities-for-rental-yield",
-  "title": "Five Dubai Communities With the Strongest Rental Yields Right Now",
-  "category": "Market Insight",
-  "date": "2026-05-04",
-  "readTime": "5 min read",
-  "image": "assets/images/blog/rental-yield-communities.webp",
-  "excerpt": "JVC and Business Bay continue to outperform on gross yield — here's what's driving demand in each area.",
-  "content": "Gross rental yields across Dubai currently range from 5% in ultra-prime waterfront addresses to over 8% in high-density, amenity-rich communities. Jumeirah Village Circle leads the pack thanks to affordable entry prices and consistent tenant demand from young professionals, while Business Bay benefits from proximity to Downtown at a materially lower price point per square foot. Dubai Hills Estate and Dubai South are emerging as yield plays as new retail and metro infrastructure lands."
- }
+  {
+    "slug": "off-plan-vs-ready-2026",
+    "title": "Off-plan or ready in Dubai? Start with the date you need the keys",
+    "category": "Market Insight",
+    "date": "2026-06-02",
+    "readTime": "2 min read",
+    "image": "assets/images/blog/off-plan-vs-ready.webp",
+    "excerpt": "A practical comparison of cash flow, handover uncertainty and the checks to make before choosing a Dubai property.",
+    "content": "An off-plan apartment and a ready apartment can share the same price and still ask very different things of your finances. Start with when you need the home, how much cash you can commit and what happens if your timetable changes.",
+    "sections": [
+      {
+        "title": "Put your own deadline first",
+        "text": "If you need somewhere to live soon, begin with homes you can inspect and a realistic transfer timetable. A ready property is not necessarily vacant: ask about occupancy, access and the basis on which possession will be delivered. With off-plan, make a separate plan for where you will live until completion. Treat the advertised handover date as a point to investigate in the contract, rather than a moving date you have already secured."
+      },
+      {
+        "title": "Compare payments on a calendar",
+        "text": "Write down every payment date, including the reservation, construction instalments and any amount due at handover. Alongside it, list the cash you expect to have available at that time. A smaller initial payment can look comfortable while leaving a difficult final instalment. For a ready home, ask for an itemised estimate of transfer and financing costs. Compare both options on the same basis rather than comparing only the deposit."
+      },
+      {
+        "title": "Check the project, then the paperwork",
+        "text": "Dubai Land Department provides a project-status enquiry through Dubai REST. Its Dubai REST information page describes access to completion information, project photographs and escrow details. Use official project information alongside the documents supplied by the seller or developer. Ask a qualified adviser to explain provisions about delays, cancellation and resale restrictions before committing money."
+      },
+      {
+        "title": "Look at what you can actually inspect",
+        "text": "A finished home lets you examine light, noise, room dimensions and common areas. Visit at a time that resembles your daily routine. A show apartment can help you understand a proposed layout, but ask which finishes, views and fittings are contractual. Save the agreed specification with the signed documents. For either route, confirm parking, storage and the area measurement used in the listing."
+      },
+      {
+        "title": "Do not spend tomorrow’s rent today",
+        "text": "A ready home may be available to rent after completion, but vacancy, repairs or an existing tenancy can change the timing and amount. An off-plan home cannot provide occupied rental income before it is delivered and usable. Build a cash reserve around your actual obligations. Price growth and future rent should remain assumptions you can change, not money needed to make the purchase work."
+      },
+      {
+        "title": "Bring a brief that makes the shortlist useful",
+        "text": "Send your consultant a budget ceiling, preferred areas, bedroom requirement and intended use. Add the latest date by which you need access and the payments you can comfortably make. Ask for one ready option and one off-plan option with their payment timelines side by side. The better choice is the one that fits your constraints after the documents have been checked, not the one with the most persuasive launch brochure."
+      }
+    ],
+    "sources": [
+      {
+        "title": "DLD: Project Status Enquiry",
+        "url": "https://dubailand.gov.ae/en/eservices/real-estate-project-status-landing/real-estate-project-status"
+      },
+      {
+        "title": "DLD: Dubai REST",
+        "url": "https://dubailand.gov.ae/en/eservices/dubai-rest/"
+      }
+    ],
+    "updated": "2026-10-24"
+  },
+  {
+    "slug": "golden-visa-property-guide",
+    "title": "Dubai property Golden Visa: questions to settle before you buy",
+    "category": "Buyer Guide",
+    "date": "2026-05-18",
+    "readTime": "2 min read",
+    "image": "assets/images/blog/golden-visa-guide.webp",
+    "excerpt": "Understand the property route, check mortgage documentation and separate a purchase decision from a residency application.",
+    "content": "Dubai Land Department lists a property-investor route for a renewable ten-year residence permit with a qualifying purchase value of at least AED 2 million. That threshold is a starting point for an eligibility check, not a promise of approval for a particular purchase.",
+    "sections": [
+      {
+        "title": "Start with the authority’s current requirements",
+        "text": "Use the official DLD investor service page as the starting point. It describes the qualifying purchase value and documents for its route. Eligibility depends on your ownership and application circumstances. Before paying a reservation amount, ask the relevant service centre to confirm how the proposed transaction will be treated. Keep the answer with your purchase documents and check it again if the financing or ownership arrangement changes."
+      },
+      {
+        "title": "If there is a mortgage, ask a precise question",
+        "text": "DLD’s service information specifies a bank letter showing AED 2 million paid for a mortgaged property. Do not assume that a property’s advertised value alone settles the mortgage question. Ask what evidence is required for your particular bank and purchase structure. A broker’s indicative mortgage calculation and an immigration eligibility assessment answer different questions; obtain both where relevant."
+      },
+      {
+        "title": "Choose a home that also works without the visa",
+        "text": "Think through location, condition, running costs and how long you expect to own the property. Would it still suit your needs if the residency application took longer than expected? If it is intended as a rental investment, test the income assumptions separately. A property purchase creates financial commitments even while an application is being assessed. Leave room in your budget for both the property and the application process."
+      },
+      {
+        "title": "Prepare documents without sending them to strangers",
+        "text": "Ask the official service channel for its current checklist and submit identity and ownership documents through that channel. Keep names and ownership details consistent across the documents you provide. Avoid sending passport scans or banking information through an open website chat. SWK’s website assistant can help you identify the next conversation; it does not assess documents or issue immigration decisions."
+      },
+      {
+        "title": "Separate official charges from service charges",
+        "text": "Request a written breakdown that distinguishes government charges, medical or identity-related steps where applicable, and any professional assistance fee. Confirm the current amounts and what is included before instructing a provider. This guide does not quote a fixed all-in price or a guaranteed processing period, because those details need confirmation for the actual application."
+      },
+      {
+        "title": "Questions for your first conversation",
+        "text": "Explain whether the property is already owned, whether there is financing and whose names appear on the ownership documents. Ask which documents establish qualifying value, what additional steps apply to family members and where the application should be submitted. Confirm the rules with the relevant authority before relying on the purchase for your residency plans. SWK can discuss the property search; the authority determines residency eligibility."
+      }
+    ],
+    "sources": [
+      {
+        "title": "DLD: Golden Visa application — Investor",
+        "url": "https://dubailand.gov.ae/en/eservices/request-for-golden-visa-investor/"
+      },
+      {
+        "title": "GDRFA: Golden residence permit — Investors",
+        "url": "https://www.gdrfad.gov.ae/en/services/8ea80da4-f43e-11eb-0320-0050569629e8"
+      }
+    ],
+    "updated": "2026-10-24"
+  },
+  {
+    "slug": "best-communities-for-rental-yield",
+    "title": "Comparing Dubai rental yields: five neighbourhoods, one honest worksheet",
+    "category": "Market Insight",
+    "date": "2026-05-04",
+    "readTime": "2 min read",
+    "image": "assets/images/blog/rental-yield-communities.webp",
+    "excerpt": "A practical way to compare JVC, Business Bay, Dubai Marina, Dubai Hills and Dubai South without relying on unsupported yield rankings.",
+    "content": "There is no single rental yield for an entire Dubai neighbourhood. The purchase price, building costs, condition and rent actually achieved matter more than a headline league table. Compare individual units with the same worksheet before choosing an area.",
+    "sections": [
+      {
+        "title": "Use one definition of yield",
+        "text": "For a simple gross yield, divide annual rent by purchase price and multiply by 100. A home priced at AED 1 million with AED 70,000 annual rent has a hypothetical gross yield of 7%. That is an illustration, not an estimate for a current listing. Net income requires a second calculation that deducts your expected operating costs. Financing and acquisition costs should also be shown separately so you can see what the property earns and what cash reaches you."
+      },
+      {
+        "title": "Jumeirah Village Circle: compare the building",
+        "text": "For a JVC shortlist, compare units with a similar size and layout rather than grouping every apartment under the community name. Ask about service charges, parking, access and the condition of common areas. A lower purchase price can be attractive, but it should be considered with the cost of keeping the apartment ready for the next tenant. Ask what evidence supports the proposed rent for that specific building."
+      },
+      {
+        "title": "Business Bay and Dubai Marina: compare daily use",
+        "text": "Look beyond proximity to a recognisable skyline. Check the journey from the building entrance to transport, the practical parking arrangement and the noise at the times a resident would be home. In Marina, inspect access and waterfront orientation; in Business Bay, check the exact location and surrounding works. Two apartments described as being in the same area can offer very different everyday experiences. Match your rental comparison to the actual unit."
+      },
+      {
+        "title": "Dubai Hills and Dubai South: compare what is available now",
+        "text": "When discussing these communities, distinguish existing amenities from future plans and measure the commute yourself. Identify the tenant you expect the home to suit and the features that tenant would use. Ask for comparable units with similar delivery and occupancy status. A future facility or hoped-for rental premium should be an explicit scenario in your worksheet, with a second case that does not rely on it."
+      },
+      {
+        "title": "Build a downside case",
+        "text": "Repeat the calculation with one month of vacancy, a maintenance allowance and a lower rent assumption. Include furnishing and management costs if they apply to your intended letting arrangement. For financed purchases, add repayments to a cash-flow view without confusing them with gross yield. If an ordinary repair or a delayed tenancy makes the figures unmanageable, revisit the price or the cash reserve before making an offer."
+      },
+      {
+        "title": "Check evidence and its date",
+        "text": "DLD’s open-data pages provide routes to transaction and rent information, including historical data. Record the date, property type and period used in your comparison. Separate advertised asking rents from evidence of actual agreements, and ask about differences between the comparable and the home you are considering. Bring SWK two or three candidate units with the same cost assumptions. A useful comparison explains uncertainty rather than promising a return."
+      }
+    ],
+    "sources": [
+      {
+        "title": "DLD: Real Estate Data",
+        "url": "https://dubailand.gov.ae/en/open-data/real-estate-data/"
+      },
+      {
+        "title": "DLD: Open Data",
+        "url": "https://dubailand.gov.ae/en/open-data/"
+      }
+    ],
+    "updated": "2026-10-24"
+  }
 ]

@@ -67,3 +67,24 @@ Add new files under `src/assets/`, never directly in `public/` (the build delete
 - Each page gets a meta CSP with computed script hashes (`csp_for` in `build.py`); extra headers live in `vercel.json`.
 - Generated: `sitemap.xml` (with images), `robots.txt`, `feed.xml`, `manifest.webmanifest`, `.well-known/security.txt`, `/cookies/`.
 - `python3 tools/make-icons.py` rebuilds favicon/PWA icons. Hero poster is saved as `src/assets/images/hero/hero-scene(.webp|-mobile.webp)`.
+
+## Cinematic refinement (October 2026)
+
+- `src/css/premium.css` layers pearl, champagne and muted plum over the existing navy; it preserves page structure and includes reduced-motion and mobile rules.
+- `src/js/modules/80-concierge.js` provides a deterministic website assistant and explicit WhatsApp handoff. It has no LLM API, agent inbox, server persistence or online-agent detection. A staffed live-chat service remains an integration task.
+- Approved customer testimonials belong in `data/testimonials.json` as `{ "quote": "...", "name": "...", "context": "..." }`. Verify permission and provenance before adding them. Until then, the homepage explicitly presents eight service commitments, not reviews. Never add fabricated review schema.
+- The new services artwork is an AI-created Dubai illustration, used only on `/services/`. Source: built-in image generation. Prompt: photorealistic Dubai skyline from a limestone terrace at blue hour; distant Burj Khalifa, pearl/mauve/bronze tones, realistic glass and atmospheric depth, space left for a headline; no text, people or trees. Asset: `src/assets/images/hero/dubai-services-cinematic.webp`.
+- The WebGL skyline is a stylised composite with developer wordmarks, not a geographically exact recreation or an assertion of a developer relationship. Vehicle details use generic sedan/SUV geometry, not licensed manufacturer models. A film-quality, location-accurate scene needs surveyed/licensed geometry, texture and reference work.
+- **Hero posters must be re-rendered after the skyline change.** The existing posters still show the previous scene. Follow the `/?hold` procedure above with a working browser before production deployment.
+
+### Editorial expansion
+
+The three existing journal posts now support answer-first introductions, individual sections, official source links and a real `dateModified`. Existing URLs and publication dates are preserved. Their updated date is 24 October 2026. They do not promise yields, eligibility or processing times.
+
+The requested 400+ article archive is **not published by this change**. Create individually researched articles covering the 2011–2026 period as retrospectives published on their actual publication date. Source historical comparisons from DLD open data and Digital Dubai; state the period and methodology, distinguish asking prices from completed transactions, and document revisions. Do not manufacture a historical SWK publishing history or multiply near-identical keyword pages. Google guidance: https://developers.google.com/search/docs/essentials/spam-policies#scaled-content
+
+Before expanding: add category pagination, search, author/reviewer records, per-article source dates, unique media and related-content limits. Each article needs an original question, verified evidence, a useful answer and editorial review. Ranking or inclusion in AI answers cannot be guaranteed.
+
+### Validation for this change
+
+`python3 build.py`, `python3 tools/check-static.py`, JavaScript syntax checks, and `git diff --check` pass. Browser QA includes new carousel and chat checks in `tools/qa.js`, but could not run in the editing environment: Chromium is absent, its download failed, and the remote browser cannot access the local preview. Desktop/mobile visual QA, performance and the poster re-render remain required before merging. Form endpoints, licence fields and analytics verification still require owner configuration as documented above.
