@@ -1,0 +1,4 @@
+'use strict';
+// Start tools/dev-server.js in the same environment before running this script.
+const L=require('./lib');const path=require('node:path');
+(async()=>{const browser=await L.launch();try{for(const [width,height,scale,name] of [[1600,1067,1,'desktop'],[600,900,1.5,'mobile']]){const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:scale});await page.goto(L.BASE+'/?hold');await page.waitForFunction(()=>document.querySelector('.hero.is-gl'),null,{timeout:20000});await page.addStyleTag({content:'body * {visibility:hidden!important} .hero__gl {visibility:visible!important;opacity:1!important}'});await page.locator('.hero__gl').screenshot({path:path.resolve(process.env.POSTER_DIR||'/tmp/swk-shots','poster-'+name+'.png')});await page.close();}}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

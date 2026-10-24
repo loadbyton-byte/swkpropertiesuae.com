@@ -1,0 +1,13 @@
+{
+  "name": "Dubai Real Estate Data, based on Dubai Land Department open data",
+  "url": "https://huggingface.co/datasets/dubairealestatedata/dubai-real-estate-sales-transactions",
+  "download": "https://huggingface.co/datasets/dubairealestatedata/dubai-real-estate-sales-transactions/resolve/main/dld_sales_transactions.parquet",
+  "license": "CC BY 4.0",
+  "sha256": "73be9631af185f4ba599ea299752deecdb137cbbe36c0afb95abc5e186d8b5e1",
+  "rows": 1372277,
+  "cutoff": "2026-10-05",
+  "generated": "2026-10-24",
+  "method": "quality_flags == 0; property_type_label in Unit,Villa; usage_label == Residential; positive price_psf; years 2011–2026; top 26 areas by qualifying count per year with at least 50 records. Medians of per-registration price_psf, not aggregate price divided by aggregate area. All totals are for this filtered sample, not all Dubai sales. Quarterly and bedroom cells under 10 records are not interpreted as reliable benchmarks.",
+  "reports": 416,
+  "disclosure": "Programmatic statistical analysis by SWK; source is an independent licensed mirror of DLD data, not a direct official data connection. Not independently reconciled to a complete DLD extract. Source coverage ends 5 October 2026; this is not a live feed. No historical publication dates are implied."
+}

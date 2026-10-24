@@ -251,7 +251,10 @@
     var leadShown = false, leadTimer = null;
     function leadAllowed() {
       if (!lead || leadShown || openDialog) return false;
-      if (/^\/(contact|privacy|terms|cookies)\//.test(location.pathname)) return false;
+      var chat = SWK.$('#swk-chat-panel');
+      if (chat && !chat.hidden) return false;
+      if (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return false;
+      if (/^\/(contact|privacy|terms|cookies|swk-inbox)\//.test(location.pathname)) return false;
       var last = parseInt(store('swk_lead') || '0', 10);
       if (last && Date.now() - last < 14 * 864e5) return false;
       if (banner && !banner.hidden && !consent) return false;

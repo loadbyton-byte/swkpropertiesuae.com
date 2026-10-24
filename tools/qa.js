@@ -31,7 +31,15 @@ function pagesFromSitemap() {
 
   // ---------------------------------------------------------------- every page
   sect('Every page: errors, SEO, links, images, overflow' + (AXE ? ', axe' : ''));
-  const urls = pagesFromSitemap();
+  let urls = pagesFromSitemap();
+  if (process.env.QA_RESEARCH_SAMPLE === '1') {
+    const research = JSON.parse(require('node:zlib').gunzipSync(fs.readFileSync(require('path').resolve(__dirname, '..', 'data/research.json.gz'))));
+    const sample = new Set();
+    for (let y = 2011; y <= 2026; y++) sample.add('/blog/' + research.find(r => r.period === y).slug + '/');
+    const all = new Set(research.map(r => '/blog/' + r.slug + '/'));
+    urls = urls.filter(u => !all.has(u) || sample.has(u));
+    console.log('  Browser sample: every public template, each research year index, and one report per year. Run without QA_RESEARCH_SAMPLE for every URL.');
+  }
   const { page, msgs, ctx } = await newPage(b);
   const checkedLinks = new Set();
   for (const u of urls) {
@@ -87,7 +95,7 @@ function pagesFromSitemap() {
   // ---------------------------------------------------------------- home deep dive
   sect('Home: WebGL hero, scroll scrub, captions');
   msgs.length = 0;
-  await page.goto(L.BASE + '/', { waitUntil: 'load' });
+  await page.goto(L.BASE + '/?scene=3d', { waitUntil: 'load' });
   await page.waitForFunction(() => document.querySelector('.hero.is-gl'), null, { timeout: 20000 }).catch(() => {});
   ok(await page.evaluate(() => !!document.querySelector('.hero.is-gl')), 'hero reached is-gl');
   await page.waitForTimeout(3600);
@@ -178,11 +186,12 @@ function pagesFromSitemap() {
 
   // Text-only stories and the site assistant.
   await page.locator('[data-review-carousel]').scrollIntoViewIfNeeded();
-  await page.click('[data-review-pause]');
+  if ((await page.getAttribute('[data-review-pause]', 'aria-pressed')) === 'false') await page.click('[data-review-pause]');
+  const storyBefore = parseInt(await page.textContent('[data-review-count]'));
   await page.click('[data-review-next]');
-  ok((await page.textContent('[data-review-count]')) === '2 / 8', 'story carousel next');
+  ok((await page.textContent('[data-review-count]')) === ((storyBefore % 8) + 1) + ' / 8', 'story carousel next');
   await page.click('[data-review-prev]'); await page.click('[data-review-prev]');
-  ok((await page.textContent('[data-review-count]')) === '8 / 8', 'story carousel wraps');
+  ok((await page.textContent('[data-review-count]')) === ((storyBefore + 6) % 8 + 1) + ' / 8', 'story carousel wraps');
   await page.click('[data-chat-toggle]');
   ok(await page.locator('#swk-chat-panel').isVisible(), 'concierge opens');
   await page.fill('#swk-chat-input', '<script>alert(1)</script> buy a home');

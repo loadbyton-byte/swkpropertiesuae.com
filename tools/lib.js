@@ -7,7 +7,7 @@ const IGNORABLE = [/\/assets\/fonts\//];
 const BASE = process.env.BASE || 'http://localhost:8765';
 const BROWSER_ARGS = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl'];
 
-async function launch() { return pw.chromium.launch({ args: BROWSER_ARGS }); }
+async function launch() { return pw.chromium.launch({ args: BROWSER_ARGS, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) }); }
 
 // Collect everything that would show up red in DevTools.
 function watch(page, bucket) {

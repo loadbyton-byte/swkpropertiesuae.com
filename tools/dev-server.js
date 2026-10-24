@@ -11,7 +11,7 @@ const PORT = Number(process.argv[2]) || 8765;
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json', '.xml': 'application/xml', '.txt': 'text/plain; charset=utf-8', '.svg': 'image/svg+xml',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2',
+  '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2',
 };
 
 function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -23,8 +23,10 @@ function placeholder(url) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},45%,28%)"/><stop offset="1" stop-color="hsl(${hue2},55%,14%)"/></linearGradient></defs><rect width="900" height="1200" fill="url(#g)"/><circle cx="650" cy="260" r="120" fill="hsl(${hue2},70%,60%)" opacity=".25"/><text x="50%" y="52%" fill="#fff" fill-opacity=".55" font-family="sans-serif" font-size="40" text-anchor="middle">${label}</text></svg>`;
 }
 
-http.createServer((req, res) => {
+function createServer(chat) { return http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
+  if (u.pathname === '/api/chat') return (chat ? chat.visitor : require('../api/chat.js'))(req, res);
+  if (u.pathname === '/api/chat-admin') return (chat ? chat.operator : require('../api/chat-admin.js'))(req, res);
   let p = decodeURIComponent(u.pathname);
   let file = path.join(ROOT, p);
   if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
@@ -40,4 +42,6 @@ http.createServer((req, res) => {
   const nf = path.join(ROOT, '404.html');
   res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(fs.existsSync(nf) ? fs.readFileSync(nf) : 'Not found');
-}).listen(PORT, () => console.log(`http://localhost:${PORT}`));
+}); }
+module.exports = { createServer };
+if (require.main === module) createServer().listen(PORT, () => console.log(`http://localhost:${PORT}`));
